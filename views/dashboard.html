@@ -1,0 +1,76 @@
+<div class="metrics-grid mb-4">
+  <div class="metric-card">
+    <div class="metric-info">
+      <h4>Total Pedidos</h4>
+      <div id="statTotalOrders" class="metric-value">0</div>
+    </div>
+    <div class="metric-icon-box metric-blue">
+      <i class="bi bi-cart3 fs-3"></i>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-info">
+      <h4>Pedidos Pendientes</h4>
+      <div id="statPendingOrders" class="metric-value">0</div>
+    </div>
+    <div class="metric-icon-box metric-amber">
+      <i class="bi bi-clock-history fs-3"></i>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-info">
+      <h4>Envíos Activos</h4>
+      <div id="statActiveShipments" class="metric-value">0</div>
+    </div>
+    <div class="metric-icon-box metric-indigo">
+      <i class="bi bi-truck fs-3"></i>
+    </div>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-info">
+      <h4>Clientes Registrados</h4>
+      <div id="statTotalClients" class="metric-value">0</div>
+    </div>
+    <div class="metric-icon-box metric-emerald">
+      <i class="bi bi-people fs-3"></i>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="content-card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="bi bi-cart3 text-primary"></i> Últimos Pedidos</h3>
+        <button class="btn btn-sm btn-outline-secondary" onclick="app.navigateTo('pedidos')">Ver Todos</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table custom-table mb-0">
+          <thead>
+            <tr>
+              <th>N° Pedido</th>
+              <th>Cliente</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="dashOrdersTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="content-card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="bi bi-truck text-primary"></i> Guías Activas</h3>
+        <button class="btn btn-sm btn-outline-secondary" onclick="app.navigateTo('envios')">Ver Envíos</button>
+      </div>
+      <div id="dashShipmentsList" class="p-3 d-flex flex-column gap-3"></div>
+    </div>
+  </div>
+</div>

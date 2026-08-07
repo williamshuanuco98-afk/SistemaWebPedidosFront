@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>INPLABEL | Sistema de Gestión de Pedidos y Envíos</title>
+  <meta name="description" content="Plataforma web para la gestión integral de pedidos, guías de remisión y envíos.">
+
+  <!-- Google Fonts: Sora & Manrope -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/styles.css?v=4.0">
+</head>
+
+<body>
+
+  <div class="app-container">
+    <!-- Vertical Sidebar (Dark Minimalist) -->
+    <aside id="sidebar" class="sidebar">
+      <div>
+        <div class="sidebar-header">
+          <a href="#dashboard" class="brand-logo">
+            <img src="img/inplabel-logo.png" alt="Inplabel - Industrias plasticos belsa S.A.C" class="brand-logo-img">
+          </a>
+          <button id="toggleSidebarBtn" class="toggle-sidebar-btn" title="Alternar menú">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+        </div>
+
+        <nav class="sidebar-nav">
+
+          <button class="nav-item active" data-route="dashboard">
+            <i class="bi bi-grid-1x2-fill icon"></i>
+            <span class="nav-label">Dashboard</span>
+          </button>
+
+          <button class="nav-item" data-route="pedidos">
+            <i class="bi bi-cart-check-fill icon"></i>
+            <span class="nav-label">Gestión Pedidos</span>
+            <span id="badgePedidos" class="badge-count d-none">0</span>
+          </button>
+
+          <button class="nav-item" data-route="envios">
+            <i class="bi bi-truck icon"></i>
+            <span class="nav-label">Guías y Envíos</span>
+            <span id="badgeEnvios" class="badge-count d-none">0</span>
+          </button>
+
+          <button class="nav-item" data-route="clientes">
+            <i class="bi bi-people-fill icon"></i>
+            <span class="nav-label">Clientes</span>
+          </button>
+
+          <button class="nav-item" data-route="productos">
+            <i class="bi bi-box-seam-fill icon"></i>
+            <span class="nav-label">Catálogo Productos</span>
+          </button>
+
+          <button class="nav-item" data-route="bd">
+            <i class="bi bi-database-fill-gear icon"></i>
+            <span class="nav-label">Estado Base Datos</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar">IN</div>
+          <div class="user-info">
+            <span class="user-name">Operaciones Inplabel</span>
+            <span class="user-role">Spring Boot + MySQL</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Area -->
+    <main class="main-content">
+      <!-- Top Header Navbar -->
+      <header class="top-navbar">
+        <h1 id="pageTitle" class="navbar-title">
+          <i class="bi bi-speedometer2 text-primary"></i> Panel General de Control
+        </h1>
+
+        <div class="navbar-actions">
+          <div id="backendStatusIndicator" class="status-badge ACTIVA py-2 px-3 fs-7"
+            style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;">
+            <i class="bi bi-check-circle-fill me-1"></i> Spring Boot: Conectado
+          </div>
+        </div>
+      </header>
+
+      <!-- Dynamic View Container (Loads template partials asynchronously) -->
+      <div id="viewContainer" class="page-body">
+        <div class="d-flex justify-content-center align-items-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- BOOTSTRAP MODALS -->
+
+  <!-- Nuevo Pedido Modal -->
+  <div class="modal fade" id="orderModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 id="orderModalTitle" class="modal-title fw-bold">Ingresar Nuevo Pedido</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="orderForm">
+          <div class="modal-body">
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Cliente / Razón Social *</label>
+                <select id="orderClientSelect" class="form-select" required></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Estado del Pedido</label>
+                <select id="orderStatusSelect" class="form-select">
+                  <option value="PENDIENTE">PENDIENTE</option>
+                  <option value="EN_PROCESO">EN PROCESO</option>
+                  <option value="COMPLETADO">COMPLETADO</option>
+                  <option value="CANCELADO">CANCELADO</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Fecha de Registro *</label>
+                <input type="date" id="orderDateField" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0">Productos e Ítems Solicitados</h6>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="app.addOrderProductRow()">
+                  <i class="bi bi-plus-lg"></i> Añadir Producto
+                </button>
+              </div>
+              <div id="orderProductRowsContainer" class="d-flex flex-column gap-2"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Registrar Pedido</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nueva Guía Modal -->
+  <div class="modal fade" id="shipmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 id="shipmentModalTitle" class="modal-title fw-bold">Registrar Guía de Envío</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="shipmentForm">
+          <div class="modal-body">
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">N° Guía Remisión</label>
+                <input type="text" id="shipmentNroInput" class="form-control" placeholder="Ej: G002-00045">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Estado de Envío</label>
+                <select id="shipmentStatusSelect" class="form-select">
+                  <option value="EN_TRANSITO">EN TRÁNSITO</option>
+                  <option value="ENTREGADO">ENTREGADO</option>
+                  <option value="ACTIVA">ACTIVA</option>
+                  <option value="ANULADO">ANULADO</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Cliente *</label>
+                <select id="shipmentClientSelect" class="form-select" required></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Fecha Emisión *</label>
+                <input type="date" id="shipmentDateField" class="form-control" required>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Emitir Guía</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nuevo Cliente Modal -->
+  <div class="modal fade" id="clientModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Registrar Nuevo Cliente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="clientForm">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Tipo Documento</label>
+              <select id="clientDocType" class="form-select">
+                <option value="RUC">RUC</option>
+                <option value="DNI">DNI</option>
+                <option value="CE">CARNET EXTRANJERÍA</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">N° Documento *</label>
+              <input type="text" id="clientDocNumber" class="form-control" required placeholder="Ej: 20601234567">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Razón Social / Nombre Completo *</label>
+              <input type="text" id="clientName" class="form-control" required
+                placeholder="Nombre de la empresa o cliente">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Dirección Fiscal</label>
+              <input type="text" id="clientAddress" class="form-control" placeholder="Av. Principal #123, Lima">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar Cliente</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nuevo Producto Modal -->
+  <div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Registrar Nuevo Producto</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="productForm">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Nombre del Producto / Insumo *</label>
+              <input type="text" id="productNameInput" class="form-control" required
+                placeholder="Ej: ETIQUETA ADHESIVA 50X30MM AUTOADHESIVA">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Categoría</label>
+              <input type="text" id="productCategoryInput" class="form-control" value="Etiquetas & Insumos"
+                placeholder="Categoría de producto">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar Producto</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detalle Pedido Modal -->
+  <div class="modal fade" id="orderDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 id="orderDetailTitle" class="modal-title fw-bold">Detalle de Pedido</h5>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer"></i>
+              Imprimir</button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+        </div>
+        <div id="orderDetailBody" class="modal-body"></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>

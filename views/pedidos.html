@@ -1,0 +1,35 @@
+<div class="content-card">
+  <div class="card-header flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <h3 class="card-title mb-0"><i class="bi bi-cart-check text-primary"></i> Listado de Pedidos</h3>
+      <span id="ordersCountBadge" class="badge bg-secondary">0</span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <select id="filterOrderStatus" class="form-select form-select-sm" style="width: auto;">
+        <option value="ALL">Todos los Estados</option>
+        <option value="PENDIENTE">PENDIENTE</option>
+        <option value="EN_PROCESO">EN PROCESO</option>
+        <option value="COMPLETADO">COMPLETADO</option>
+        <option value="CANCELADO">CANCELADO</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="app.openNewOrderModal()">
+        <i class="bi bi-plus-lg"></i> Ingresar Pedido
+      </button>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table custom-table mb-0">
+      <thead>
+        <tr>
+          <th>N° Pedido</th>
+          <th>Cliente / Razón Social</th>
+          <th>Fecha Pedido</th>
+          <th>Estado</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="pedidosTableBody"></tbody>
+    </table>
+  </div>
+</div>

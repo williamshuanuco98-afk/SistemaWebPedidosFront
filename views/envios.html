@@ -1,0 +1,26 @@
+<div class="content-card">
+  <div class="card-header flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <h3 class="card-title mb-0"><i class="bi bi-truck text-primary"></i> Guías y Envíos</h3>
+      <span id="shipmentsCountBadge" class="badge bg-secondary">0</span>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="app.openNewShipmentModal()">
+      <i class="bi bi-plus-lg"></i> Registrar Envío
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table custom-table mb-0">
+      <thead>
+        <tr>
+          <th>N° Guía</th>
+          <th>Cliente y Destino</th>
+          <th>Fecha Guía</th>
+          <th>Estado</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="enviosTableBody"></tbody>
+    </table>
+  </div>
+</div>
