@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/styles.css?v=4.0">
+  <link rel="stylesheet" href="css/styles.css?v=40.0">
 </head>
 
 <body>
@@ -30,7 +30,7 @@
       <div>
         <div class="sidebar-header">
           <a href="#dashboard" class="brand-logo">
-            <img src="img/inplabel-logo.png" alt="Inplabel - Industrias plasticos belsa S.A.C" class="brand-logo-img">
+            <img id="brandLogoImg" src="img/inplabel-logo.png" alt="Inplabel" class="brand-logo-img">
           </a>
           <button id="toggleSidebarBtn" class="toggle-sidebar-btn" title="Alternar menú">
             <i class="bi bi-chevron-left"></i>
@@ -66,9 +66,14 @@
             <span class="nav-label">Catálogo Productos</span>
           </button>
 
-          <button class="nav-item" data-route="bd">
-            <i class="bi bi-database-fill-gear icon"></i>
-            <span class="nav-label">Estado Base Datos</span>
+          <button class="nav-item" data-route="config">
+            <i class="bi bi-gear-fill icon"></i>
+            <span class="nav-label">Configuración</span>
+          </button>
+
+          <button id="themeToggleBtn" class="nav-item theme-toggle-item" title="Cambiar Tema (Modo Claro / Oscuro)">
+            <i id="themeToggleIcon" class="bi bi-moon-stars-fill icon text-success"></i>
+            <span id="themeToggleLabel" class="nav-label">Modo Oscuro</span>
           </button>
         </nav>
       </div>

@@ -1,0 +1,69 @@
+<div class="row g-4 mb-4">
+  <!-- Appearance & Theme Card -->
+  <div class="col-md-6">
+    <div class="content-card p-4 h-100">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="p-3 rounded-circle bg-success bg-opacity-10 text-success">
+          <i class="bi bi-palette-fill fs-3"></i>
+        </div>
+        <div>
+          <h2 class="h5 fw-bold mb-1">Apariencia del Sistema</h2>
+          <p class="text-muted small mb-0">Personaliza la interfaz del sistema Inplabel</p>
+        </div>
+      </div>
+      <hr>
+      <div class="d-flex align-items-center justify-content-between p-3 rounded border">
+        <div>
+          <strong class="d-block mb-1">Tema de Color</strong>
+          <span class="text-muted small">Alterna entre Modo Claro minimalista y Modo Oscuro Carbon</span>
+        </div>
+        <button id="configThemeToggleBtn" class="btn btn-outline-success d-flex align-items-center gap-2" onclick="app.toggleTheme()">
+          <i id="configThemeIcon" class="bi bi-moon-stars-fill"></i>
+          <span id="configThemeText">Cambiar Tema</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Information & Database Status Card -->
+  <div class="col-md-6">
+    <div class="content-card p-4 h-100">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-server fs-3"></i>
+        </div>
+        <div>
+          <h2 class="h5 fw-bold mb-1">Estado del Servidor & Base de Datos</h2>
+          <p class="text-muted small mb-0">API REST Spring Boot 3.2.5 + MySQL 8.0</p>
+        </div>
+      </div>
+      <hr>
+      <div class="row g-2">
+        <div class="col-6">
+          <div class="p-3 bg-light rounded border">
+            <span class="small text-muted d-block font-monospace">ESTADO CONEXIÓN</span>
+            <span class="badge bg-success mt-1">MySQL CONECTADO</span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="p-3 bg-light rounded border">
+            <span class="small text-muted d-block font-monospace">ENDPOINT API</span>
+            <span class="small fw-semibold text-primary">http://localhost:8080/api</span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="p-3 bg-light rounded border">
+            <span class="small text-muted d-block font-monospace">CLIENTES REGISTRADOS</span>
+            <strong id="bdClientsCount" class="fs-6 text-primary">341 Clientes</strong>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="p-3 bg-light rounded border">
+            <span class="small text-muted d-block font-monospace">CATÁLOGO PRODUCTOS</span>
+            <strong id="bdProductsCount" class="fs-6 text-success">706 Productos</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

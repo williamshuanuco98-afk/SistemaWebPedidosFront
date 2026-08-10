@@ -1,6 +1,7 @@
 class ModularSpaApp {
   constructor() {
     this.currentRoute = 'dashboard';
+    this.currentTheme = 'light';
     this.searchQuery = '';
     this.viewCache = {};
 
@@ -25,6 +26,10 @@ class ModularSpaApp {
     this.initBootstrapModals();
     this.bindGlobalEvents();
 
+    // Restore saved theme or default to light
+    const savedTheme = localStorage.getItem('inplabel_theme') || 'light';
+    this.setTheme(savedTheme);
+
     // Check initial hash route
     const hash = window.location.hash.replace('#', '');
     if (hash && ['dashboard', 'pedidos', 'envios', 'clientes', 'productos', 'bd'].includes(hash)) {
@@ -33,6 +38,50 @@ class ModularSpaApp {
 
     await this.navigateTo(this.currentRoute);
     await this.refreshData();
+  }
+
+  setTheme(theme) {
+    this.currentTheme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('inplabel_theme', theme);
+
+    const logoImg = document.getElementById('brandLogoImg');
+    const themeIcon = document.getElementById('themeToggleIcon');
+    const themeLabel = document.getElementById('themeToggleLabel');
+    const configIcon = document.getElementById('configThemeIcon');
+    const configText = document.getElementById('configThemeText');
+
+    if (theme === 'dark') {
+      if (logoImg) logoImg.src = 'img/inplabel-logo-dark.png';
+      if (themeIcon) {
+        themeIcon.className = 'bi bi-sun-fill icon';
+        themeIcon.style.color = '#f59e0b';
+      }
+      if (themeLabel) themeLabel.textContent = 'Modo Claro';
+
+      if (configIcon) {
+        configIcon.className = 'bi bi-sun-fill text-warning';
+      }
+      if (configText) configText.textContent = 'Modo Claro';
+    } else {
+      if (logoImg) logoImg.src = 'img/inplabel-logo.png';
+      if (themeIcon) {
+        themeIcon.className = 'bi bi-moon-stars-fill icon';
+        themeIcon.style.color = '#10b981';
+      }
+      if (themeLabel) themeLabel.textContent = 'Modo Oscuro';
+
+      if (configIcon) {
+        configIcon.className = 'bi bi-moon-stars-fill text-success';
+      }
+      if (configText) configText.textContent = 'Modo Oscuro';
+    }
+  }
+
+  toggleTheme() {
+    const nextTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+    this.setTheme(nextTheme);
   }
 
   initBootstrapModals() {
@@ -50,6 +99,12 @@ class ModularSpaApp {
   }
 
   bindGlobalEvents() {
+    // Theme toggle
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => this.toggleTheme());
+    }
+
     // Sidebar toggle
     const toggleBtn = document.getElementById('toggleSidebarBtn');
     if (toggleBtn) {
@@ -144,6 +199,7 @@ class ModularSpaApp {
       envios: '<i class="bi bi-truck text-primary"></i> Guías y Envíos',
       clientes: '<i class="bi bi-people text-primary"></i> Directorio de Clientes',
       productos: '<i class="bi bi-box-seam text-primary"></i> Catálogo de Productos',
+      config: '<i class="bi bi-gear-fill text-primary"></i> Configuración del Sistema',
       bd: '<i class="bi bi-database-check text-primary"></i> Estado Base de Datos'
     };
     const titleElem = document.getElementById('pageTitle');
@@ -241,6 +297,7 @@ class ModularSpaApp {
 
   renderCurrentView() {
     this.updateBadges();
+    this.setTheme(this.currentTheme);
     const route = this.currentRoute;
 
     if (route === 'dashboard') {
