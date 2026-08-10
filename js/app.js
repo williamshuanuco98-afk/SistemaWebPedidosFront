@@ -68,7 +68,7 @@ class ModularSpaApp {
       if (logoImg) logoImg.src = 'img/inplabel-logo.png';
       if (themeIcon) {
         themeIcon.className = 'bi bi-moon-stars-fill icon';
-        themeIcon.style.color = '#10b981';
+        themeIcon.style.color = '#17644aff';
       }
       if (themeLabel) themeLabel.textContent = 'Modo Oscuro';
 
@@ -195,10 +195,10 @@ class ModularSpaApp {
     // Update Header Titles
     const titles = {
       dashboard: '<i class="bi bi-speedometer2 text-primary"></i> Panel General de Control',
-      pedidos: '<i class="bi bi-cart-check text-primary"></i> Gestión de Pedidos',
-      envios: '<i class="bi bi-truck text-primary"></i> Guías y Envíos',
-      clientes: '<i class="bi bi-people text-primary"></i> Directorio de Clientes',
-      productos: '<i class="bi bi-box-seam text-primary"></i> Catálogo de Productos',
+      pedidos: '<i class="bi bi-cart-check text-primary"></i> Pedidos',
+      envios: '<i class="bi bi-truck text-primary"></i> Guías ',
+      clientes: '<i class="bi bi-people text-primary"></i> Clientes',
+      productos: '<i class="bi bi-box-seam text-primary"></i> Productos',
       config: '<i class="bi bi-gear-fill text-primary"></i> Configuración del Sistema',
       bd: '<i class="bi bi-database-check text-primary"></i> Estado Base de Datos'
     };
@@ -387,8 +387,8 @@ class ModularSpaApp {
     const filtered = this.orders.filter(o => {
       const matchStatus = filterVal === 'ALL' || o.estado === filterVal;
       const q = this.searchQuery.toLowerCase();
-      const matchSearch = !q || 
-        (o.nro_pedido && o.nro_pedido.toLowerCase().includes(q)) || 
+      const matchSearch = !q ||
+        (o.nro_pedido && o.nro_pedido.toLowerCase().includes(q)) ||
         (o.nombre_cliente && o.nombre_cliente.toLowerCase().includes(q));
       return matchStatus && matchSearch;
     });
@@ -424,8 +424,8 @@ class ModularSpaApp {
 
     const filtered = this.shipments.filter(s => {
       const q = this.searchQuery.toLowerCase();
-      return !q || 
-        (s.nro_guia && s.nro_guia.toLowerCase().includes(q)) || 
+      return !q ||
+        (s.nro_guia && s.nro_guia.toLowerCase().includes(q)) ||
         (s.nombre_cliente && s.nombre_cliente.toLowerCase().includes(q));
     });
 
@@ -462,8 +462,8 @@ class ModularSpaApp {
 
     const filtered = this.clients.filter(c => {
       const q = this.searchQuery.toLowerCase();
-      return !q || 
-        (c.nombre_cliente && c.nombre_cliente.toLowerCase().includes(q)) || 
+      return !q ||
+        (c.nombre_cliente && c.nombre_cliente.toLowerCase().includes(q)) ||
         (c.nro_documento && c.nro_documento.includes(q));
     });
 
