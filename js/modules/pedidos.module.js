@@ -39,7 +39,7 @@ export function renderPedidosTable(orders = [], searchQuery = '') {
 
   filtered.forEach(o => {
     const tr = document.createElement('tr');
-    const estabText = o.id_pedido % 2 === 0 ? 'Planta Principal - Lurín' : 'Sede Comercial - Lima';
+    const estabText = o.id_pedido % 2 === 0 ? 'Planta Principal - Comas' : 'Sucursal - Carabayllo';
 
     tr.innerHTML = `
       <td class="fw-bold text-primary">${o.nro_pedido || ('PED-' + o.id_pedido)}</td>
@@ -71,6 +71,6 @@ function setupDefaultDateFilters() {
   }
 }
 
-export function populateClientSelect(clients) {}
-export function resetProductRows() {}
-export function addOrderProductRow() {}
+export function populateClientSelect(clients) { }
+export function resetProductRows() { }
+export function addOrderProductRow() { }
