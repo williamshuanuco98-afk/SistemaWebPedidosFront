@@ -33,14 +33,14 @@
 }
 
 [data-theme="dark"] {
-  --bg-main: #0f172a;
+  --bg-main: #0b1329;
   --bg-sidebar: #1e293b;
   --bg-sidebar-hover: #334155;
   --bg-card: #1e293b;
 
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
+  --text-muted: #94a3b8;
   --text-sidebar: #e2e8f0;
 
   --border-color: #334155;

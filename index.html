@@ -100,20 +100,20 @@
         </div>
 
         <div class="d-flex align-items-center gap-3">
-          <div id="backendStatusIndicator" class="status-badge PENDIENTE py-2 px-3 fs-7"
-            style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;">
+          <div id="backendStatusIndicator" class="status-badge PENDIENTE py-2 px-3 fs-7">
             <i class="bi bi-arrow-repeat spin me-1"></i> Verificando Backend...
           </div>
 
-          <!-- Fixed-Width Stationed Custom Theme Switch Control -->
-          <div class="custom-switch-container" onclick="app.toggleTheme()">
-            <i class="bi bi-sun-fill text-warning fs-6"></i>
-            <div class="custom-switch-track">
-              <div class="custom-switch-handle"></div>
+          <!-- Premium Theme Toggle Button -->
+          <button type="button" class="theme-toggle-pill" onclick="app.toggleTheme()" title="Alternar Modo Claro / Oscuro">
+            <div class="theme-toggle-track">
+              <div class="theme-toggle-handle">
+                <i class="bi bi-sun-fill theme-icon-sun"></i>
+                <i class="bi bi-moon-stars-fill theme-icon-moon"></i>
+              </div>
             </div>
-            <i class="bi bi-moon-stars-fill text-primary fs-6"></i>
-            <span id="themeToggleLabel" class="d-none d-md-inline fw-semibold fs-7">Modo Claro</span>
-          </div>
+            <span id="themeToggleLabel" class="theme-toggle-label">Modo Claro</span>
+          </button>
         </div>
       </header>
 
@@ -141,9 +141,8 @@
     </div>
   </div>
 
-  <!-- Application Scripts -->
-  <script src="js/api.js?v=800.0"></script>
-  <script src="js/app.js?v=800.0"></script>
+  <!-- Application Modular Script -->
+  <script type="module" src="js/main.js?v=800.0"></script>
 </body>
 
 </html>

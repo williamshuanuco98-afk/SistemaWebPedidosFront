@@ -63,10 +63,20 @@ export function renderDashboard(orders = [], shipments = [], clients = [], produ
   renderTopProductsChart(orders);
 }
 
+function getChartColors() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  return {
+    ticks: isDark ? '#cbd5e1' : '#475569',
+    grid: isDark ? '#334155' : '#e2e8f0',
+    legend: isDark ? '#f8fafc' : '#0f172a'
+  };
+}
+
 function renderTopClientsChart(orders) {
   const canvas = document.getElementById('chartTopClients');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  const colors = getChartColors();
 
   if (window.topClientsChartInstance) {
     window.topClientsChartInstance.destroy();
@@ -102,7 +112,15 @@ function renderTopClientsChart(orders) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: { beginAtZero: true, ticks: { precision: 0 } }
+        x: {
+          ticks: { color: colors.ticks },
+          grid: { color: colors.grid }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0, color: colors.ticks },
+          grid: { color: colors.grid }
+        }
       }
     }
   });
@@ -112,6 +130,7 @@ function renderMonthlyOrdersChart(orders) {
   const canvas = document.getElementById('chartMonthlyOrders');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  const colors = getChartColors();
 
   if (window.monthlyOrdersChartInstance) {
     window.monthlyOrdersChartInstance.destroy();
@@ -140,7 +159,7 @@ function renderMonthlyOrdersChart(orders) {
         label: 'Pedidos',
         data: monthlyCounts,
         borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        backgroundColor: 'rgba(16, 185, 129, 0.15)',
         fill: true,
         tension: 0.3
       }]
@@ -150,7 +169,15 @@ function renderMonthlyOrdersChart(orders) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: { beginAtZero: true, ticks: { precision: 0 } }
+        x: {
+          ticks: { color: colors.ticks },
+          grid: { color: colors.grid }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0, color: colors.ticks },
+          grid: { color: colors.grid }
+        }
       }
     }
   });
@@ -160,6 +187,7 @@ function renderTopProductsChart(orders) {
   const canvas = document.getElementById('chartTopProducts');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  const colors = getChartColors();
 
   if (window.topProductsChartInstance) {
     window.topProductsChartInstance.destroy();
@@ -195,7 +223,38 @@ function renderTopProductsChart(orders) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom' } }
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: colors.legend }
+        }
+      }
     }
   });
 }
+
+export function updateChartThemes() {
+  const colors = getChartColors();
+
+  if (window.topClientsChartInstance) {
+    window.topClientsChartInstance.options.scales.x.ticks.color = colors.ticks;
+    window.topClientsChartInstance.options.scales.x.grid.color = colors.grid;
+    window.topClientsChartInstance.options.scales.y.ticks.color = colors.ticks;
+    window.topClientsChartInstance.options.scales.y.grid.color = colors.grid;
+    window.topClientsChartInstance.update('none');
+  }
+
+  if (window.monthlyOrdersChartInstance) {
+    window.monthlyOrdersChartInstance.options.scales.x.ticks.color = colors.ticks;
+    window.monthlyOrdersChartInstance.options.scales.x.grid.color = colors.grid;
+    window.monthlyOrdersChartInstance.options.scales.y.ticks.color = colors.ticks;
+    window.monthlyOrdersChartInstance.options.scales.y.grid.color = colors.grid;
+    window.monthlyOrdersChartInstance.update('none');
+  }
+
+  if (window.topProductsChartInstance) {
+    window.topProductsChartInstance.options.plugins.legend.labels.color = colors.legend;
+    window.topProductsChartInstance.update('none');
+  }
+}
+window.updateChartThemes = updateChartThemes;

@@ -258,17 +258,12 @@ class ModularSpaApp {
 
     const indicator = document.getElementById('backendStatusIndicator');
     if (indicator) {
+      indicator.removeAttribute('style');
       if (statusData && statusData.connected) {
         indicator.className = 'status-badge ACTIVA py-2 px-3 fs-7';
-        indicator.style.background = '#f0fdf4';
-        indicator.style.color = '#16a34a';
-        indicator.style.border = '1px solid #bbf7d0';
         indicator.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Spring Boot: Conectado a MySQL';
       } else {
         indicator.className = 'status-badge CANCELADO py-2 px-3 fs-7';
-        indicator.style.background = '#fff1f2';
-        indicator.style.color = '#e11d48';
-        indicator.style.border = '1px solid #ffe4e6';
         indicator.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Spring Boot: Desconectado';
       }
     }
@@ -295,7 +290,6 @@ class ModularSpaApp {
 
   renderCurrentView() {
     this.updateBadges();
-    themeManager.setTheme(themeManager.currentTheme);
     const route = this.currentRoute;
 
     try {

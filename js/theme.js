@@ -13,23 +13,20 @@ export const themeManager = {
     localStorage.setItem('inplabel_theme', theme);
 
     const logoImg = document.getElementById('brandLogoImg');
-    const themeIcon = document.getElementById('themeToggleIcon');
     const themeLabel = document.getElementById('themeToggleLabel');
 
     if (theme === 'dark') {
       if (logoImg) logoImg.src = 'img/inplabel-logo-dark.png';
-      if (themeIcon) {
-        themeIcon.className = 'bi bi-sun-fill icon';
-        themeIcon.style.color = '#f59e0b';
-      }
-      if (themeLabel) themeLabel.textContent = 'Modo Claro';
+      if (themeLabel) themeLabel.textContent = 'Modo Oscuro';
     } else {
       if (logoImg) logoImg.src = 'img/inplabel-logo.png';
-      if (themeIcon) {
-        themeIcon.className = 'bi bi-moon-stars-fill icon';
-        themeIcon.style.color = '#17644aff';
-      }
-      if (themeLabel) themeLabel.textContent = 'Modo Oscuro';
+      if (themeLabel) themeLabel.textContent = 'Modo Claro';
+    }
+
+    if (typeof window.updateChartThemes === 'function') {
+      try {
+        window.updateChartThemes();
+      } catch (e) {}
     }
   },
 
