@@ -1,23 +1,149 @@
-import { escapeHtml } from '../helpers.js';
+import { escapeHtml, filterAndRankItems } from '../helpers.js';
+import { api } from '../api.js';
+
+let currentProducts = [];
 
 export function renderProductosTable(products = [], searchQuery = '') {
+  currentProducts = products || [];
+  const searchInput = document.getElementById('searchProductosInput');
+  if (searchInput && searchQuery) searchInput.value = searchQuery;
+  filterProductos(searchQuery || (searchInput ? searchInput.value : ''));
+}
+
+export function filterProductos(queryStr = '') {
   const tbody = document.getElementById('productosTableBody');
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  const filtered = products.filter(p => {
-    const q = searchQuery.toLowerCase();
-    return !q || (p.nombre_producto && p.nombre_producto.toLowerCase().includes(q));
-  });
+  const filtered = filterAndRankItems(
+    currentProducts, 
+    queryStr, 
+    p => `#${p.id_producto || ''} ${p.id_producto || ''} ${p.nombre_producto || ''} ${p.tipo_producto || p.categoria || ''}`
+  );
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No se encontraron productos coincidentes.</td></tr>`;
+    return;
+  }
 
   filtered.forEach(p => {
+    const tipo = p.tipo_producto || p.categoria || 'General';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="fw-bold text-muted">#${p.id_producto}</td>
       <td class="fw-semibold">${escapeHtml(p.nombre_producto)}</td>
-      <td><span class="badge bg-light text-dark border">${p.categoria || 'Etiquetas & Insumos'}</span></td>
+      <td><span class="badge bg-primary text-white px-2.5 py-1 fs-8 fw-bold">${escapeHtml(tipo)}</span></td>
       <td><span class="status-badge COMPLETADO">ACTIVO</span></td>
+      <td class="text-center">
+        <div class="d-flex justify-content-center gap-1">
+          <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="height: 28px;" title="Editar producto" onclick="productosModule.openEditProductModal(${p.id_producto})">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" style="height: 28px;" title="Eliminar producto" onclick="productosModule.deleteProduct(${p.id_producto})">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </td>
     `;
     tbody.appendChild(tr);
   });
+}
+
+export function openNewProductModal() {
+  const modalElem = document.getElementById('modalProducto');
+  if (!modalElem) return;
+
+  document.getElementById('modalProductoTitle').innerHTML = '<i class="bi bi-box-seam me-2"></i>Registrar Producto';
+  document.getElementById('modalProductoId').value = '';
+  document.getElementById('modalProductoNombre').value = '';
+  document.getElementById('modalProductoTipo').value = '';
+
+  const modal = new bootstrap.Modal(modalElem);
+  modal.show();
+}
+
+export function openEditProductModal(id) {
+  const p = currentProducts.find(item => item.id_producto === id);
+  if (!p) return;
+
+  const modalElem = document.getElementById('modalProducto');
+  if (!modalElem) return;
+
+  document.getElementById('modalProductoTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Editar Producto';
+  document.getElementById('modalProductoId').value = p.id_producto;
+  document.getElementById('modalProductoNombre').value = p.nombre_producto;
+  
+  const currentTipo = (p.tipo_producto || p.categoria || 'FRASCOS').toUpperCase();
+  const selectElem = document.getElementById('modalProductoTipo');
+  if (selectElem) {
+    selectElem.value = currentTipo;
+    // If not matched, fallback to FRASCOS
+    if (!selectElem.value) {
+      selectElem.value = 'FRASCOS';
+    }
+  }
+
+  const modal = new bootstrap.Modal(modalElem);
+  modal.show();
+}
+
+export async function saveProductFromModal() {
+  const idStr = document.getElementById('modalProductoId')?.value;
+  const nombre = document.getElementById('modalProductoNombre')?.value.trim();
+  const tipo = document.getElementById('modalProductoTipo')?.value.trim() || 'General';
+
+  if (!nombre) {
+    alert('Por favor ingrese el nombre del producto.');
+    return;
+  }
+
+  const payload = {
+    nombre_producto: nombre,
+    tipo_producto: tipo,
+    categoria: tipo
+  };
+
+  const modalElem = document.getElementById('modalProducto');
+  const modal = bootstrap.Modal.getInstance(modalElem);
+
+  if (idStr) {
+    // Edit existing product
+    const id = parseInt(idStr, 10);
+    const res = await api.updateProducto(id, payload);
+    if (res) {
+      const idx = currentProducts.findIndex(p => p.id_producto === id);
+      if (idx !== -1) {
+        currentProducts[idx].nombre_producto = nombre;
+        currentProducts[idx].tipo_producto = tipo;
+        currentProducts[idx].categoria = tipo;
+      }
+    }
+  } else {
+    // Register new product
+    const res = await api.addProducto(payload);
+    if (res) {
+      currentProducts.unshift({
+        id_producto: res.id_producto || (currentProducts.length + 1),
+        nombre_producto: nombre,
+        tipo_producto: tipo,
+        categoria: tipo
+      });
+    }
+  }
+
+  if (modal) modal.hide();
+  filterProductos();
+}
+
+export async function deleteProduct(id) {
+  const p = currentProducts.find(item => item.id_producto === id);
+  if (!p) return;
+
+  if (!confirm(`¿Está seguro de eliminar el producto #${id} "${p.nombre_producto}"?`)) {
+    return;
+  }
+
+  await api.deleteProducto(id);
+  currentProducts = currentProducts.filter(item => item.id_producto !== id);
+  filterProductos();
 }

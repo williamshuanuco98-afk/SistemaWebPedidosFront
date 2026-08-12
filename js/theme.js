@@ -3,13 +3,26 @@ export const themeManager = {
 
   initTheme() {
     const savedTheme = localStorage.getItem('inplabel_theme') || 'light';
+    // Preload logo images to avoid white flash on theme switch
+    const imgDark = new Image();
+    imgDark.src = 'img/inplabel-logo-dark.png';
+    const imgLight = new Image();
+    imgLight.src = 'img/inplabel-logo.png';
+
     this.setTheme(savedTheme);
   },
 
   setTheme(theme) {
     this.currentTheme = theme;
+    
+    // Disable CSS transitions temporarily to prevent color transition delay/lag
+    document.documentElement.classList.add('no-transitions');
+
+    // Set both data-theme and Bootstrap's native data-bs-theme synchronously
     document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-bs-theme', theme);
     document.body.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-bs-theme', theme);
     localStorage.setItem('inplabel_theme', theme);
 
     const logoImg = document.getElementById('brandLogoImg');
@@ -23,11 +36,17 @@ export const themeManager = {
       if (themeLabel) themeLabel.textContent = 'Modo Claro';
     }
 
-    if (typeof window.updateChartThemes === 'function') {
-      try {
-        window.updateChartThemes();
-      } catch (e) {}
-    }
+    // Force synchronous layout paint before re-enabling transitions
+    void document.documentElement.offsetWidth;
+
+    requestAnimationFrame(() => {
+      document.documentElement.classList.remove('no-transitions');
+      if (typeof window.updateChartThemes === 'function') {
+        try {
+          window.updateChartThemes();
+        } catch (e) {}
+      }
+    });
   },
 
   toggleTheme() {

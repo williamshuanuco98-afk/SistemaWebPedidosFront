@@ -1,4 +1,4 @@
-import { escapeHtml } from '../helpers.js';
+import { escapeHtml, filterAndRankItems } from '../helpers.js';
 import { api } from '../api.js';
 
 let state = {
@@ -46,24 +46,24 @@ function setupClientSearch() {
   if (!input || !list) return;
 
   input.addEventListener('input', () => {
-    const val = input.value.trim().toLowerCase();
+    const val = input.value.trim();
     state.activeClientIndex = -1;
 
     if (!state.selectedClient || !input.value.includes(state.selectedClient.nombre_cliente)) {
       state.selectedClient = null;
     }
 
-    const tokens = val.split(/\s+/).filter(t => t.length > 0);
-    if (tokens.length === 0) {
+    if (!val) {
       list.classList.add('d-none');
       list.innerHTML = '';
       return;
     }
 
-    const matches = state.clients.filter(c => {
-      const targetText = `${c.nro_documento || ''} ${c.nombre_cliente || ''}`.toLowerCase();
-      return tokens.every(t => targetText.includes(t));
-    }).slice(0, 15);
+    const matches = filterAndRankItems(
+      state.clients, 
+      val, 
+      c => `${c.nro_documento || ''} ${c.nombre_cliente || ''} ${c.direccion || ''}`
+    ).slice(0, 15);
 
     if (matches.length === 0) {
       list.innerHTML = `<li class="list-group-item text-muted py-2 fs-7">No se encontraron clientes para "${escapeHtml(val)}"</li>`;
@@ -137,25 +137,19 @@ function setupProductSearch() {
   if (!input || !list) return;
 
   input.addEventListener('input', () => {
-    const val = input.value.trim().toLowerCase();
+    const val = input.value.trim();
     state.activeProductIndex = -1;
-    if (val.length === 0) {
+    if (!val) {
       list.classList.add('d-none');
       list.innerHTML = '';
       return;
     }
 
-    const tokens = val.split(/\s+/).filter(t => t.length > 0);
-    if (tokens.length === 0) {
-      list.classList.add('d-none');
-      list.innerHTML = '';
-      return;
-    }
-
-    const matches = state.products.filter(p => {
-      const targetText = `#${p.id_producto || ''} ${p.id_producto || ''} ${p.nombre_producto || ''} ${p.categoria || ''}`.toLowerCase();
-      return tokens.every(t => targetText.includes(t));
-    }).slice(0, 15);
+    const matches = filterAndRankItems(
+      state.products, 
+      val, 
+      p => `#${p.id_producto || ''} ${p.id_producto || ''} ${p.nombre_producto || ''} ${p.categoria || ''}`
+    ).slice(0, 15);
 
     if (matches.length === 0) {
       list.innerHTML = `<li class="list-group-item text-muted py-2 fs-7">No se encontraron productos para "${escapeHtml(val)}"</li>`;

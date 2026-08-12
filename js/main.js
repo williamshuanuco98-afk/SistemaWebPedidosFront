@@ -20,11 +20,26 @@ import {
   removeAttachedFile
 } from './modules/nuevo-pedido.module.js';
 import { renderEnviosTable } from './modules/envios.module.js';
-import { renderClientesTable } from './modules/clientes.module.js';
-import { renderProductosTable } from './modules/productos.module.js';
+import { 
+  renderClientesTable, 
+  filterClientes, 
+  openNewClientModal, 
+  onTipoDocChange,
+  onNroDocInput, 
+  consultarSunatManual, 
+  saveClientFromModal 
+} from './modules/clientes.module.js';
+import { 
+  renderProductosTable, 
+  filterProductos, 
+  openNewProductModal, 
+  openEditProductModal, 
+  saveProductFromModal, 
+  deleteProduct 
+} from './modules/productos.module.js';
 import { renderConfigView } from './modules/config.module.js';
 
-// Attach nuevoPedidoModule functions globally for inline HTML event handlers
+// Attach modules globally for inline HTML event handlers
 window.nuevoPedidoModule = {
   clearSelectedClient,
   openAdelantoModal,
@@ -36,6 +51,23 @@ window.nuevoPedidoModule = {
   removeOrderItem,
   handleFilesAttached,
   removeAttachedFile
+};
+
+window.clientesModule = {
+  filterClientes,
+  openNewClientModal,
+  onTipoDocChange,
+  onNroDocInput,
+  consultarSunatManual,
+  saveClientFromModal
+};
+
+window.productosModule = {
+  filterProductos,
+  openNewProductModal,
+  openEditProductModal,
+  saveProductFromModal,
+  deleteProduct
 };
 
 class ModularSpaApp {

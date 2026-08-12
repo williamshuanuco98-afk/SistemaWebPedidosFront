@@ -47,6 +47,76 @@ export const api = {
     return null;
   },
 
+  async consultarSunatRuc(ruc) {
+    if (!ruc || (ruc.length !== 11 && ruc.length !== 8)) {
+      return { success: false };
+    }
+
+    // 1. Try Spring Boot backend SUNAT endpoint
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/clientes/sunat/${ruc}`, { timeout: 4000 });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success) return data;
+      }
+    } catch (e) {}
+
+    // 2. Direct fallback to public SUNAT API
+    try {
+      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/ruc?numero=${ruc}`, { timeout: 4000 });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.nombre) {
+          return {
+            success: true,
+            nro_documento: ruc,
+            nombre_cliente: data.nombre,
+            direccion: data.direccion || `${data.viaNombre || ''} ${data.distrito || ''} ${data.departamento || ''}`.trim(),
+            estado: data.estado || 'ACTIVO',
+            condicion: data.condicion || 'HABIDO'
+          };
+        }
+      }
+    } catch (e) {}
+
+    return { success: false };
+  },
+
+  async consultarDni(dni) {
+    if (!dni || dni.length !== 8) {
+      return { success: false };
+    }
+
+    // 1. Try Spring Boot backend DNI endpoint
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/clientes/dni/${dni}`, { timeout: 4000 });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success) return data;
+      }
+    } catch (e) {}
+
+    // 2. Fallback to public DNI API
+    try {
+      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/dni?numero=${dni}`, { timeout: 4000 });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.nombre) {
+          return {
+            success: true,
+            nro_documento: dni,
+            nombre_cliente: data.nombre,
+            nombres: data.nombres,
+            apellidoPaterno: data.apellidoPaterno,
+            apellidoMaterno: data.apellidoMaterno
+          };
+        }
+      }
+    } catch (e) {}
+
+    return { success: false };
+  },
+
   async getProductos() {
     try {
       const res = await fetchWithTimeout(`${BASE_URL}/productos`, { timeout: 4000 });
@@ -61,6 +131,30 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productoData),
+        timeout: 5000
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {}
+    return null;
+  },
+
+  async updateProducto(id, productoData) {
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/productos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productoData),
+        timeout: 5000
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {}
+    return null;
+  },
+
+  async deleteProducto(id) {
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/productos/${id}`, {
+        method: 'DELETE',
         timeout: 5000
       });
       if (res.ok) return await res.json();
