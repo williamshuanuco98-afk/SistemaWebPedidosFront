@@ -187,6 +187,19 @@ export const api = {
     return this.addPedido(pedidoData);
   },
 
+  async updatePedidoStatus(idPedido, payload) {
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/pedidos/${idPedido}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        timeout: 5000
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {}
+    return null;
+  },
+
   async updatePedido(id, fields) {
     try {
       const res = await fetchWithTimeout(`${BASE_URL}/pedidos/${id}`, {

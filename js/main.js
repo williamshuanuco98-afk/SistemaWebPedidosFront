@@ -4,7 +4,18 @@ import { Router } from './router.js';
 import { escapeHtml } from './helpers.js';
 
 import { renderDashboard } from './modules/dashboard.module.js';
-import { renderPedidosTable, populateClientSelect, resetProductRows, addOrderProductRow } from './modules/pedidos.module.js';
+import { 
+  renderPedidosTable, 
+  populateClientSelect, 
+  resetProductRows, 
+  addOrderProductRow,
+  openFinalizarOrdenModal,
+  toggleFinalizarFields,
+  saveFinalizarOrden,
+  openRegistrarEnvioModal,
+  saveRegistrarEnvio,
+  viewOrderDetail
+} from './modules/pedidos.module.js';
 import { 
   renderNuevoPedidoPage, 
   hasUnsavedChanges, 
@@ -60,6 +71,15 @@ window.clientesModule = {
   onNroDocInput,
   consultarSunatManual,
   saveClientFromModal
+};
+
+window.pedidosModule = {
+  openFinalizarOrdenModal,
+  toggleFinalizarFields,
+  saveFinalizarOrden,
+  openRegistrarEnvioModal,
+  saveRegistrarEnvio,
+  viewOrderDetail
 };
 
 window.productosModule = {
@@ -349,55 +369,8 @@ class ModularSpaApp {
     }
   }
 
-  viewOrderDetail(id) {
-    const ord = this.orders.find(o => o.id_pedido === id);
-    if (!ord) return;
-
-    const titleElem = document.getElementById('orderDetailTitle');
-    const bodyElem = document.getElementById('orderDetailBody');
-    if (!titleElem || !bodyElem) return;
-
-    titleElem.textContent = `Detalle de Pedido ${ord.nro_pedido || ('PED-' + ord.id_pedido)}`;
-
-    let rowsHtml = '';
-    if (ord.detalles && ord.detalles.length > 0) {
-      rowsHtml = ord.detalles.map((d, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td class="fw-semibold">${escapeHtml(d.nombre_producto)}</td>
-          <td class="text-center fw-bold">${d.cantidad}</td>
-        </tr>
-      `).join('');
-    } else {
-      rowsHtml = `<tr><td colspan="3" class="text-center text-muted">Sin detalle de ítems registrados.</td></tr>`;
-    }
-
-    bodyElem.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-        <div>
-          <h5 class="fw-bold mb-1">${escapeHtml(ord.nombre_cliente || 'Cliente')}</h5>
-          <div class="small text-muted">Orden Compra: ${ord.nro_orden_compra || 'N/A'}</div>
-        </div>
-        <div class="text-end">
-          <span class="status-badge ${ord.estado || 'PENDIENTE'} mb-1">${ord.estado || 'PENDIENTE'}</span>
-          <div class="small text-muted">Fecha: ${ord.fecha_pedido || '-'}</div>
-        </div>
-      </div>
-
-      <h6 class="fw-bold mb-2">Productos Solicitados</h6>
-      <table class="table table-bordered mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>#</th>
-            <th>Producto / Insumo</th>
-            <th class="text-center">Cantidad</th>
-          </tr>
-        </thead>
-        <tbody>${rowsHtml}</tbody>
-      </table>
-    `;
-
-    if (this.orderDetailModal) this.orderDetailModal.show();
+  viewOrderDetail(idPedido) {
+    viewOrderDetail(idPedido);
   }
 }
 

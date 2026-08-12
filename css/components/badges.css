@@ -1,41 +1,59 @@
+/* Highly visible, modern status badges for Light and Dark modes */
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 6px 16px !important;
+  border-radius: 20px !important;
+  font-size: 0.8rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+  white-space: nowrap !important;
+  line-height: 1.2 !important;
 }
 
-.status-badge.PENDIENTE {
-  background: #fef3c7;
-  color: #d97706;
+/* PENDIENTE Badge */
+.status-badge.PENDIENTE,
+[data-theme="dark"] .status-badge.PENDIENTE,
+[data-bs-theme="dark"] .status-badge.PENDIENTE {
+  background-color: #f59e0b !important; /* Vivid Golden Amber */
+  color: #ffffff !important;
+  border: 1px solid #d97706 !important;
 }
 
-.status-badge.EN_PROCESO,
-.status-badge.EN_TRANSITO {
-  background: #e0e7ff;
-  color: #4f46e5;
-}
-
+/* COMPLETADO / ENTREGADO Badge */
 .status-badge.COMPLETADO,
 .status-badge.ENTREGADO,
-.status-badge.ACTIVA {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.status-badge.CANCELADO {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-[data-theme="dark"] .status-badge.PENDIENTE { background: #78350f; color: #fde68a; }
-[data-theme="dark"] .status-badge.EN_PROCESO,
-[data-theme="dark"] .status-badge.EN_TRANSITO { background: #312e81; color: #a5b4fc; }
+.status-badge.ACTIVA,
 [data-theme="dark"] .status-badge.COMPLETADO,
 [data-theme="dark"] .status-badge.ENTREGADO,
-[data-theme="dark"] .status-badge.ACTIVA { background: #064e3b; color: #6ee7b7; }
-[data-theme="dark"] .status-badge.CANCELADO { background: #7f1d1d; color: #fca5a5; }
+[data-theme="dark"] .status-badge.ACTIVA,
+[data-bs-theme="dark"] .status-badge.COMPLETADO,
+[data-bs-theme="dark"] .status-badge.ENTREGADO,
+[data-bs-theme="dark"] .status-badge.ACTIVA {
+  background-color: #10b981 !important; /* Vivid Emerald Green */
+  color: #ffffff !important;
+  border: 1px solid #059669 !important;
+}
+
+/* CANCELADO Badge */
+.status-badge.CANCELADO,
+[data-theme="dark"] .status-badge.CANCELADO,
+[data-bs-theme="dark"] .status-badge.CANCELADO {
+  background-color: #ef4444 !important; /* Vivid Crimson Red */
+  color: #ffffff !important;
+  border: 1px solid #dc2626 !important;
+}
+
+/* EN PROCESO / EN TRANSITO Badge */
+.status-badge.EN_PROCESO,
+.status-badge.EN_TRANSITO,
+[data-theme="dark"] .status-badge.EN_PROCESO,
+[data-theme="dark"] .status-badge.EN_TRANSITO {
+  background-color: #6366f1 !important; /* Vivid Indigo Blue */
+  color: #ffffff !important;
+  border: 1px solid #4f46e5 !important;
+}
