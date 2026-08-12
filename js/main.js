@@ -15,7 +15,9 @@ import {
   onCondicionPagoChange, 
   submitNuevoPedido, 
   updateItemQty, 
-  removeOrderItem 
+  removeOrderItem,
+  handleFilesAttached,
+  removeAttachedFile
 } from './modules/nuevo-pedido.module.js';
 import { renderEnviosTable } from './modules/envios.module.js';
 import { renderClientesTable } from './modules/clientes.module.js';
@@ -31,7 +33,9 @@ window.nuevoPedidoModule = {
   onCondicionPagoChange,
   submitNuevoPedido,
   updateItemQty,
-  removeOrderItem
+  removeOrderItem,
+  handleFilesAttached,
+  removeAttachedFile
 };
 
 class ModularSpaApp {

@@ -7,6 +7,7 @@ let state = {
   selectedClient: null,
   advancePayments: [],
   orderItems: [],
+  attachedFiles: [],
   activeClientIndex: -1,
   activeProductIndex: -1
 };
@@ -17,6 +18,7 @@ export function renderNuevoPedidoPage(clients = [], products = []) {
   state.selectedClient = null;
   state.advancePayments = [];
   state.orderItems = [];
+  state.attachedFiles = [];
   state.activeClientIndex = -1;
   state.activeProductIndex = -1;
 
@@ -28,9 +30,10 @@ export function renderNuevoPedidoPage(clients = [], products = []) {
   const fechaEntregaElem = document.getElementById('fechaEntregaInput');
   if (fechaEntregaElem) fechaEntregaElem.value = todayStr;
 
-  // Render initial empty tables
+  // Render initial empty tables & file lists
   renderAdelantosTable();
   renderOrderItemsTable();
+  renderAttachedFilesList();
 
   // Setup search input handlers
   setupClientSearch();
@@ -50,27 +53,28 @@ function setupClientSearch() {
       state.selectedClient = null;
     }
 
-    if (val.length < 3) {
+    const tokens = val.split(/\s+/).filter(t => t.length > 0);
+    if (tokens.length === 0) {
       list.classList.add('d-none');
       list.innerHTML = '';
       return;
     }
 
-    const matches = state.clients.filter(c => 
-      (c.nombre_cliente && c.nombre_cliente.toLowerCase().includes(val)) ||
-      (c.nro_documento && c.nro_documento.toLowerCase().includes(val))
-    ).slice(0, 10);
+    const matches = state.clients.filter(c => {
+      const targetText = `${c.nro_documento || ''} ${c.nombre_cliente || ''}`.toLowerCase();
+      return tokens.every(t => targetText.includes(t));
+    }).slice(0, 15);
 
     if (matches.length === 0) {
-      list.innerHTML = `<li class="list-group-item text-muted py-2">No se encontraron clientes para "${escapeHtml(val)}"</li>`;
+      list.innerHTML = `<li class="list-group-item text-muted py-2 fs-7">No se encontraron clientes para "${escapeHtml(val)}"</li>`;
       list.classList.remove('d-none');
       return;
     }
 
     list.innerHTML = matches.map((c, idx) => `
-      <li class="list-group-item list-group-item-action py-2 px-3 client-opt-item" data-index="${idx}">
-        <div class="fw-bold">${escapeHtml(c.nombre_cliente)}</div>
-        <div class="fs-7 text-muted">RUC/Doc: ${escapeHtml(c.nro_documento || 'Sin doc')}</div>
+      <li class="list-group-item list-group-item-action py-2 px-3 client-opt-item d-flex align-items-center gap-2 fs-7 text-white" data-index="${idx}">
+        <span class="fw-bold text-white">${escapeHtml(c.nro_documento || 'S/D')}</span>
+        <span class="fw-semibold text-white">- ${escapeHtml(c.nombre_cliente)}</span>
       </li>
     `).join('');
     list.classList.remove('d-none');
@@ -135,27 +139,34 @@ function setupProductSearch() {
   input.addEventListener('input', () => {
     const val = input.value.trim().toLowerCase();
     state.activeProductIndex = -1;
-    if (val.length < 3) {
+    if (val.length === 0) {
       list.classList.add('d-none');
       list.innerHTML = '';
       return;
     }
 
-    const matches = state.products.filter(p => 
-      (p.nombre_producto && p.nombre_producto.toLowerCase().includes(val)) ||
-      (p.id_producto && String(p.id_producto).includes(val))
-    ).slice(0, 10);
+    const tokens = val.split(/\s+/).filter(t => t.length > 0);
+    if (tokens.length === 0) {
+      list.classList.add('d-none');
+      list.innerHTML = '';
+      return;
+    }
+
+    const matches = state.products.filter(p => {
+      const targetText = `#${p.id_producto || ''} ${p.id_producto || ''} ${p.nombre_producto || ''} ${p.categoria || ''}`.toLowerCase();
+      return tokens.every(t => targetText.includes(t));
+    }).slice(0, 15);
 
     if (matches.length === 0) {
-      list.innerHTML = `<li class="list-group-item text-muted py-2">No se encontraron productos para "${escapeHtml(val)}"</li>`;
+      list.innerHTML = `<li class="list-group-item text-muted py-2 fs-7">No se encontraron productos para "${escapeHtml(val)}"</li>`;
       list.classList.remove('d-none');
       return;
     }
 
     list.innerHTML = matches.map((p, idx) => `
-      <li class="list-group-item list-group-item-action py-2 px-3 prod-opt-item" data-index="${idx}">
-        <div class="fw-bold">${escapeHtml(p.nombre_producto)}</div>
-        <div class="fs-7 text-muted">Código: #${p.id_producto} | Cat: ${escapeHtml(p.categoria || 'General')}</div>
+      <li class="list-group-item list-group-item-action py-1 px-3 prod-opt-item d-flex align-items-center gap-2 fs-7 text-white" data-index="${idx}">
+        <span class="fw-bold text-white">#${p.id_producto}</span>
+        <span class="fw-semibold text-white">- ${escapeHtml(p.nombre_producto)}</span>
       </li>
     `).join('');
     list.classList.remove('d-none');
@@ -241,10 +252,10 @@ function renderOrderItemsTable() {
       <td class="fw-bold">#${item.id_producto}</td>
       <td class="fw-semibold">${escapeHtml(item.nombre_producto)}</td>
       <td>
-        <input type="number" class="form-control form-control-sm" value="${item.cantidad}" min="1" onchange="nuevoPedidoModule.updateItemQty(${idx}, this.value)" style="width: 110px;">
+        <input type="number" class="form-control form-control-sm py-0 px-2 fs-7" value="${item.cantidad}" min="1" onchange="nuevoPedidoModule.updateItemQty(${idx}, this.value)" style="width: 90px; height: 28px;">
       </td>
       <td class="text-center">
-        <button type="button" class="btn btn-sm btn-outline-danger" onclick="nuevoPedidoModule.removeOrderItem(${idx})">
+        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" style="height: 28px;" onclick="nuevoPedidoModule.removeOrderItem(${idx})">
           <i class="bi bi-trash"></i>
         </button>
       </td>
@@ -329,12 +340,12 @@ function renderAdelantosTable() {
     total += adv.monto;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${adv.fecha}</td>
-      <td><span class="badge bg-primary-subtle text-primary border px-2 py-1">${escapeHtml(adv.banco)}</span></td>
-      <td>${escapeHtml(adv.voucher)}</td>
-      <td class="text-end fw-bold">S/ ${adv.monto.toFixed(2)}</td>
+      <td class="fw-semibold">${adv.fecha}</td>
+      <td><span class="badge bg-primary text-white px-2.5 py-1 fs-8 fw-bold">${escapeHtml(adv.banco)}</span></td>
+      <td class="fw-semibold">${escapeHtml(adv.voucher)}</td>
+      <td class="text-end fw-bold text-success">S/ ${adv.monto.toFixed(2)}</td>
       <td class="text-center">
-        <button type="button" class="btn btn-sm btn-outline-danger" onclick="nuevoPedidoModule.removeAdelanto(${idx})">
+        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" style="height: 28px;" onclick="nuevoPedidoModule.removeAdelanto(${idx})">
           <i class="bi bi-trash"></i>
         </button>
       </td>
@@ -362,10 +373,64 @@ export function onCondicionPagoChange() {
   }
 }
 
+export function handleFilesAttached(files) {
+  if (!files || files.length === 0) return;
+  Array.from(files).forEach(file => {
+    const sizeKb = (file.size / 1024).toFixed(1);
+    state.attachedFiles.push({
+      id: Date.now() + Math.random(),
+      name: file.name,
+      size: sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' MB' : sizeKb + ' KB',
+      type: file.type
+    });
+  });
+  renderAttachedFilesList();
+}
+
+export function removeAttachedFile(index) {
+  state.attachedFiles.splice(index, 1);
+  renderAttachedFilesList();
+}
+
+function renderAttachedFilesList() {
+  const container = document.getElementById('listaArchivosAdjuntos');
+  if (!container) return;
+
+  if (state.attachedFiles.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="card p-2 bg-body-tertiary border">
+      <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+        <span class="fs-7 fw-bold text-secondary">
+          <i class="bi bi-paperclip me-1"></i>Archivos Adjuntados (${state.attachedFiles.length})
+        </span>
+      </div>
+      <ul class="list-group list-group-flush border rounded">
+        ${state.attachedFiles.map((file, idx) => `
+          <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+            <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+              <i class="bi bi-file-earmark-pdf text-danger fs-5"></i>
+              <span class="fw-semibold text-truncate fs-7">${escapeHtml(file.name)}</span>
+              <span class="badge bg-secondary-subtle text-secondary fs-8">${file.size}</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger border-0 py-0 px-1" onclick="nuevoPedidoModule.removeAttachedFile(${idx})">
+              <i class="bi bi-trash"></i>
+            </button>
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+  `;
+}
+
 export function hasUnsavedChanges() {
   if (state.selectedClient !== null) return true;
   if (state.advancePayments.length > 0) return true;
   if (state.orderItems.length > 0) return true;
+  if (state.attachedFiles.length > 0) return true;
 
   const clientText = document.getElementById('searchClientInput')?.value.trim();
   if (clientText && clientText.length > 0) return true;
@@ -418,6 +483,7 @@ export async function submitNuevoPedido() {
     dias_credito: diasCredito,
     observaciones: observaciones,
     adelantos: state.advancePayments,
+    adjuntos: state.attachedFiles.map(f => f.name),
     detalles: state.orderItems.map(item => ({
       id_producto: item.id_producto,
       nombre_producto: item.nombre_producto,
@@ -432,6 +498,7 @@ export async function submitNuevoPedido() {
     state.selectedClient = null;
     state.advancePayments = [];
     state.orderItems = [];
+    state.attachedFiles = [];
     window.app.navigateTo('pedidos');
   } catch (err) {
     console.error('Error al registrar pedido:', err);

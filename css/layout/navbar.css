@@ -1,5 +1,8 @@
-/* Header / Top Navbar */
+/* Header / Top Navbar - Sticky Always Visible */
 .top-header {
+  position: sticky;
+  top: 0;
+  z-index: 1040;
   height: 80px;
   min-height: 80px;
   background: var(--bg-card);
@@ -9,6 +12,8 @@
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .page-title {

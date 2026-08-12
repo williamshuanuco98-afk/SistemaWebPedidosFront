@@ -18,9 +18,9 @@
     <form id="formNuevoPedido" onsubmit="event.preventDefault();">
       <div class="row g-4">
 
-        <!-- DATOS DEL CLIENTE Y ORDEN -->
-        <div class="col-lg-6">
-          <div class="card shadow-sm border h-100">
+        <!-- 1. DATOS DEL CLIENTE Y ORDEN (FULL WIDTH DEBAJO DE CABECERA) -->
+        <div class="col-12">
+          <div class="card shadow-sm border">
             <div class="card-header bg-body-tertiary">
               <h5 class="card-title text-primary mb-0 fs-6">
                 <i class="bi bi-person-vcard me-2"></i>1. Datos del Cliente y Orden
@@ -28,29 +28,29 @@
             </div>
             <div class="card-body">
               <div class="row g-3">
-                <!-- Cliente / Razón Social o RUC (Búsqueda Flotante) -->
+                <!-- Cliente / Razón Social o RUC (Búsqueda Flotante - Full Width col-12) -->
                 <div class="col-12 position-relative">
                   <label for="searchClientInput" class="form-label fw-bold">
                     Cliente / Razón Social o RUC <span class="text-danger">*</span>
                   </label>
                   <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" id="searchClientInput" class="form-control"
+                    <input type="text" id="searchClientInput" class="form-control form-control-lg fs-6"
                       placeholder="Escriba RUC o Razón Social (mínimo 3 caracteres)..." autocomplete="off">
                   </div>
                   <!-- Lista Flotante de Sugerencias -->
                   <ul id="clientSearchResultsList" class="list-group position-absolute w-100 shadow mt-1 d-none"
-                    style="z-index: 1050; max-height: 220px; overflow-y: auto;"></ul>
+                    style="z-index: 1050; max-height: 600px; overflow-y: auto;"></ul>
                 </div>
 
                 <!-- N° Orden de Compra -->
-                <div class="col-md-6">
+                <div class="col-md-3">
                   <label for="nroOrdenCompraInput" class="form-label fw-bold">N° Orden de Compra</label>
                   <input type="text" id="nroOrdenCompraInput" class="form-control" placeholder="Ej: OC-2026-089">
                 </div>
 
                 <!-- Condición de Pago -->
-                <div class="col-md-6">
+                <div class="col-md-3">
                   <label for="condicionPagoSelect" class="form-label fw-bold">
                     Condición de Pago <span class="text-danger">*</span>
                   </label>
@@ -64,37 +64,41 @@
                 </div>
 
                 <!-- N° Días de Crédito -->
-                <div class="col-md-6 d-none" id="diasCreditoContainer">
-                  <label for="diasCreditoInput" class="form-label fw-bold text-primary">N° Días de Crédito <span
+                <div class="col-md-2 d-none" id="diasCreditoContainer">
+                  <label for="diasCreditoInput" class="form-label fw-bold text-primary">Días Crédito <span
                       class="text-danger">*</span></label>
-                  <input type="number" id="diasCreditoInput" class="form-control" placeholder="Ej: 30" min="1" value="30">
+                  <input type="number" id="diasCreditoInput" class="form-control" placeholder="30" min="1" value="30">
                 </div>
 
                 <!-- Fecha de Ingreso -->
-                <div class="col-md-6">
+                <div class="col-md-3">
                   <label for="fechaIngresoInput" class="form-label fw-bold">Fecha de Ingreso</label>
                   <input type="date" id="fechaIngresoInput" class="form-control">
                 </div>
 
                 <!-- Fecha de Entrega -->
-                <div class="col-md-6">
+                <div class="col-md-3">
                   <label for="fechaEntregaInput" class="form-label fw-bold">Fecha de Entrega</label>
                   <input type="date" id="fechaEntregaInput" class="form-control">
                 </div>
 
-                <!-- Adelanto de Pago -->
-                <div class="col-12 pt-2 border-top">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                      <span class="fw-bold text-secondary me-2"><i class="bi bi-wallet2 me-1"></i>Adelantos de Pago:</span>
+                <!-- Adelanto de Pago (Subido al mismo nivel / bloque horizontal) -->
+                <div class="col-12 pt-3 border-top mt-3">
+                  <div class="d-flex justify-content-between align-items-center bg-body-tertiary p-3 rounded border">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-wallet2 text-primary fs-5"></i>
+                      <div>
+                        <strong class="d-block text-primary fs-7">Adelantos de Pago</strong>
+                        <span class="text-muted small">(Opcional - Presione el botón para registrar abonos o pagos por adelantado)</span>
+                      </div>
                     </div>
-                    <button type="button" class="btn btn-outline-primary btn-sm"
+                    <button type="button" class="btn btn-outline-primary btn-sm px-3"
                       onclick="nuevoPedidoModule.openAdelantoModal()">
                       <i class="bi bi-plus-circle me-1"></i> Agregar Adelanto
                     </button>
                   </div>
 
-                  <!-- Tabla Condicional de Adelantos -->
+                  <!-- Tabla Condicional de Adelantos (Oculta por defecto, solo visible si hay pagos registrados) -->
                   <div id="containerAdelantosTabla" class="table-responsive mt-3 d-none">
                     <table class="table table-sm custom-table mb-0 border">
                       <thead>
@@ -122,9 +126,9 @@
           </div>
         </div>
 
-        <!-- BÚSQUEDA Y REGISTRO DE PRODUCTOS -->
-        <div class="col-lg-6">
-          <div class="card shadow-sm border h-100">
+        <!-- 2. BÚSQUEDA Y REGISTRO DE PRODUCTOS (DEBAJO DE DATOS DE CLIENTE Y ORDEN) -->
+        <div class="col-12">
+          <div class="card shadow-sm border">
             <div class="card-header bg-body-tertiary">
               <h5 class="card-title text-primary mb-0 fs-6">
                 <i class="bi bi-box-seam me-2"></i>2. Búsqueda y Selección de Productos
@@ -134,17 +138,17 @@
               <!-- Búsqueda de Productos -->
               <div class="position-relative mb-3">
                 <label for="searchProductInput" class="form-label fw-bold">
-                  Buscar Producto <span class="text-danger">*</span>
+                  Buscar Producto / Insumo <span class="text-danger">*</span>
                 </label>
                 <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-box-seam"></i></span>
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
                   <input type="text" id="searchProductInput" class="form-control"
                     placeholder="Escriba nombre o código del producto (mínimo 3 caracteres)..." autocomplete="off">
                 </div>
 
                 <!-- Sugerencias de Productos -->
                 <ul id="productSearchResultsList" class="list-group position-absolute w-100 shadow mt-1 d-none"
-                  style="z-index: 1050; max-height: 220px; overflow-y: auto;"></ul>
+                  style="z-index: 1050; max-height: 600px; overflow-y: auto;"></ul>
               </div>
 
               <!-- Tabla de Registro de Productos del Pedido -->
@@ -152,10 +156,10 @@
                 <table class="table custom-table mb-0">
                   <thead>
                     <tr>
-                      <th style="width: 100px;">Código</th>
-                      <th>Producto / Insumo</th>
-                      <th style="width: 130px;">Cantidad</th>
-                      <th class="text-center" style="width: 80px;">Acción</th>
+                      <th style="width: 110px;">Código</th>
+                      <th>Producto / Insumo Solicitado</th>
+                      <th style="width: 140px;">Cantidad</th>
+                      <th class="text-center" style="width: 90px;">Acción</th>
                     </tr>
                   </thead>
                   <tbody id="tableProductosBody">
@@ -169,28 +173,37 @@
           </div>
         </div>
 
-        <!-- OBSERVACIONES Y PDF DE SOPORTE -->
+        <!-- 3. OBSERVACIONES Y DOCUMENTOS ADJUNTOS (DEBAJO DE PRODUCTOS) -->
         <div class="col-12">
           <div class="card shadow-sm border">
             <div class="card-header bg-body-tertiary">
               <h5 class="card-title text-primary mb-0 fs-6">
-                <i class="bi bi-file-earmark-text me-2"></i>3. Observaciones y Archivos PDF
+                <i class="bi bi-journal-text me-2"></i>3. Observaciones y Documentos Adjuntos
               </h5>
             </div>
             <div class="card-body">
               <div class="row g-3">
                 <!-- Observaciones -->
-                <div class="col-md-7">
-                  <label for="observacionesInput" class="form-label fw-bold">Observaciones</label>
-                  <textarea id="observacionesInput" class="form-control" rows="3"
-                    placeholder="Ingrese cualquier comentario u observación relevante sobre este pedido..."></textarea>
+                <div class="col-md-6">
+                  <label for="observacionesInput" class="form-label fw-bold">Observaciones del Pedido</label>
+                  <textarea id="observacionesInput" class="form-control" rows="4"
+                    placeholder="Escriba aquí cualquier comentario u observación relevante (especificaciones de impresión, acabados, entrega, etc.)..."></textarea>
                 </div>
 
-                <!-- PDF Soporte -->
-                <div class="col-md-5">
-                  <label for="archivoPdfInput" class="form-label fw-bold">Agregar Archivo (PDF del Pedido)</label>
-                  <input type="file" id="archivoPdfInput" class="form-control" accept=".pdf,image/*">
-                  <span class="form-text fs-7">Adjunte la Orden de Compra o documento de soporte del cliente.</span>
+                <!-- Documentos Adjuntos -->
+                <div class="col-md-6">
+                  <label for="archivosAdjuntosInput" class="form-label fw-bold">
+                    <i class="bi bi-paperclip me-1"></i>Agregar Documentos Adjuntos
+                  </label>
+                  <input type="file" id="archivosAdjuntosInput" class="form-control" multiple
+                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.xlsx"
+                    onchange="nuevoPedidoModule.handleFilesAttached(this.files)">
+                  <span class="form-text fs-7 text-muted d-block mt-1">
+                    Adjunte archivos relevantes como Orden de Compra en PDF, bocetos o fichas técnicas.
+                  </span>
+
+                  <!-- Lista de Documentos Adjuntados -->
+                  <div id="listaArchivosAdjuntos" class="mt-3"></div>
                 </div>
               </div>
             </div>

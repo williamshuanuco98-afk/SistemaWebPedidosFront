@@ -28,7 +28,7 @@ body:not(.modal-open) {
   pointer-events: auto !important;
 }
 
-/* Primary Action Buttons */
+/* Primary Action Buttons & Harmonious Brand Text Accents */
 .btn-primary {
   background-color: var(--accent-purple) !important;
   border-color: var(--accent-purple) !important;
@@ -40,6 +40,24 @@ body:not(.modal-open) {
 .btn-primary:active {
   background-color: var(--accent-purple-hover) !important;
   border-color: var(--accent-purple-hover) !important;
+}
+
+.btn-outline-primary {
+  color: var(--brand-accent) !important;
+  border-color: var(--brand-accent) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+  background-color: var(--brand-accent) !important;
+  border-color: var(--brand-accent) !important;
+  color: #ffffff !important;
+}
+
+.text-primary,
+.text-primary-emphasis {
+  color: var(--brand-accent) !important;
 }
 
 /* Scaled Form Controls & Buttons */
@@ -222,37 +240,95 @@ body:not(.modal-open) {
   border-color: #334155 !important;
 }
 
-/* Floating Search Lists and List Group Items */
+/* Floating Search Lists and Option Items - Compact Sizing & Borderless Seamless Sizing */
+.client-opt-item,
+.prod-opt-item {
+  font-size: 0.775rem !important;
+  padding: 5px 12px !important;
+  transition: background-color 0.15s ease;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.client-opt-item:last-child,
+.prod-opt-item:last-child {
+  border-bottom: none !important;
+}
+
+.client-opt-item span,
+.prod-opt-item span {
+  color: #0f172a !important;
+}
+
+/* Light Mode Hover / Keyboard Active: Slightly darker background (#e2e8f0) */
+.client-opt-item:hover,
+.prod-opt-item:hover,
+.client-opt-item.active,
+.prod-opt-item.active {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.client-opt-item:hover span,
+.prod-opt-item:hover span,
+.client-opt-item.active span,
+.prod-opt-item.active span {
+  color: #0f172a !important;
+}
+
+/* Search Floating Lists - Compact Sizing & Reduced Box Width */
+#clientSearchResultsList,
+#productSearchResultsList {
+  max-width: 650px;
+  width: 100%;
+}
+
+/* Dark Mode: Dark Slate background (#1e293b), Pure White text, NO white border frames */
 [data-theme="dark"] .list-group {
   background-color: #1e293b !important;
-  border-color: #334155 !important;
+  border: 1px solid #334155 !important;
   box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
 }
 
-[data-theme="dark"] .list-group-item {
+[data-theme="dark"] .client-opt-item,
+[data-theme="dark"] .prod-opt-item {
   background-color: #1e293b !important;
-  color: #f8fafc !important;
-  border-color: #334155 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
-[data-theme="dark"] .list-group-item-action {
-  color: #cbd5e1 !important;
+[data-theme="dark"] .client-opt-item:last-child,
+[data-theme="dark"] .prod-opt-item:last-child {
+  border-bottom: none !important;
 }
 
-[data-theme="dark"] .list-group-item-action:hover,
-[data-theme="dark"] .list-group-item-action:focus,
+[data-theme="dark"] .client-opt-item span,
+[data-theme="dark"] .prod-opt-item span {
+  color: #ffffff !important;
+}
+
+/* Dark Mode Hover / Keyboard Active: Slightly lighter background (#334155), NO white frames, NO green highlights */
 [data-theme="dark"] .client-opt-item:hover,
-[data-theme="dark"] .prod-opt-item:hover {
+[data-theme="dark"] .prod-opt-item:hover,
+[data-theme="dark"] .client-opt-item.active,
+[data-theme="dark"] .prod-opt-item.active,
+[data-theme="dark"] .list-group-item.active,
+[data-theme="dark"] .list-group-item-action.active {
   background-color: #334155 !important;
-  color: #10b981 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
-[data-theme="dark"] .list-group-item.active,
-[data-theme="dark"] .list-group-item-action.active,
-[data-theme="dark"] .client-opt-item.active,
-[data-theme="dark"] .prod-opt-item.active {
-  background-color: #10b981 !important;
-  border-color: #10b981 !important;
+[data-theme="dark"] .client-opt-item:hover span,
+[data-theme="dark"] .prod-opt-item:hover span,
+[data-theme="dark"] .client-opt-item.active span,
+[data-theme="dark"] .prod-opt-item.active span {
   color: #ffffff !important;
 }
 

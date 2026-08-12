@@ -8,8 +8,8 @@
 
 .custom-table th, .table th {
   background: #f1f5f9 !important;
-  padding: 14px 18px !important;
-  font-size: 0.85rem !important;
+  padding: 8px 12px !important;
+  font-size: 0.825rem !important;
   font-weight: 800 !important;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -19,10 +19,10 @@
 }
 
 .custom-table td, .table td {
-  padding: 16px 18px;
+  padding: 8px 12px !important;
   border-bottom: 1px solid var(--border-color);
-  font-size: 0.95rem;
-  vertical-align: middle;
+  font-size: 0.85rem !important;
+  vertical-align: middle !important;
 }
 
 .custom-table tbody tr:last-child td, .table tbody tr:last-child td {
