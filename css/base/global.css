@@ -1,0 +1,191 @@
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.6;
+  font-size: 1rem;
+  overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Force interactive elements to always accept mouse click events */
+.app-container, .sidebar, .main-content, .page-body, .nav-item, button, a, input, select, textarea {
+  pointer-events: auto !important;
+}
+
+/* Force hide orphan modal backdrops when no active modal is open */
+body:not(.modal-open) .modal-backdrop {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+body:not(.modal-open) {
+  overflow: auto !important;
+  pointer-events: auto !important;
+}
+
+/* Primary Action Buttons */
+.btn-primary {
+  background-color: var(--accent-purple) !important;
+  border-color: var(--accent-purple) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: var(--accent-purple-hover) !important;
+  border-color: var(--accent-purple-hover) !important;
+}
+
+/* Scaled Form Controls & Buttons */
+.form-control, .form-select {
+  padding: 0.65rem 1rem;
+  font-size: 0.95rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.form-control-sm, .form-select-sm {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.875rem;
+}
+
+/* Custom Stationed Theme Switch Control - Fixed Width so nothing shifts! */
+.custom-switch-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg-card);
+  padding: 6px 12px;
+  border-radius: 30px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  width: 175px;
+  justify-content: space-between;
+}
+
+.custom-switch-track {
+  position: relative;
+  width: 44px;
+  height: 22px;
+  background-color: #cbd5e1;
+  border-radius: 20px;
+  transition: background-color 0.25s ease;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.custom-switch-handle {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] .custom-switch-track {
+  background-color: #10b981;
+}
+
+[data-theme="dark"] .custom-switch-handle {
+  transform: translateX(22px);
+}
+
+#themeToggleLabel {
+  width: 88px;
+  text-align: left;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Comprehensive Dark Mode Overrides */
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .bg-body-tertiary,
+[data-theme="dark"] .bg-white {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .content-card {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .card-header {
+  background: transparent !important;
+  border-bottom-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .input-group-text {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25) !important;
+}
+
+[data-theme="dark"] .modal-content {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .list-group-item {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .list-group-item-action:hover {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-theme="dark"] .text-muted {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .text-secondary {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .border,
+[data-theme="dark"] .border-top,
+[data-theme="dark"] .border-bottom,
+[data-theme="dark"] .border-start,
+[data-theme="dark"] .border-end {
+  border-color: #334155 !important;
+}

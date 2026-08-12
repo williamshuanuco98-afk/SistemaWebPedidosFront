@@ -1,0 +1,54 @@
+/* Tables Design System */
+.custom-table, .table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--text-primary);
+}
+
+.custom-table th, .table th {
+  background: #f1f5f9 !important;
+  padding: 14px 18px !important;
+  font-size: 0.85rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1e293b !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  text-align: left;
+}
+
+.custom-table td, .table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+.custom-table tbody tr:last-child td, .table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.custom-table tbody tr:hover, .table tbody tr:hover {
+  background-color: var(--bg-sidebar-hover);
+}
+
+/* High-Contrast Dark Mode Tables Overrides */
+[data-theme="dark"] .custom-table th,
+[data-theme="dark"] .table th {
+  background-color: #0f172a !important;
+  color: #38bdf8 !important; /* High contrast cyan header text */
+  border-bottom: 2px solid #334155 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="dark"] .custom-table td,
+[data-theme="dark"] .table td {
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .custom-table tbody tr:hover,
+[data-theme="dark"] .table tbody tr:hover {
+  background-color: #273549 !important;
+}

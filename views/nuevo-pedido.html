@@ -1,0 +1,263 @@
+<div class="content-card">
+  <!-- Cabecera de la Vista -->
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-outline-secondary btn-sm" onclick="app.confirmLeaveNuevoPedido()">
+        <i class="bi bi-arrow-left"></i> Volver a Pedidos
+      </button>
+      <h3 class="card-title mb-0">
+        <i class="bi bi-cart-plus text-primary"></i> Registrar Nuevo Pedido
+      </h3>
+    </div>
+    <div>
+      <span class="badge bg-primary fs-7">Operaciones Inplabel</span>
+    </div>
+  </div>
+
+  <div class="p-4">
+    <form id="formNuevoPedido" onsubmit="event.preventDefault();">
+      <div class="row g-4">
+
+        <!-- DATOS DEL CLIENTE Y ORDEN -->
+        <div class="col-lg-6">
+          <div class="card shadow-sm border h-100">
+            <div class="card-header bg-body-tertiary">
+              <h5 class="card-title text-primary mb-0 fs-6">
+                <i class="bi bi-person-vcard me-2"></i>1. Datos del Cliente y Orden
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <!-- Cliente / Razón Social o RUC (Búsqueda Flotante) -->
+                <div class="col-12 position-relative">
+                  <label for="searchClientInput" class="form-label fw-bold">
+                    Cliente / Razón Social o RUC <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchClientInput" class="form-control"
+                      placeholder="Escriba RUC o Razón Social (mínimo 3 caracteres)..." autocomplete="off">
+                  </div>
+                  <!-- Lista Flotante de Sugerencias -->
+                  <ul id="clientSearchResultsList" class="list-group position-absolute w-100 shadow mt-1 d-none"
+                    style="z-index: 1050; max-height: 220px; overflow-y: auto;"></ul>
+                </div>
+
+                <!-- N° Orden de Compra -->
+                <div class="col-md-6">
+                  <label for="nroOrdenCompraInput" class="form-label fw-bold">N° Orden de Compra</label>
+                  <input type="text" id="nroOrdenCompraInput" class="form-control" placeholder="Ej: OC-2026-089">
+                </div>
+
+                <!-- Condición de Pago -->
+                <div class="col-md-6">
+                  <label for="condicionPagoSelect" class="form-label fw-bold">
+                    Condición de Pago <span class="text-danger">*</span>
+                  </label>
+                  <select id="condicionPagoSelect" class="form-select"
+                    onchange="nuevoPedidoModule.onCondicionPagoChange()">
+                    <option value="CONTADO" selected>Contado</option>
+                    <option value="CREDITO">Crédito</option>
+                    <option value="FACTURA_NEGOCIABLE">Factura Negociable</option>
+                    <option value="LETRAS">Letras</option>
+                  </select>
+                </div>
+
+                <!-- N° Días de Crédito -->
+                <div class="col-md-6 d-none" id="diasCreditoContainer">
+                  <label for="diasCreditoInput" class="form-label fw-bold text-primary">N° Días de Crédito <span
+                      class="text-danger">*</span></label>
+                  <input type="number" id="diasCreditoInput" class="form-control" placeholder="Ej: 30" min="1" value="30">
+                </div>
+
+                <!-- Fecha de Ingreso -->
+                <div class="col-md-6">
+                  <label for="fechaIngresoInput" class="form-label fw-bold">Fecha de Ingreso</label>
+                  <input type="date" id="fechaIngresoInput" class="form-control">
+                </div>
+
+                <!-- Fecha de Entrega -->
+                <div class="col-md-6">
+                  <label for="fechaEntregaInput" class="form-label fw-bold">Fecha de Entrega</label>
+                  <input type="date" id="fechaEntregaInput" class="form-control">
+                </div>
+
+                <!-- Adelanto de Pago -->
+                <div class="col-12 pt-2 border-top">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <span class="fw-bold text-secondary me-2"><i class="bi bi-wallet2 me-1"></i>Adelantos de Pago:</span>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm"
+                      onclick="nuevoPedidoModule.openAdelantoModal()">
+                      <i class="bi bi-plus-circle me-1"></i> Agregar Adelanto
+                    </button>
+                  </div>
+
+                  <!-- Tabla Condicional de Adelantos -->
+                  <div id="containerAdelantosTabla" class="table-responsive mt-3 d-none">
+                    <table class="table table-sm custom-table mb-0 border">
+                      <thead>
+                        <tr>
+                          <th>Fecha Pago</th>
+                          <th>Banco</th>
+                          <th>N° Operación / Voucher</th>
+                          <th class="text-end">Monto (S/)</th>
+                          <th class="text-center">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tableAdelantosBody"></tbody>
+                      <tfoot>
+                        <tr class="table-active">
+                          <td colspan="3" class="text-end fw-bold">Total Adelantado:</td>
+                          <td class="text-end fw-bold text-success" id="totalAdelantoCell">S/ 0.00</td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BÚSQUEDA Y REGISTRO DE PRODUCTOS -->
+        <div class="col-lg-6">
+          <div class="card shadow-sm border h-100">
+            <div class="card-header bg-body-tertiary">
+              <h5 class="card-title text-primary mb-0 fs-6">
+                <i class="bi bi-box-seam me-2"></i>2. Búsqueda y Selección de Productos
+              </h5>
+            </div>
+            <div class="card-body">
+              <!-- Búsqueda de Productos -->
+              <div class="position-relative mb-3">
+                <label for="searchProductInput" class="form-label fw-bold">
+                  Buscar Producto <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-box-seam"></i></span>
+                  <input type="text" id="searchProductInput" class="form-control"
+                    placeholder="Escriba nombre o código del producto (mínimo 3 caracteres)..." autocomplete="off">
+                </div>
+
+                <!-- Sugerencias de Productos -->
+                <ul id="productSearchResultsList" class="list-group position-absolute w-100 shadow mt-1 d-none"
+                  style="z-index: 1050; max-height: 220px; overflow-y: auto;"></ul>
+              </div>
+
+              <!-- Tabla de Registro de Productos del Pedido -->
+              <div class="table-responsive border rounded mt-3">
+                <table class="table custom-table mb-0">
+                  <thead>
+                    <tr>
+                      <th style="width: 100px;">Código</th>
+                      <th>Producto / Insumo</th>
+                      <th style="width: 130px;">Cantidad</th>
+                      <th class="text-center" style="width: 80px;">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableProductosBody">
+                    <tr>
+                      <td colspan="4" class="text-center text-muted py-4">No se han agregado productos a la tabla.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OBSERVACIONES Y PDF DE SOPORTE -->
+        <div class="col-12">
+          <div class="card shadow-sm border">
+            <div class="card-header bg-body-tertiary">
+              <h5 class="card-title text-primary mb-0 fs-6">
+                <i class="bi bi-file-earmark-text me-2"></i>3. Observaciones y Archivos PDF
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <!-- Observaciones -->
+                <div class="col-md-7">
+                  <label for="observacionesInput" class="form-label fw-bold">Observaciones</label>
+                  <textarea id="observacionesInput" class="form-control" rows="3"
+                    placeholder="Ingrese cualquier comentario u observación relevante sobre este pedido..."></textarea>
+                </div>
+
+                <!-- PDF Soporte -->
+                <div class="col-md-5">
+                  <label for="archivoPdfInput" class="form-label fw-bold">Agregar Archivo (PDF del Pedido)</label>
+                  <input type="file" id="archivoPdfInput" class="form-control" accept=".pdf,image/*">
+                  <span class="form-text fs-7">Adjunte la Orden de Compra o documento de soporte del cliente.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTONES FINALIZADORES DE ACCIÓN -->
+        <div class="col-12 d-flex justify-content-end gap-3 pt-2">
+          <button type="button" class="btn btn-outline-secondary px-4" onclick="app.confirmLeaveNuevoPedido()">
+            <i class="bi bi-x-circle me-1"></i> Cancelar
+          </button>
+          <button type="button" id="btnGuardarPedido" class="btn btn-primary px-4"
+            onclick="nuevoPedidoModule.submitNuevoPedido()">
+            <i class="bi bi-check-circle me-1"></i> Guardar Pedido
+          </button>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL EMERGENTE: REGISTRAR ADELANTO DE PAGO -->
+<div class="modal fade" id="modalAdelantoPago" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-cash-coin text-primary me-2"></i> Registrar Adelanto de Pago</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formModalAdelanto" onsubmit="event.preventDefault();">
+          <div class="mb-3">
+            <label for="modalBancoSelect" class="form-label fw-bold">Banco <span class="text-danger">*</span></label>
+            <select id="modalBancoSelect" class="form-select" required>
+              <option value="BCP">BCP - Banco de Crédito del Perú</option>
+              <option value="BBVA">BBVA Continental</option>
+              <option value="INTERBANK">INTERBANK</option>
+              <option value="SCOTIABANK">SCOTIABANK</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="modalMontoInput" class="form-label fw-bold">Monto del Adelanto (S/) <span
+                class="text-danger">*</span></label>
+            <input type="number" id="modalMontoInput" class="form-control" placeholder="0.00" step="0.01" min="0.10"
+              required>
+          </div>
+
+          <div class="mb-3">
+            <label for="modalFechaPagoInput" class="form-label fw-bold">Fecha del Pago <span
+                class="text-danger">*</span></label>
+            <input type="date" id="modalFechaPagoInput" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="modalVoucherInput" class="form-label fw-bold">N° de Operación / Voucher (Opcional)</label>
+            <input type="text" id="modalVoucherInput" class="form-control" placeholder="Ejemplo: OP-9876543">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="nuevoPedidoModule.addAdelantoFromModal()">
+          <i class="bi bi-plus-lg me-1"></i> Agregar Pago
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

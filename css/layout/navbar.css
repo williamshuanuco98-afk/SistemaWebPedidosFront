@@ -1,0 +1,20 @@
+/* Header / Top Navbar */
+.top-header {
+  height: 80px;
+  min-height: 80px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.page-title {
+  font-family: 'Sora', var(--font-family);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}

@@ -1,0 +1,89 @@
+/* Base Content Card Component */
+.content-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent !important;
+}
+
+.card-title, .page-title, .modal-title {
+  font-family: 'Sora', var(--font-family);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 13px !important;
+}
+
+.card-title i, .page-title i, .modal-title i {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+  margin-right: 0 !important;
+}
+
+/* 5 Metric Grid Cards */
+.metrics-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.metric-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+.metric-info h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.metric-value {
+  font-family: 'Sora', var(--font-family);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.metric-icon-box {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric-blue { background: #eff6ff; color: #2563eb; }
+.metric-indigo { background: #e0e7ff; color: #4f46e5; }
+.metric-emerald { background: #ecfdf5; color: #10b981; }
+.metric-amber { background: #fffbeb; color: #f59e0b; }
+
+[data-theme="dark"] .metric-blue { background: #1e3a8a; color: #93c5fd; }
+[data-theme="dark"] .metric-indigo { background: #312e81; color: #a5b4fc; }
+[data-theme="dark"] .metric-emerald { background: #064e3b; color: #6ee7b7; }
+[data-theme="dark"] .metric-amber { background: #78350f; color: #fde68a; }
