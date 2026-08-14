@@ -1,7 +1,7 @@
 const BASE_URL = 'http://localhost:8080/api';
 
 async function fetchWithTimeout(resource, options = {}) {
-  const { timeout = 5000, ...fetchOptions } = options;
+  const { timeout = 1500, ...fetchOptions } = options;
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   try {
@@ -17,21 +17,111 @@ async function fetchWithTimeout(resource, options = {}) {
   }
 }
 
+// Fallback Initial Data when Spring Boot Backend is Offline
+const FALLBACK_CLIENTS = [
+  { id: 1, nro_documento: '20601234567', nombre_cliente: 'INVERSIONES PLASTICAS S.A.C.', direccion: 'Av. Industrial 450, Comas, Lima', tipo_doc: 'RUC', estado: 'ACTIVO' },
+  { id: 2, nro_documento: '20509876543', nombre_cliente: 'DISTRIBUIDORA Y PACKAGING PERU E.I.R.L.', direccion: 'Calle Los Cedros 128, Carabayllo, Lima', tipo_doc: 'RUC', estado: 'ACTIVO' },
+  { id: 3, nro_documento: '10458796321', nombre_cliente: 'AGUIRRE ALVAREZ CARLOS EDUARDO', direccion: 'Jr. Comercio 880, Los Olivos, Lima', tipo_doc: 'DNI', estado: 'ACTIVO' }
+];
+
+const FALLBACK_PRODUCTS = [
+  { id: 1, codigo_producto: 'PROD-438', nombre_producto: 'BALDE INDUSTRIAL 4 LT C/BLANCO', tipo_producto: 'GALONES', estado: 'ACTIVO' },
+  { id: 2, codigo_producto: 'PROD-502', nombre_producto: 'FRASCO PET 500 ML TRANSPARENTE', tipo_producto: 'FRASCOS', estado: 'ACTIVO' },
+  { id: 3, codigo_producto: 'PROD-109', nombre_producto: 'TAPA ROSCA 28 MM AZUL', tipo_producto: 'TAPAS', estado: 'ACTIVO' },
+  { id: 4, codigo_producto: 'PROD-773', nombre_producto: 'GALONERO PLASTICO 5 LT HEAVY', tipo_producto: 'GALONES', estado: 'ACTIVO' },
+  { id: 5, codigo_producto: 'PROD-210', nombre_producto: 'ASA PLASTICA REFORZADA 4L', tipo_producto: 'ASAS', estado: 'ACTIVO' }
+];
+
+const FALLBACK_ORDERS = [
+  {
+    id_pedido: 1,
+    nro_pedido: 'PED-0001',
+    nro_orden: 'OC-2026-089',
+    nombre_cliente: 'INVERSIONES PLASTICAS S.A.C.',
+    nro_documento_cliente: '20601234567',
+    fecha_pedido: '2026-08-10',
+    fecha_entrega: '2026-08-20',
+    establecimiento: 'CARABAYLLO',
+    condicion_pago: 'CONTADO',
+    estado: 'PENDIENTE',
+    detalles: [
+      { id_detalle: 1, id_producto: 1, codigo_producto: 'PROD-438', nombre_producto: 'BALDE INDUSTRIAL 4 LT C/BLANCO', cantidad: 500, cantidad_entregada: 200 },
+      { id_detalle: 2, id_producto: 3, codigo_producto: 'PROD-109', nombre_producto: 'TAPA ROSCA 28 MM AZUL', cantidad: 500, cantidad_entregada: 500 }
+    ]
+  },
+  {
+    id_pedido: 2,
+    nro_pedido: 'PED-0002',
+    nro_orden: 'OC-2026-104',
+    nombre_cliente: 'DISTRIBUIDORA Y PACKAGING PERU E.I.R.L.',
+    nro_documento_cliente: '20509876543',
+    fecha_pedido: '2026-08-12',
+    fecha_entrega: '2026-08-25',
+    establecimiento: 'COMAS',
+    condicion_pago: 'CREDITO',
+    estado: 'PENDIENTE',
+    detalles: [
+      { id_detalle: 3, id_producto: 2, codigo_producto: 'PROD-502', nombre_producto: 'FRASCO PET 500 ML TRANSPARENTE', cantidad: 1000, cantidad_entregada: 0 }
+    ]
+  }
+];
+
+const FALLBACK_SHIPMENTS = [];
+
+function getLocalData(key, fallback) {
+  try {
+    const raw = localStorage.getItem('inplabel_' + key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (key === 'guias' && Array.isArray(parsed) && parsed.some(g => g.nro_guia === 'G001-000458')) {
+        const cleaned = parsed.filter(g => g.nro_guia !== 'G001-000458');
+        localStorage.setItem('inplabel_guias', JSON.stringify(cleaned));
+        return cleaned;
+      }
+      return parsed;
+    }
+  } catch (e) {}
+  localStorage.setItem('inplabel_' + key, JSON.stringify(fallback));
+  return fallback;
+}
+
+function setLocalData(key, data) {
+  try {
+    localStorage.setItem('inplabel_' + key, JSON.stringify(data));
+  } catch (e) {}
+}
+
 export const api = {
+  getLocalClientes() {
+    return getLocalData('clientes', FALLBACK_CLIENTS);
+  },
+  getLocalProductos() {
+    return getLocalData('productos', FALLBACK_PRODUCTS);
+  },
+  getLocalPedidos() {
+    return getLocalData('pedidos', FALLBACK_ORDERS);
+  },
+  getLocalGuias() {
+    return getLocalData('guias', FALLBACK_SHIPMENTS);
+  },
+
   async getStatus() {
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/status`, { timeout: 3000 });
-      if (res.ok) return await res.json();
+      const res = await fetchWithTimeout(`${BASE_URL}/status`, { timeout: 1500 });
+      if (res && res.ok) return await res.json();
     } catch (e) {}
-    return { connected: false };
+    return { connected: false, message: 'Spring Boot Backend Desconectado (Modo Local Activo)' };
   },
 
   async getClientes() {
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/clientes`, { timeout: 4000 });
-      if (res.ok) return await res.json();
+      const res = await fetchWithTimeout(`${BASE_URL}/clientes`, { timeout: 1500 });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) return data;
+      }
     } catch (e) {}
-    return [];
+    return getLocalData('clientes', FALLBACK_CLIENTS);
   },
 
   async addCliente(clienteData) {
@@ -40,30 +130,31 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(clienteData),
-        timeout: 5000
+        timeout: 2000
       });
       if (res.ok) return await res.json();
     } catch (e) {}
-    return null;
+    const list = getLocalData('clientes', FALLBACK_CLIENTS);
+    const newClient = { id: Date.now(), ...clienteData };
+    list.unshift(newClient);
+    setLocalData('clientes', list);
+    return newClient;
   },
 
   async consultarSunatRuc(ruc) {
     if (!ruc || (ruc.length !== 11 && ruc.length !== 8)) {
       return { success: false };
     }
-
-    // 1. Try Spring Boot backend SUNAT endpoint
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/clientes/sunat/${ruc}`, { timeout: 4000 });
+      const res = await fetchWithTimeout(`${BASE_URL}/clientes/sunat/${ruc}`, { timeout: 2000 });
       if (res.ok) {
         const data = await res.json();
         if (data && data.success) return data;
       }
     } catch (e) {}
 
-    // 2. Direct fallback to public SUNAT API
     try {
-      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/ruc?numero=${ruc}`, { timeout: 4000 });
+      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/ruc?numero=${ruc}`, { timeout: 2000 });
       if (res.ok) {
         const data = await res.json();
         if (data && data.nombre) {
@@ -86,19 +177,16 @@ export const api = {
     if (!dni || dni.length !== 8) {
       return { success: false };
     }
-
-    // 1. Try Spring Boot backend DNI endpoint
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/clientes/dni/${dni}`, { timeout: 4000 });
+      const res = await fetchWithTimeout(`${BASE_URL}/clientes/dni/${dni}`, { timeout: 2000 });
       if (res.ok) {
         const data = await res.json();
         if (data && data.success) return data;
       }
     } catch (e) {}
 
-    // 2. Fallback to public DNI API
     try {
-      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/dni?numero=${dni}`, { timeout: 4000 });
+      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/dni?numero=${dni}`, { timeout: 2000 });
       if (res.ok) {
         const data = await res.json();
         if (data && data.nombre) {
@@ -119,10 +207,13 @@ export const api = {
 
   async getProductos() {
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/productos`, { timeout: 4000 });
-      if (res.ok) return await res.json();
+      const res = await fetchWithTimeout(`${BASE_URL}/productos`, { timeout: 1500 });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) return data;
+      }
     } catch (e) {}
-    return [];
+    return getLocalData('productos', FALLBACK_PRODUCTS);
   },
 
   async addProducto(productoData) {
@@ -131,11 +222,15 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productoData),
-        timeout: 5000
+        timeout: 2000
       });
       if (res.ok) return await res.json();
     } catch (e) {}
-    return null;
+    const list = getLocalData('productos', FALLBACK_PRODUCTS);
+    const newProd = { id: Date.now(), codigo_producto: 'PROD-' + Math.floor(100 + Math.random() * 900), ...productoData };
+    list.unshift(newProd);
+    setLocalData('productos', list);
+    return newProd;
   },
 
   async updateProducto(id, productoData) {
@@ -144,10 +239,17 @@ export const api = {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productoData),
-        timeout: 5000
+        timeout: 2000
       });
       if (res.ok) return await res.json();
     } catch (e) {}
+    const list = getLocalData('productos', FALLBACK_PRODUCTS);
+    const idx = list.findIndex(p => String(p.id) === String(id));
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...productoData };
+      setLocalData('productos', list);
+      return list[idx];
+    }
     return null;
   },
 
@@ -155,19 +257,25 @@ export const api = {
     try {
       const res = await fetchWithTimeout(`${BASE_URL}/productos/${id}`, {
         method: 'DELETE',
-        timeout: 5000
+        timeout: 2000
       });
       if (res.ok) return await res.json();
     } catch (e) {}
-    return null;
+    let list = getLocalData('productos', FALLBACK_PRODUCTS);
+    list = list.filter(p => String(p.id) !== String(id));
+    setLocalData('productos', list);
+    return { success: true };
   },
 
   async getPedidos() {
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/pedidos`, { timeout: 4000 });
-      if (res.ok) return await res.json();
+      const res = await fetchWithTimeout(`${BASE_URL}/pedidos`, { timeout: 1500 });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) return data;
+      }
     } catch (e) {}
-    return [];
+    return getLocalData('pedidos', FALLBACK_ORDERS);
   },
 
   async addPedido(pedidoData) {
@@ -176,11 +284,21 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pedidoData),
-        timeout: 6000
+        timeout: 2500
       });
       if (res.ok) return await res.json();
     } catch (e) {}
-    return { id_pedido: Date.now(), nro_pedido: 'PED-' + Math.floor(1000 + Math.random() * 9000) };
+    const list = getLocalData('pedidos', FALLBACK_ORDERS);
+    const newOrder = {
+      id_pedido: Date.now(),
+      nro_pedido: 'PED-' + String(list.length + 1).padStart(4, '0'),
+      estado: 'PENDIENTE',
+      fecha_pedido: new Date().toISOString().split('T')[0],
+      ...pedidoData
+    };
+    list.unshift(newOrder);
+    setLocalData('pedidos', list);
+    return newOrder;
   },
 
   async createPedido(pedidoData) {
@@ -193,32 +311,33 @@ export const api = {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        timeout: 5000
+        timeout: 2000
       });
       if (res.ok) return await res.json();
     } catch (e) {}
+    const list = getLocalData('pedidos', FALLBACK_ORDERS);
+    const order = list.find(o => String(o.id_pedido) === String(idPedido));
+    if (order) {
+      if (payload.estado) order.estado = payload.estado;
+      setLocalData('pedidos', list);
+      return order;
+    }
     return null;
   },
 
   async updatePedido(id, fields) {
-    try {
-      const res = await fetchWithTimeout(`${BASE_URL}/pedidos/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(fields),
-        timeout: 5000
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {}
-    return null;
+    return this.updatePedidoStatus(id, fields);
   },
 
   async getGuias() {
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/guias`, { timeout: 4000 });
-      if (res.ok) return await res.json();
+      const res = await fetchWithTimeout(`${BASE_URL}/guias`, { timeout: 1500 });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) return data;
+      }
     } catch (e) {}
-    return [];
+    return getLocalData('guias', FALLBACK_SHIPMENTS);
   },
 
   async addGuia(guiaData) {
@@ -227,11 +346,15 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(guiaData),
-        timeout: 5000
+        timeout: 2000
       });
       if (res.ok) return await res.json();
     } catch (e) {}
-    return null;
+    const list = getLocalData('guias', FALLBACK_SHIPMENTS);
+    const newGuia = { id_guia: Date.now(), estado: 'ENTREGADO', ...guiaData };
+    list.unshift(newGuia);
+    setLocalData('guias', list);
+    return newGuia;
   },
 
   async updateGuia(id, fields) {
@@ -240,7 +363,7 @@ export const api = {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(fields),
-        timeout: 5000
+        timeout: 2000
       });
       if (res.ok) return await res.json();
     } catch (e) {}

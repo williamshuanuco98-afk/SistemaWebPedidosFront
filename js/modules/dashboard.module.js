@@ -46,10 +46,10 @@ export function renderDashboard(orders = [], shipments = [], clients = [], produ
         tr.innerHTML = `
           <td class="fw-bold text-primary">${o.nro_pedido || ('PED-' + o.id_pedido)}</td>
           <td class="fw-semibold text-truncate" style="max-width:180px;">${escapeHtml(o.nombre_cliente || 'Cliente')}</td>
-          <td>${o.fecha_pedido || '-'}</td>
+          <td>${formatDate(o.fecha_pedido)}</td>
           <td><span class="status-badge ${o.estado || 'PENDIENTE'}">${o.estado || 'PENDIENTE'}</span></td>
           <td class="text-center">
-            <button class="btn btn-sm btn-outline-primary" onclick="app.viewOrderDetail(${o.id_pedido})">Ver</button>
+            <button class="btn btn-sm btn-outline-primary" onclick="app.viewOrderDetail('${o.id_pedido || o.id}')">Ver</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -73,164 +73,179 @@ function getChartColors() {
 }
 
 function renderTopClientsChart(orders) {
-  const canvas = document.getElementById('chartTopClients');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const colors = getChartColors();
+  try {
+    if (typeof Chart === 'undefined') return;
+    const canvas = document.getElementById('chartTopClients');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const colors = getChartColors();
 
-  if (window.topClientsChartInstance) {
-    window.topClientsChartInstance.destroy();
-  }
+    if (window.topClientsChartInstance) {
+      window.topClientsChartInstance.destroy();
+    }
 
-  const clientCounts = {};
-  orders.forEach(o => {
-    const name = o.nombre_cliente || 'Cliente General';
-    clientCounts[name] = (clientCounts[name] || 0) + 1;
-  });
+    const clientCounts = {};
+    orders.forEach(o => {
+      const name = o.nombre_cliente || 'Cliente General';
+      clientCounts[name] = (clientCounts[name] || 0) + 1;
+    });
 
-  const labels = Object.keys(clientCounts).slice(0, 5);
-  const data = Object.values(clientCounts).slice(0, 5);
+    const labels = Object.keys(clientCounts).slice(0, 5);
+    const data = Object.values(clientCounts).slice(0, 5);
 
-  if (labels.length === 0) {
-    labels.push('Sin Datos Registrados');
-    data.push(0);
-  }
+    if (labels.length === 0) {
+      labels.push('Sin Datos Registrados');
+      data.push(0);
+    }
 
-  window.topClientsChartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'N° Pedidos',
-        data: data,
-        backgroundColor: '#3b82f6',
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: {
-          ticks: { color: colors.ticks },
-          grid: { color: colors.grid }
-        },
-        y: {
-          beginAtZero: true,
-          ticks: { precision: 0, color: colors.ticks },
-          grid: { color: colors.grid }
+    window.topClientsChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'N° Pedidos',
+          data: data,
+          backgroundColor: '#3b82f6',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            ticks: { color: colors.ticks },
+            grid: { color: colors.grid }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, color: colors.ticks },
+            grid: { color: colors.grid }
+          }
         }
       }
-    }
-  });
+    });
+  } catch (e) {
+    console.warn("Error rendering top clients chart:", e);
+  }
 }
 
 function renderMonthlyOrdersChart(orders) {
-  const canvas = document.getElementById('chartMonthlyOrders');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const colors = getChartColors();
+  try {
+    if (typeof Chart === 'undefined') return;
+    const canvas = document.getElementById('chartMonthlyOrders');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const colors = getChartColors();
 
-  if (window.monthlyOrdersChartInstance) {
-    window.monthlyOrdersChartInstance.destroy();
+    if (window.monthlyOrdersChartInstance) {
+      window.monthlyOrdersChartInstance.destroy();
+    }
+
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const monthlyCounts = new Array(12).fill(0);
+
+    orders.forEach(o => {
+      if (o.fecha_pedido) {
+        const parts = o.fecha_pedido.split('-');
+        if (parts.length >= 2) {
+          const monthIdx = parseInt(parts[1], 10) - 1;
+          if (monthIdx >= 0 && monthIdx < 12) {
+            monthlyCounts[monthIdx]++;
+          }
+        }
+      }
+    });
+
+    window.monthlyOrdersChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [{
+          label: 'Pedidos',
+          data: monthlyCounts,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.15)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            ticks: { color: colors.ticks },
+            grid: { color: colors.grid }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, color: colors.ticks },
+            grid: { color: colors.grid }
+          }
+        }
+      }
+    });
+  } catch (e) {
+    console.warn("Error rendering monthly orders chart:", e);
   }
-
-  const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-  const monthlyCounts = new Array(12).fill(0);
-
-  orders.forEach(o => {
-    if (o.fecha_pedido) {
-      const parts = o.fecha_pedido.split('-');
-      if (parts.length >= 2) {
-        const monthIdx = parseInt(parts[1], 10) - 1;
-        if (monthIdx >= 0 && monthIdx < 12) {
-          monthlyCounts[monthIdx]++;
-        }
-      }
-    }
-  });
-
-  window.monthlyOrdersChartInstance = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: months,
-      datasets: [{
-        label: 'Pedidos',
-        data: monthlyCounts,
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.15)',
-        fill: true,
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: {
-          ticks: { color: colors.ticks },
-          grid: { color: colors.grid }
-        },
-        y: {
-          beginAtZero: true,
-          ticks: { precision: 0, color: colors.ticks },
-          grid: { color: colors.grid }
-        }
-      }
-    }
-  });
 }
 
 function renderTopProductsChart(orders) {
-  const canvas = document.getElementById('chartTopProducts');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const colors = getChartColors();
+  try {
+    if (typeof Chart === 'undefined') return;
+    const canvas = document.getElementById('chartTopProducts');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const colors = getChartColors();
 
-  if (window.topProductsChartInstance) {
-    window.topProductsChartInstance.destroy();
-  }
-
-  const prodCounts = {};
-  orders.forEach(o => {
-    if (o.detalles && Array.isArray(o.detalles)) {
-      o.detalles.forEach(d => {
-        const name = d.nombre_producto || 'Producto Insumo';
-        prodCounts[name] = (prodCounts[name] || 0) + (d.cantidad || 1);
-      });
+    if (window.topProductsChartInstance) {
+      window.topProductsChartInstance.destroy();
     }
-  });
 
-  const labels = Object.keys(prodCounts).slice(0, 5);
-  const data = Object.values(prodCounts).slice(0, 5);
+    const prodCounts = {};
+    orders.forEach(o => {
+      if (o.detalles && Array.isArray(o.detalles)) {
+        o.detalles.forEach(d => {
+          const name = d.nombre_producto || 'Producto Insumo';
+          prodCounts[name] = (prodCounts[name] || 0) + (d.cantidad || 1);
+        });
+      }
+    });
 
-  if (labels.length === 0) {
-    labels.push('Sin Pedidos Registrados');
-    data.push(0);
-  }
+    const labels = Object.keys(prodCounts).slice(0, 5);
+    const data = Object.values(prodCounts).slice(0, 5);
 
-  window.topProductsChartInstance = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899']
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: colors.legend }
+    if (labels.length === 0) {
+      labels.push('Sin Pedidos Registrados');
+      data.push(0);
+    }
+
+    window.topProductsChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: colors.legend }
+          }
         }
       }
-    }
-  });
+    });
+  } catch (e) {
+    console.warn("Error rendering top products chart:", e);
+  }
 }
 
 export function updateChartThemes() {

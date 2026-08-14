@@ -1,4 +1,4 @@
-import { escapeHtml, formatDate } from '../helpers.js';
+import { escapeHtml, formatDate, showBootstrapModal } from '../helpers.js';
 import { api } from '../api.js';
 
 let currentOrders = [];
@@ -16,11 +16,13 @@ export function renderPedidosTable(orders = [], searchQuery = '') {
 
   const dateFrom = document.getElementById('filterDateFrom')?.value;
   const dateTo = document.getElementById('filterDateTo')?.value;
+  const establishment = document.getElementById('filterEstablishment')?.value || 'ALL';
 
   const filtered = currentOrders.filter(o => {
-    const matchClient = !clientQuery || 
-      (o.nombre_cliente && o.nombre_cliente.toLowerCase().includes(clientQuery)) || 
-      (o.nro_pedido && o.nro_pedido.toLowerCase().includes(clientQuery));
+    const matchClient = !clientQuery ||
+      (o.nombre_cliente && o.nombre_cliente.toLowerCase().includes(clientQuery)) ||
+      (o.nro_pedido && o.nro_pedido.toLowerCase().includes(clientQuery)) ||
+      (o.nro_orden && o.nro_orden.toLowerCase().includes(clientQuery));
 
     let matchDate = true;
     if (o.fecha_pedido) {
@@ -28,37 +30,47 @@ export function renderPedidosTable(orders = [], searchQuery = '') {
       if (dateTo && o.fecha_pedido > dateTo) matchDate = false;
     }
 
-    return matchClient && matchDate;
+    let matchEstab = true;
+    if (establishment && establishment !== 'ALL') {
+      const oEstab = (o.establecimiento || 'CARABAYLLO').toUpperCase();
+      matchEstab = oEstab.includes(establishment);
+    }
+
+    return matchClient && matchDate && matchEstab;
   });
 
   const badge = document.getElementById('ordersCountBadge');
   if (badge) badge.textContent = `${filtered.length} pedidos`;
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No se encontraron pedidos con los criterios de búsqueda.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No se encontraron pedidos con los criterios de búsqueda.</td></tr>`;
     return;
   }
 
   filtered.forEach(o => {
     const tr = document.createElement('tr');
-    const estabText = o.id_pedido % 2 === 0 ? 'Planta Principal - Comas' : 'Sucursal - Carabayllo';
+    const estabRaw = (o.establecimiento || 'CARABAYLLO').toUpperCase();
+    const estabText = (estabRaw === 'COMAS' || estabRaw.includes('COMAS'))
+      ? 'Planta Principal - Comas'
+      : 'Sucursal - Carabayllo';
     const estadoClass = (o.estado || 'PENDIENTE').toUpperCase();
 
     tr.innerHTML = `
       <td class="fw-bold text-primary">${o.nro_pedido || ('PED-' + o.id_pedido)}</td>
+      <td class="fw-semibold text-secondary small">${o.nro_orden ? escapeHtml(o.nro_orden) : '<span class="text-muted fs-8">Sin Asignar</span>'}</td>
       <td class="fw-semibold">${escapeHtml(o.nombre_cliente || 'Cliente General')}</td>
       <td>${formatDate(o.fecha_pedido)}</td>
       <td><span class="small text-muted">${estabText}</span></td>
       <td><span class="status-badge ${estadoClass}">${estadoClass}</span></td>
       <td class="text-center">
         <div class="d-flex justify-content-center align-items-center gap-2">
-          <button class="btn btn-sm btn-outline-success px-2 py-1 rounded-2 shadow-sm fw-semibold" onclick="pedidosModule.openFinalizarOrdenModal(${o.id_pedido})" title="Finalizar Orden (Entregado / Cancelado)">
+          <button class="btn btn-sm btn-outline-success px-2 py-1 rounded-2 shadow-sm fw-semibold" onclick="pedidosModule.openFinalizarOrdenModal('${o.id_pedido || o.id || o.nro_pedido}')" title="Finalizar Orden (Entregado / Cancelado)">
             <i class="bi bi-flag-fill me-1"></i> Finalizar
           </button>
-          <button class="btn btn-sm btn-outline-warning text-dark-emphasis px-2 py-1 rounded-2 shadow-sm fw-semibold" onclick="pedidosModule.openRegistrarEnvioModal(${o.id_pedido})" title="Registrar Envío de Productos">
+          <button class="btn btn-sm btn-outline-warning text-dark-emphasis px-2 py-1 rounded-2 shadow-sm fw-semibold" onclick="pedidosModule.openRegistrarEnvioModal('${o.id_pedido || o.id || o.nro_pedido}')" title="Registrar Envío de Productos">
             <i class="bi bi-truck me-1"></i> Envío
           </button>
-          <button class="btn btn-sm btn-outline-primary px-2 py-1 rounded-2 shadow-sm fw-semibold" onclick="pedidosModule.viewOrderDetail(${o.id_pedido})" title="Ver Detalles del Pedido">
+          <button class="btn btn-sm btn-outline-primary px-2 py-1 rounded-2 shadow-sm fw-semibold" onclick="pedidosModule.viewOrderDetail('${o.id_pedido || o.id || o.nro_pedido}')" title="Ver Detalles del Pedido">
             <i class="bi bi-eye me-1"></i> Detalle
           </button>
         </div>
@@ -68,30 +80,34 @@ export function renderPedidosTable(orders = [], searchQuery = '') {
   });
 }
 
-function setupDefaultDateFilters() {
+export function setupDefaultDateFilters() {
   const dateFromElem = document.getElementById('filterDateFrom');
   const dateToElem = document.getElementById('filterDateTo');
 
-  if (dateFromElem && !dateFromElem.value) {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    dateFromElem.value = firstDay.toISOString().split('T')[0];
-  }
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
 
+  const firstDay = `${year}-${month}-01`;
+  const today = `${year}-${month}-${day}`;
+
+  if (dateFromElem && !dateFromElem.value) {
+    dateFromElem.value = firstDay;
+  }
   if (dateToElem && !dateToElem.value) {
-    const now = new Date();
-    dateToElem.value = now.toISOString().split('T')[0];
+    dateToElem.value = today;
   }
 }
 
 // 1. Finalizar Orden Modal Handlers
 export function openFinalizarOrdenModal(idPedido) {
-  const order = currentOrders.find(o => o.id_pedido === idPedido);
+  const order = currentOrders.find(o => String(o.id_pedido) === String(idPedido) || String(o.id) === String(idPedido) || String(o.nro_pedido) === String(idPedido));
   if (!order) return;
 
   document.getElementById('finalizarOrderId').value = idPedido;
   document.getElementById('finalizarOrderNroBadge').textContent = order.nro_pedido || ('PED-' + idPedido);
-  
+
   document.getElementById('optCompletado').checked = true;
   toggleFinalizarFields('ENTREGADO');
 
@@ -155,13 +171,14 @@ export async function saveFinalizarOrden() {
 
 // 2. Registrar Envío Modal Handlers
 export function openRegistrarEnvioModal(idPedido) {
-  const order = currentOrders.find(o => o.id_pedido === idPedido);
+  const order = currentOrders.find(o => String(o.id_pedido) === String(idPedido) || String(o.id) === String(idPedido) || String(o.nro_pedido) === String(idPedido));
   if (!order) return;
 
   document.getElementById('envioOrderId').value = idPedido;
   document.getElementById('envioClientId').value = order.id_cliente || 0;
   document.getElementById('envioOrderNroBadge').textContent = order.nro_pedido || ('PED-' + idPedido);
-  document.getElementById('envioNroGuia').value = 'GUI-' + String(Math.floor(Math.random() * 900000) + 100000);
+  document.getElementById('envioNroGuia').value = '';
+  document.getElementById('envioNroGuia').placeholder = 'Ej: G001-001234';
   document.getElementById('envioFechaGuia').value = new Date().toISOString().split('T')[0];
 
   const tbody = document.getElementById('envioProductsTableBody');
@@ -243,7 +260,7 @@ export async function saveRegistrarEnvio() {
     if (localOrder) {
       localOrder.nro_guia = nroGuia;
       localOrder.fecha_entrega = fechaGuia;
-      
+
       // Update local order guias list
       if (!localOrder.guias) localOrder.guias = [];
       localOrder.guias.push({
@@ -274,25 +291,40 @@ export async function saveRegistrarEnvio() {
 
 // 3. Ver Detalles del Pedido (Modal #orderDetailModal)
 export function viewOrderDetail(idPedido) {
-  const order = currentOrders.find(o => o.id_pedido === idPedido);
-  if (!order) return;
+  try {
+    let order = currentOrders.find(o => String(o.id_pedido) === String(idPedido) || String(o.id) === String(idPedido) || String(o.nro_pedido) === String(idPedido));
+    if (!order && window.app && window.app.orders) {
+      order = window.app.orders.find(o => String(o.id_pedido) === String(idPedido) || String(o.id) === String(idPedido) || String(o.nro_pedido) === String(idPedido));
+    }
+    if (!order) {
+      console.warn("Order not found for viewOrderDetail:", idPedido);
+      alert("No se encontró el detalle de este pedido.");
+      return;
+    }
 
-  const modalTitle = document.getElementById('orderDetailTitle');
-  const modalBody = document.getElementById('orderDetailBody');
-  if (!modalBody) return;
+    const modalTitle = document.getElementById('orderDetailTitle');
+    const modalBody = document.getElementById('orderDetailBody');
+    if (!modalBody) {
+      console.error("modalBody #orderDetailBody not found!");
+      return;
+    }
 
-  if (modalTitle) {
-    modalTitle.innerHTML = `<i class="bi bi-file-earmark-text me-2 text-primary"></i> Detalle del Pedido ${order.nro_pedido || ('PED-' + idPedido)}`;
-  }
+    if (modalTitle) {
+      modalTitle.innerHTML = `<i class="bi bi-file-earmark-text me-2 text-primary"></i> Detalle del Pedido ${order.nro_pedido || ('PED-' + idPedido)}`;
+    }
 
-  const estadoClass = (order.estado || 'PENDIENTE').toUpperCase();
-  const guiasList = order.guias || [];
-  const detalles = order.detalles || [];
+    const estadoClass = (order.estado || 'PENDIENTE').toUpperCase();
+    const estabRaw = (order.establecimiento || 'CARABAYLLO').toUpperCase();
+    const estabText = (estabRaw === 'COMAS' || estabRaw.includes('COMAS'))
+      ? 'Planta Principal - Comas'
+      : 'Sucursal - Carabayllo';
+    const guiasList = order.guias || [];
+    const detalles = order.detalles || [];
 
-  // Build Guias Historial HTML
-  let guiasHtml = '';
-  if (guiasList.length > 0) {
-    guiasHtml = `
+    // Build Guias Historial HTML
+    let guiasHtml = '';
+    if (guiasList.length > 0) {
+      guiasHtml = `
       <div class="card border-0 bg-body-tertiary mb-3">
         <div class="card-header bg-transparent fw-bold text-success d-flex align-items-center justify-content-between">
           <span><i class="bi bi-truck me-2"></i> Historial de Envíos / Entregas Parciales (${guiasList.length})</span>
@@ -325,28 +357,37 @@ export function viewOrderDetail(idPedido) {
         </div>
       </div>
     `;
-  }
-
-  // Parse attached files if present
-  let filesList = [];
-  if (order.adjuntos) {
-    try {
-      filesList = typeof order.adjuntos === 'string' ? JSON.parse(order.adjuntos) : order.adjuntos;
-    } catch (e) {
-      console.warn("Error parsing adjuntos JSON:", e);
     }
-  }
 
-  let adjuntosHtml = '';
-  if (Array.isArray(filesList) && filesList.length > 0) {
-    adjuntosHtml = `
+    // Parse attached files if present
+    let filesList = [];
+    if (order.adjuntos) {
+      try {
+        filesList = typeof order.adjuntos === 'string' ? JSON.parse(order.adjuntos) : order.adjuntos;
+      } catch (e) {
+        console.warn("Error parsing adjuntos JSON:", e);
+      }
+    }
+
+    let adjuntosHtml = '';
+    if (Array.isArray(filesList) && filesList.length > 0) {
+      adjuntosHtml = `
       <h6 class="fw-bold mb-2 text-secondary"><i class="bi bi-file-earmark-pdf me-1"></i> Documentos Adjuntos (${filesList.length}):</h6>
       <div class="d-flex flex-column gap-2 mb-3">
         ${filesList.map(f => {
-          const fileName = f.name || `Orden_Compra_${order.nro_pedido}.pdf`;
-          const fileData = f.data || '#';
-          const fileSize = f.size || '';
-          return `
+        let fileName = `Orden_Compra_${order.nro_pedido || order.id_pedido}.pdf`;
+        let fileData = '#';
+        let fileSize = '';
+
+        if (typeof f === 'string') {
+          fileName = f;
+        } else if (f && typeof f === 'object') {
+          fileName = f.name || fileName;
+          fileData = f.data || '#';
+          fileSize = f.size || '';
+        }
+
+        return `
             <div class="d-flex align-items-center justify-content-between p-2.5 border rounded bg-body-tertiary">
               <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
                 <i class="bi bi-file-earmark-pdf-fill text-danger fs-4"></i>
@@ -355,40 +396,60 @@ export function viewOrderDetail(idPedido) {
                   <div class="text-muted fs-8">${fileSize ? fileSize + ' - ' : ''}Documento Adjunto</div>
                 </div>
               </div>
-              <a href="${fileData}" download="${escapeHtml(fileName)}" class="btn btn-sm btn-outline-primary flex-shrink-0">
-                <i class="bi bi-download me-1"></i> Descargar PDF
-              </a>
+              ${fileData && fileData !== '#' ? `
+                <a href="${fileData}" download="${escapeHtml(fileName)}" class="btn btn-sm btn-outline-primary flex-shrink-0">
+                  <i class="bi bi-download me-1"></i> Descargar PDF
+                </a>
+              ` : `
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle flex-shrink-0">
+                  <i class="bi bi-file-earmark me-1"></i> ${escapeHtml(fileName)}
+                </span>
+              `}
             </div>
           `;
-        }).join('')}
+      }).join('')}
       </div>
     `;
-  } else {
-    adjuntosHtml = `
+    } else {
+      adjuntosHtml = `
       <h6 class="fw-bold mb-2 text-secondary"><i class="bi bi-file-earmark-pdf me-1"></i> Documentos Adjuntos:</h6>
       <div class="p-3 text-center text-muted border rounded bg-body-tertiary mb-3 fs-7">
         <i class="bi bi-file-earmark-x fs-4 d-block mb-1 text-secondary"></i>
         No se adjuntaron archivos PDF para este pedido.
       </div>
     `;
-  }
+    }
 
-  modalBody.innerHTML = `
+    const todayStr = new Date().toISOString().split('T')[0];
+    const isOverdue = order.fecha_entrega && order.fecha_entrega < todayStr;
+
+    const overdueBanner = (isOverdue && order.estado !== 'COMPLETADO') ? `
+    <div class="alert alert-danger d-flex align-items-center py-2 px-3 fs-7 mb-3" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+      <div><strong>¡Atención! Fecha de entrega vencida:</strong> La fecha pactada (${formatDate(order.fecha_entrega)}) ya ha pasado.</div>
+    </div>
+  ` : '';
+
+    modalBody.innerHTML = `
+    ${overdueBanner}
     <div class="row g-3 mb-3">
       <div class="col-md-6">
-        <div class="p-3 border rounded bg-body-tertiary">
+        <div class="p-3 border rounded bg-body-tertiary h-100">
           <div class="text-muted small text-uppercase font-monospace fw-bold mb-1">Cliente / Razón Social</div>
-          <div class="fw-bold fs-6">${escapeHtml(order.nombre_cliente || 'Cliente General')}</div>
-          <div class="small text-muted">RUC/DNI: ${order.nro_documento || 'No registrado'}</div>
+          <div class="fw-bold fs-6 mb-1">${escapeHtml(order.nombre_cliente || 'Cliente General')}</div>
+          <div class="small text-muted mb-1">RUC/DNI: ${order.nro_documento || 'No registrado'}</div>
+          <div class="small text-muted"><strong>Establecimiento:</strong> ${estabText}</div>
         </div>
       </div>
       <div class="col-md-6">
-        <div class="p-3 border rounded bg-body-tertiary">
+        <div class="p-3 border rounded bg-body-tertiary h-100">
           <div class="d-flex justify-content-between align-items-center mb-1">
             <span class="text-muted small text-uppercase font-monospace fw-bold">Estado Actual</span>
             <span class="status-badge ${estadoClass}">${estadoClass}</span>
           </div>
+          <div class="small mb-1"><strong>N° Orden Compra:</strong> ${order.nro_orden ? escapeHtml(order.nro_orden) : '<span class="text-muted">Sin Asignar</span>'}</div>
           <div class="small mb-1"><strong>Fecha Pedido:</strong> ${formatDate(order.fecha_pedido)}</div>
+          ${order.fecha_entrega ? `<div class="small mb-1"><strong>Fecha Entrega:</strong> ${formatDate(order.fecha_entrega)} ${isOverdue && order.estado !== 'COMPLETADO' ? '<span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">Fuera del plazo</span>' : ''}</div>` : ''}
           ${order.nro_guia ? `<div class="small"><strong>N° Guía Oficial:</strong> ${escapeHtml(order.nro_guia)}</div>` : ''}
         </div>
       </div>
@@ -407,12 +468,24 @@ export function viewOrderDetail(idPedido) {
           </tr>
         </thead>
         <tbody>
-          ${detalles.length === 0 ? '<tr><td colspan="4" class="text-center text-muted py-3">Sin productos especificados.</td></tr>' : 
-            detalles.map(item => {
-              const sol = item.cantidad || 0;
-              const ent = item.cantidad_entregada || 0;
-              const isDone = ent >= sol && sol > 0;
-              return `
+          ${detalles.length === 0 ? '<tr><td colspan="4" class="text-center text-muted py-3">Sin productos especificados.</td></tr>' :
+        detalles.map(item => {
+          const sol = item.cantidad || 0;
+          const ent = item.cantidad_entregada || 0;
+          const isDone = ent >= sol && sol > 0;
+
+          let entregaBadge = '';
+          if (isDone) {
+            entregaBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-all me-1"></i> Completo</span>';
+          } else if (isOverdue) {
+            entregaBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-exclamation-triangle-fill me-1"></i> Fuera del plazo</span>';
+          } else if (ent > 0) {
+            entregaBadge = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="bi bi-clock-history me-1"></i> Parcial</span>';
+          } else {
+            entregaBadge = '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"><i class="bi bi-clock me-1"></i> Pendiente</span>';
+          }
+
+          return `
                 <tr>
                   <td>
                     <div class="fw-semibold">${escapeHtml(item.nombre_producto || 'Producto')}</div>
@@ -421,14 +494,12 @@ export function viewOrderDetail(idPedido) {
                   <td class="text-center fw-bold">${sol}</td>
                   <td class="text-center text-success fw-bold">${ent}</td>
                   <td class="text-center">
-                    ${isDone ? 
-                      '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-all"></i> Completo</span>' : 
-                      '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="bi bi-clock-history"></i> Parcial</span>'}
+                    ${entregaBadge}
                   </td>
                 </tr>
               `;
-            }).join('')
-          }
+        }).join('')
+      }
         </tbody>
       </table>
     </div>
@@ -437,12 +508,11 @@ export function viewOrderDetail(idPedido) {
 
     ${adjuntosHtml}
   `;
-
-  const modalElem = document.getElementById('orderDetailModal');
-  if (modalElem) {
-    const modal = new bootstrap.Modal(modalElem);
-    modal.show();
+  } catch (err) {
+    console.error("viewOrderDetail build error:", err);
   }
+
+  showBootstrapModal('orderDetailModal');
 }
 
 export function populateClientSelect(clients) { }

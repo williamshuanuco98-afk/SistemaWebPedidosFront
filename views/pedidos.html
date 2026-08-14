@@ -16,13 +16,13 @@
   <div class="p-3 bg-body-tertiary border-bottom">
     <form id="formSearchPedidos" onsubmit="event.preventDefault(); app.triggerPedidosSearch();">
       <div class="row g-2 align-items-end">
-        <!-- Buscador por Nombre del Cliente -->
+        <!-- Buscador por Nombre del Cliente o N° Orden -->
         <div class="col-md-4">
-          <label for="searchClientNameInput" class="form-label small fw-bold mb-1">Nombre del Cliente</label>
+          <label for="searchClientNameInput" class="form-label small fw-bold mb-1">Cliente o N° de Orden</label>
           <div class="input-group input-group-sm">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
             <input type="text" id="searchClientNameInput" class="form-control"
-              placeholder="Buscar cliente (presione Enter)...">
+              placeholder="Buscar cliente o N° orden (Enter)...">
           </div>
         </div>
 
@@ -48,7 +48,7 @@
           </select>
         </div>
 
-        <!-- Botón Buscar -->
+        <!-- Botón de Búsqueda -->
         <div class="col-md-2">
           <button type="submit" class="btn btn-primary btn-sm w-100">
             <i class="bi bi-search me-1"></i> Buscar
@@ -64,6 +64,7 @@
       <thead>
         <tr>
           <th>N° Pedido</th>
+          <th>N° Orden</th>
           <th>Cliente / Razón Social</th>
           <th>Fecha Pedido</th>
           <th>Establecimiento</th>

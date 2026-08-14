@@ -14,7 +14,8 @@ import {
   saveFinalizarOrden,
   openRegistrarEnvioModal,
   saveRegistrarEnvio,
-  viewOrderDetail
+  viewOrderDetail,
+  setupDefaultDateFilters
 } from './modules/pedidos.module.js';
 import { 
   renderNuevoPedidoPage, 
@@ -49,6 +50,7 @@ import {
   deleteProduct 
 } from './modules/productos.module.js';
 import { renderConfigView, saveStorageConfig } from './modules/config.module.js';
+import { renderProduccionTable, openProductDetailModal, onSearchInput as onProduccionSearch } from './modules/produccion.module.js';
 
 // Attach modules globally for inline HTML event handlers
 window.nuevoPedidoModule = {
@@ -90,20 +92,29 @@ window.productosModule = {
   deleteProduct
 };
 
+window.produccionModule = {
+  openProductDetailModal,
+  onSearchInput: onProduccionSearch
+};
+
 window.configModule = {
   saveStorageConfig
 };
+
+window.viewOrderDetail = viewOrderDetail;
+window.openProductDetailModal = openProductDetailModal;
 
 class ModularSpaApp {
   constructor() {
     window.app = this;
     this.searchQuery = '';
 
-    this.orders = [];
-    this.shipments = [];
-    this.clients = [];
-    this.products = [];
-    this.statusData = null;
+    // Synchronously pre-populate local datasets (0ms delay) so tables and charts render immediately
+    this.clients = api.getLocalClientes();
+    this.products = api.getLocalProductos();
+    this.orders = api.getLocalPedidos();
+    this.shipments = api.getLocalGuias();
+    this.statusData = { connected: false };
 
     this.orderModal = null;
     this.shipmentModal = null;
@@ -140,14 +151,15 @@ class ModularSpaApp {
     } catch (e) {}
 
     const hash = window.location.hash.replace('#', '');
-    const initialRoute = (hash && ['dashboard', 'pedidos', 'nuevo-pedido', 'envios', 'clientes', 'productos', 'config', 'bd'].includes(hash))
+    const initialRoute = (hash && ['dashboard', 'pedidos', 'nuevo-pedido', 'envios', 'clientes', 'productos', 'produccion', 'config', 'bd'].includes(hash))
       ? hash
       : 'dashboard';
 
     // Navigate to initial route immediately for instant template rendering
     this.router.navigateTo(initialRoute);
+    this.renderCurrentView();
 
-    // Refresh backend data asynchronously
+    // Refresh backend data asynchronously in background
     this.refreshData();
   }
 
@@ -190,6 +202,18 @@ class ModularSpaApp {
   }
 
   initBootstrapModals() {
+    // Purge any lingering backdrops or pointer lockouts on startup
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('pointer-events');
+
+    document.querySelectorAll('.modal').forEach(m => {
+      m.classList.remove('show');
+      m.style.display = 'none';
+      m.style.pointerEvents = 'none';
+    });
+
     if (typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
     const oElem = document.getElementById('orderModal');
     const sElem = document.getElementById('shipmentModal');
@@ -234,17 +258,19 @@ class ModularSpaApp {
     });
 
     // Sidebar toggle
-    const toggleBtn = document.getElementById('toggleSidebarBtn');
+    const toggleBtn = document.getElementById('btnToggleSidebar') || document.getElementById('toggleSidebarBtn');
     if (toggleBtn) {
       toggleBtn.addEventListener('click', () => {
-        const sidebar = document.getElementById('sidebar');
+        const sidebar = document.querySelector('.sidebar') || document.getElementById('sidebar');
         if (!sidebar) return;
         sidebar.classList.toggle('collapsed');
         const icon = toggleBtn.querySelector('i');
-        if (sidebar.classList.contains('collapsed')) {
-          icon.className = 'bi bi-chevron-right';
-        } else {
-          icon.className = 'bi bi-chevron-left';
+        if (icon) {
+          if (sidebar.classList.contains('collapsed')) {
+            icon.className = 'bi bi-chevron-right';
+          } else {
+            icon.className = 'bi bi-chevron-left';
+          }
         }
       });
     }
@@ -276,6 +302,8 @@ class ModularSpaApp {
   }
 
   bindViewSpecificEvents() {
+    setupDefaultDateFilters();
+
     ['filterOrderStatus', 'filterEstablishment', 'filterDateFrom', 'filterDateTo'].forEach(id => {
       const elem = document.getElementById(id);
       if (elem && !elem.dataset.boundChange) {
@@ -376,6 +404,8 @@ class ModularSpaApp {
         renderClientesTable(this.clients, this.searchQuery);
       } else if (route === 'productos') {
         renderProductosTable(this.products, this.searchQuery);
+      } else if (route === 'produccion') {
+        renderProduccionTable(this.orders, this.products, this.searchQuery);
       } else if (route === 'config' || route === 'bd') {
         renderConfigView(this.clients.length, this.products.length);
       }

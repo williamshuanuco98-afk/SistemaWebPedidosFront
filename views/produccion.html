@@ -1,0 +1,86 @@
+<div class="content-card">
+  <!-- Cabecera de la Vista -->
+  <div class="card-header flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <h3 class="card-title mb-0"><i class="bi bi-gear-wide-connected text-primary"></i> Control de Producción</h3>
+      <span id="produccionCountBadge" class="badge bg-secondary">0 productos</span>
+    </div>
+  </div>
+
+  <div class="p-3">
+    <!-- Indicadores Rápidos / KPI Grid de Producción -->
+    <div class="metrics-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+      <div class="metric-card">
+        <div class="metric-info">
+          <h4>Ítems Distintos</h4>
+          <div id="statProdItemsCount" class="metric-value text-primary">0</div>
+        </div>
+        <div class="metric-icon-box metric-blue">
+          <i class="bi bi-box-seam fs-3"></i>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <h4>Unidades Solicitadas</h4>
+          <div id="statProdTotalSolicitado" class="metric-value">0</div>
+        </div>
+        <div class="metric-icon-box metric-indigo">
+          <i class="bi bi-cart-check fs-3"></i>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <h4>Unidades Entregadas</h4>
+          <div id="statProdTotalEntregado" class="metric-value text-success">0</div>
+        </div>
+        <div class="metric-icon-box metric-emerald">
+          <i class="bi bi-check2-circle fs-3"></i>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <h4>Unidades Pendientes</h4>
+          <div id="statProdTotalPendiente" class="metric-value text-warning">0</div>
+        </div>
+        <div class="metric-icon-box metric-amber">
+          <i class="bi bi-clock-history fs-3"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buscador de Productos en Producción -->
+    <div class="row g-2 align-items-center mb-3">
+      <div class="col-md-6 col-12">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" id="searchProduccionInput" class="form-control"
+            placeholder="Buscar por código o nombre de producto en pedidos..." oninput="produccionModule.onSearchInput(this.value)">
+        </div>
+      </div>
+      <div class="col-md-6 col-12 text-md-end text-muted small">
+        <i class="bi bi-info-circle me-1"></i> Muestra el acumulado de productos solicitados en las órdenes registradas.
+      </div>
+    </div>
+
+    <!-- Tabla de Control de Producción -->
+    <div class="table-responsive border rounded">
+      <table class="table custom-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre del Producto</th>
+            <th class="text-center">Total Solicitado</th>
+            <th class="text-center">Total Entregado</th>
+            <th class="text-center">Total Pendiente</th>
+            <th class="text-center">Clientes</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="produccionTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>

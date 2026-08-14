@@ -36,17 +36,6 @@ body {
   pointer-events: auto !important;
 }
 
-/* Force hide orphan modal backdrops when no active modal is open */
-body:not(.modal-open) .modal-backdrop {
-  display: none !important;
-  pointer-events: none !important;
-}
-
-body:not(.modal-open) {
-  overflow: auto !important;
-  pointer-events: auto !important;
-}
-
 /* Primary Action Buttons & Harmonious Brand Text Accents */
 .btn-primary {
   background-color: var(--accent-purple) !important;

@@ -23,7 +23,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/styles.css?v=801.0">
+  <link rel="stylesheet" href="css/styles.css?v=820.0">
 </head>
 
 <body>
@@ -68,6 +68,11 @@
           <button class="nav-item" data-route="productos" onclick="app.navigateTo('productos')">
             <i class="bi bi-box-seam-fill icon"></i>
             <span class="nav-label">Productos</span>
+          </button>
+
+          <button class="nav-item" data-route="produccion" onclick="app.navigateTo('produccion')">
+            <i class="bi bi-gear-wide-connected icon"></i>
+            <span class="nav-label">Producción</span>
           </button>
         </nav>
       </div>
@@ -118,7 +123,134 @@
       </header>
 
       <!-- Dynamic View Container -->
-      <div id="viewContainer" class="page-body"></div>
+      <div id="viewContainer" class="page-body">
+        <!-- Top Metrics 5 KPI Grid -->
+        <div class="metrics-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div class="metric-card">
+            <div class="metric-info">
+              <h4>Total Pedidos</h4>
+              <div id="statTotalOrders" class="metric-value">0</div>
+            </div>
+            <div class="metric-icon-box metric-blue">
+              <i class="bi bi-cart3 fs-3"></i>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-info">
+              <h4>Pedidos Pendientes</h4>
+              <div id="statPendingOrders" class="metric-value">0</div>
+            </div>
+            <div class="metric-icon-box metric-amber">
+              <i class="bi bi-clock-history fs-3"></i>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-info">
+              <h4>Pedidos Entregados</h4>
+              <div id="statCompletedOrders" class="metric-value">0</div>
+            </div>
+            <div class="metric-icon-box metric-emerald">
+              <i class="bi bi-check2-circle fs-3"></i>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-info">
+              <h4>Clientes Registrados</h4>
+              <div id="statTotalClients" class="metric-value">0</div>
+            </div>
+            <div class="metric-icon-box metric-emerald">
+              <i class="bi bi-people fs-3"></i>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-info">
+              <h4>Productos Totales</h4>
+              <div id="statTotalProducts" class="metric-value">0</div>
+            </div>
+            <div class="metric-icon-box metric-indigo">
+              <i class="bi bi-box-seam fs-3"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section Row 1 -->
+        <div class="row g-4 mb-4">
+          <div class="col-lg-6">
+            <div class="content-card p-3 h-100">
+              <div class="card-header border-0 pb-0 bg-transparent">
+                <h3 class="card-title d-flex align-items-center">
+                  <i class="bi bi-bar-chart-line-fill text-primary"></i>
+                  <span>Clientes Mayores Solicitantes (Ingresos S/)</span>
+                </h3>
+              </div>
+              <div class="p-3" style="height: 280px; position: relative;">
+                <canvas id="chartTopClients"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="content-card p-3 h-100">
+              <div class="card-header border-0 pb-0 bg-transparent">
+                <h3 class="card-title d-flex align-items-center">
+                  <i class="bi bi-bar-chart-steps text-success"></i>
+                  <span>Cantidad de Pedidos al Mes</span>
+                </h3>
+              </div>
+              <div class="p-3" style="height: 280px; position: relative;">
+                <canvas id="chartMonthlyOrders"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section Row 2 & Recent Orders -->
+        <div class="row g-4">
+          <div class="col-lg-5">
+            <div class="content-card p-3 h-100">
+              <div class="card-header border-0 pb-0 bg-transparent">
+                <h3 class="card-title d-flex align-items-center">
+                  <i class="bi bi-award-fill text-warning"></i>
+                  <span>Productos Más Pedidos</span>
+                </h3>
+              </div>
+              <div class="p-3" style="height: 280px; position: relative;">
+                <canvas id="chartTopProducts"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-7">
+            <div class="content-card h-100">
+              <div class="card-header bg-transparent">
+                <h3 class="card-title d-flex align-items-center">
+                  <i class="bi bi-cart3 text-primary"></i>
+                  <span>Últimos Pedidos Registrados</span>
+                </h3>
+                <button class="btn btn-sm btn-outline-secondary" onclick="app.navigateTo('pedidos')">Ver Todos</button>
+              </div>
+              <div class="table-responsive">
+                <table class="table custom-table mb-0">
+                  <thead>
+                    <tr>
+                      <th>N° Pedido</th>
+                      <th>Cliente</th>
+                      <th>Fecha</th>
+                      <th>Estado</th>
+                      <th class="text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashOrdersTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -128,18 +260,34 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 id="orderDetailTitle" class="modal-title fw-bold">Detalle de Pedido</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="hideBootstrapModal('orderDetailModal')"></button>
         </div>
         <div id="orderDetailBody" class="modal-body"></div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button class="btn btn-secondary" data-bs-dismiss="modal" onclick="hideBootstrapModal('orderDetailModal')">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detalle Producción Modal -->
+  <div class="modal fade" id="produccionDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 id="produccionDetailTitle" class="modal-title fw-bold">Detalle del Producto en Producción</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="hideBootstrapModal('produccionDetailModal')"></button>
+        </div>
+        <div id="produccionDetailBody" class="modal-body"></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal" onclick="hideBootstrapModal('produccionDetailModal')">Cerrar</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Application Modular Script -->
-  <script type="module" src="js/main.js?v=1000.0"></script>
+  <script type="module" src="js/main.js?v=1021.0"></script>
 </body>
 
 </html>

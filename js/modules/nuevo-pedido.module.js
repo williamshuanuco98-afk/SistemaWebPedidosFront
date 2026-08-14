@@ -468,7 +468,7 @@ export async function submitNuevoPedido() {
     return;
   }
 
-  const establecimiento = document.getElementById('establecimientoSelect')?.value || 'COMAS';
+  const establecimiento = document.getElementById('establecimientoSelect')?.value || 'CARABAYLLO';
   const nroOrdenCompra = document.getElementById('nroOrdenCompraInput')?.value.trim() || '';
   const condicionPago = document.getElementById('condicionPagoSelect')?.value || 'CONTADO';
   const diasCredito = condicionPago !== 'CONTADO' ? parseInt(document.getElementById('diasCreditoInput')?.value || 30, 10) : 0;

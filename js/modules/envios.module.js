@@ -31,7 +31,7 @@ export function renderEnviosTable(shipments = [], searchQuery = '') {
       <td>${formatDate(s.fecha_guia)}</td>
       <td><span class="status-badge ${s.estado || 'ACTIVA'}">${s.estado || 'ACTIVA'}</span></td>
       <td class="text-center">
-        <button class="btn btn-sm btn-outline-primary" onclick="app.openEditShipmentModal(${s.id_guia})">Modificar</button>
+        <button class="btn btn-sm btn-outline-primary" onclick="app.openEditShipmentModal('${s.id_guia}')">Modificar</button>
       </td>
     `;
     tbody.appendChild(tr);

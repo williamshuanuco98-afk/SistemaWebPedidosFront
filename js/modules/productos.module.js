@@ -36,10 +36,10 @@ export function filterProductos(queryStr = '') {
       <td><span class="status-badge COMPLETADO">ACTIVO</span></td>
       <td class="text-center">
         <div class="d-flex justify-content-center gap-1">
-          <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="height: 28px;" title="Editar producto" onclick="productosModule.openEditProductModal(${p.id_producto})">
+          <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="height: 28px;" title="Editar producto" onclick="productosModule.openEditProductModal('${p.id_producto || p.id}')">
             <i class="bi bi-pencil"></i>
           </button>
-          <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" style="height: 28px;" title="Eliminar producto" onclick="productosModule.deleteProduct(${p.id_producto})">
+          <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" style="height: 28px;" title="Eliminar producto" onclick="productosModule.deleteProduct('${p.id_producto || p.id}')">
             <i class="bi bi-trash"></i>
           </button>
         </div>
