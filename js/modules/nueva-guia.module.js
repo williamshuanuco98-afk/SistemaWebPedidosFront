@@ -69,6 +69,9 @@ function setupClientSearch() {
   const list = document.getElementById('clientSearchResultsGuiaList');
   if (!input || !list) return;
 
+  if (input.dataset.boundClientSearch === 'true') return;
+  input.dataset.boundClientSearch = 'true';
+
   input.addEventListener('input', (e) => {
     const val = e.target.value.trim();
     state.activeClientIndex = -1;
@@ -158,7 +161,10 @@ function selectClient(client) {
     input.value = `${docPrefix}${client.nombre_cliente}`;
   }
   if (rucInput) rucInput.value = client.nro_documento || '';
-  if (puntoLlegadaInput) puntoLlegadaInput.value = client.direccion || '';
+  if (puntoLlegadaInput) {
+    const fullDir = (client.direccion || client.direccion_completa || client.direccion_fiscal || '').trim();
+    puntoLlegadaInput.value = fullDir;
+  }
   if (list) list.classList.add('d-none');
 }
 
@@ -166,6 +172,9 @@ function setupProductSearch() {
   const input = document.getElementById('searchProductGuiaInput');
   const list = document.getElementById('productSearchResultsGuiaList');
   if (!input || !list) return;
+
+  if (input.dataset.boundProductSearch === 'true') return;
+  input.dataset.boundProductSearch = 'true';
 
   input.addEventListener('input', (e) => {
     const val = e.target.value.trim();

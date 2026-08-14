@@ -45,6 +45,9 @@ function setupClientSearch() {
   const list = document.getElementById('clientSearchResultsList');
   if (!input || !list) return;
 
+  if (input.dataset.boundClientSearch === 'true') return;
+  input.dataset.boundClientSearch = 'true';
+
   input.addEventListener('input', () => {
     const val = input.value.trim();
     state.activeClientIndex = -1;

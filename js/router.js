@@ -693,32 +693,32 @@ const EMBEDDED_VIEWS = {
   <div class="card-body p-4">
     <form id="formNuevaGuia" onsubmit="event.preventDefault(); nuevaGuiaModule.submitNuevaGuia();">
       
-      <!-- Fila 1: 1. N° Guía, 2. Documento de Referencia, 3. Local de Salida, 4. Dirección del Punto de Partida -->
-      <div class="row g-2 mb-3 p-3 border rounded bg-body-tertiary align-items-end">
-        <!-- 1. N° Guía (Correlativo) -->
-        <div class="col-md-2">
-          <label for="nroGuiaInput" class="form-label fw-bold small mb-1">N° Guía <span class="text-danger">*</span></label>
+      <!-- Fila 1: 1. N° Guía (10%), 2. Documento de Referencia (10%), 3. Local de Salida (10%), 4. Dirección del Punto de Partida (70%) -->
+      <div class="d-flex flex-wrap gap-0 mb-3 p-3 border rounded bg-body-tertiary align-items-end" style="gap: 0.5% !important;">
+        <!-- 1. N° Guía (10%) -->
+        <div style="width: 10%;">
+          <label for="nroGuiaInput" class="form-label fw-bold small mb-1 text-nowrap">N° Guía <span class="text-danger">*</span></label>
           <input type="text" id="nroGuiaInput" class="form-control form-control-sm fw-bold text-primary" readonly>
         </div>
 
-        <!-- 2. Documento de Referencia -->
-        <div class="col-md-3">
-          <label for="docReferenciaGuiaInput" class="form-label fw-bold small mb-1">Documento de Referencia</label>
+        <!-- 2. Documento de Referencia (10%) -->
+        <div style="width: 10%;">
+          <label for="docReferenciaGuiaInput" class="form-label fw-bold small mb-1 text-nowrap">Doc. Referencia</label>
           <input type="text" id="docReferenciaGuiaInput" class="form-control form-control-sm">
         </div>
 
-        <!-- 3. Local de Salida (Punto de Partida) -->
-        <div class="col-md-3">
-          <label for="selectLocalGuia" class="form-label fw-bold small mb-1">Local de Salida <span class="text-danger">*</span></label>
-          <select id="selectLocalGuia" class="form-select form-select-sm" onchange="nuevaGuiaModule.onLocalChanged(this.value)">
-            <option value="CARABAYLLO" selected>Sucursal - Carabayllo (Serie GR001)</option>
-            <option value="COMAS">Planta Principal - Comas (Serie GR002)</option>
+        <!-- 3. Local de Salida (10%) -->
+        <div style="width: 10%;">
+          <label for="selectLocalGuia" class="form-label fw-bold small mb-1 text-nowrap">Local Salida <span class="text-danger">*</span></label>
+          <select id="selectLocalGuia" class="form-select form-select-sm px-1" onchange="nuevaGuiaModule.onLocalChanged(this.value)">
+            <option value="CARABAYLLO" selected>Carabayllo (GR001)</option>
+            <option value="COMAS">Comas (GR002)</option>
           </select>
         </div>
 
-        <!-- 4. Dirección del Punto de Partida -->
-        <div class="col-md-4">
-          <label for="puntoPartidaInput" class="form-label fw-bold small mb-1">Dirección del Punto de Partida</label>
+        <!-- 4. Dirección del Punto de Partida (70%) -->
+        <div style="width: 68.5%;">
+          <label for="puntoPartidaInput" class="form-label fw-bold small mb-1 text-nowrap">Dirección del Punto de Partida</label>
           <input type="text" id="puntoPartidaInput" class="form-control form-control-sm" readonly>
         </div>
       </div>

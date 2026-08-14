@@ -17,7 +17,7 @@ export function normalizeText(str) {
     .toLowerCase();
 }
 
-// Advanced multi-token search with relevance ranking
+// Advanced multi-token search with high-precision relevance ranking (order independent & word-prefix priority)
 export function filterAndRankItems(items, queryStr, getSearchableText) {
   if (!items || !Array.isArray(items)) return [];
   const rawQuery = (queryStr || '').trim();
@@ -31,22 +31,53 @@ export function filterAndRankItems(items, queryStr, getSearchableText) {
 
   for (const item of items) {
     const text = normalizeText(getSearchableText(item));
-    // Every token typed by user must match somewhere in normalized text
+    
+    // Every single token typed by user must exist somewhere in the normalized item text
     const isMatch = tokens.every(token => text.includes(token));
 
     if (isMatch) {
       let score = 0;
-      if (text === normalizedQuery) score += 100;
-      if (text.startsWith(normalizedQuery)) score += 50;
 
-      for (const token of tokens) {
-        if (text.includes(` ${token}`) || text.startsWith(token)) score += 10;
+      // 1. Exact full query match
+      if (text === normalizedQuery) score += 10000;
+      if (text.startsWith(normalizedQuery)) score += 5000;
+
+      // 2. Main field prefix bonus
+      const mainName = normalizeText(item.nombre_cliente || item.razon_social || item.nombre_producto || '');
+      if (mainName && mainName.startsWith(tokens[0])) {
+        score += 2500;
       }
+
+      // 3. Document / Code prefix bonus
+      const docCode = normalizeText(item.nro_documento || item.codigo_producto || '');
+      if (docCode && docCode.startsWith(rawQuery)) {
+        score += 3000;
+      }
+
+      // 4. Word boundary prefix bonus (e.g. typing "che" matches words starting with "che" like "CHEMIFABRIK")
+      const words = text.split(/[\s\-\,\.\/]+/);
+      for (const token of tokens) {
+        for (const word of words) {
+          if (word === token) {
+            score += 1500;
+          } else if (word.startsWith(token)) {
+            score += 1000; // High score for word prefix match
+          } else if (word.includes(token)) {
+            score += 50;   // Low score for infix match (e.g. "sanchez")
+          }
+        }
+      }
+
+      // 5. Short string length bonus (prefer concise matches over long paragraphs)
+      if (text.length > 0) {
+        score += Math.max(0, 100 - text.length);
+      }
+
       matched.push({ item, score });
     }
   }
 
-  // Sort by highest relevance score first
+  // Sort descending by highest relevance score
   matched.sort((a, b) => b.score - a.score);
   return matched.map(m => m.item);
 }
