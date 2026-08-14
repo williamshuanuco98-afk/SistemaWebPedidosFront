@@ -25,9 +25,50 @@
     </div>
   </div>
 
-  <!-- System Information & Database Status Card -->
+  <!-- Document Storage Folder Configuration Card -->
   <div class="col-md-6">
     <div class="content-card p-4 h-100">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="p-3 rounded-circle bg-warning bg-opacity-10 text-warning-emphasis">
+          <i class="bi bi-folder-symlink-fill fs-3"></i>
+        </div>
+        <div>
+          <h2 class="h5 fw-bold mb-1">Ruta de Almacenamiento de Archivos PDF</h2>
+          <p class="text-muted small mb-0">Especifica en qué carpeta local o de servidor se guardarán los documentos</p>
+        </div>
+      </div>
+      <hr>
+      <form onsubmit="event.preventDefault(); configModule.saveStorageConfig();">
+        <div class="mb-3">
+          <label for="pdfFolderPathInput" class="form-label fw-semibold fs-7">Ruta de Carpeta de Destino (Path Local / Servidor) *</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-folder2-open"></i></span>
+            <input type="text" id="pdfFolderPathInput" class="form-control" placeholder="Ej: C:\Users\User\OneDrive\Escritorio\OrdenesI" required>
+          </div>
+          <div class="form-text fs-8">Ruta absoluta en el disco local o servidor donde se guardarán copias de los PDF adjuntos.</div>
+        </div>
+
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="pdfSubfolderCheckbox">
+          <label class="form-check-label fw-semibold fs-7" for="pdfSubfolderCheckbox">
+            Organizar automáticamente en subcarpetas por N° de Pedido (ej. <code>/PED-0001/</code>)
+          </label>
+        </div>
+
+        <div id="storageConfigFeedback" class="mb-3 d-none"></div>
+
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary btn-sm px-3">
+            <i class="bi bi-save me-1"></i> Guardar Ruta de Almacenamiento
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- System Information & Database Status Card -->
+  <div class="col-md-12">
+    <div class="content-card p-4">
       <div class="d-flex align-items-center gap-3 mb-3">
         <div class="p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
           <i class="bi bi-server fs-3"></i>
@@ -38,29 +79,29 @@
         </div>
       </div>
       <hr>
-      <div class="row g-2">
-        <div class="col-6">
+      <div class="row g-3">
+        <div class="col-md-3">
           <div class="p-3 bg-light rounded border">
             <span class="small text-muted d-block font-monospace">ESTADO CONEXIÓN</span>
             <span class="badge bg-success mt-1">MySQL CONECTADO</span>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-md-3">
           <div class="p-3 bg-light rounded border">
             <span class="small text-muted d-block font-monospace">ENDPOINT API</span>
             <span class="small fw-semibold text-primary">http://localhost:8080/api</span>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-md-3">
           <div class="p-3 bg-light rounded border">
             <span class="small text-muted d-block font-monospace">CLIENTES REGISTRADOS</span>
-            <strong id="bdClientsCount" class="fs-6 text-primary">341 Clientes</strong>
+            <strong id="bdClientsCount" class="fs-6 text-primary">342 Clientes</strong>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-md-3">
           <div class="p-3 bg-light rounded border">
             <span class="small text-muted d-block font-monospace">CATÁLOGO PRODUCTOS</span>
-            <strong id="bdProductsCount" class="fs-6 text-success">706 Productos</strong>
+            <strong id="bdProductsCount" class="fs-6 text-success">804 Productos</strong>
           </div>
         </div>
       </div>

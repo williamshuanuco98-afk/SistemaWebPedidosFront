@@ -43,43 +43,56 @@
                     style="z-index: 1050; max-height: 600px; overflow-y: auto;"></ul>
                 </div>
 
+                <!-- Establecimiento de Guardado -->
+                <div class="col-md-2">
+                  <label for="establecimientoSelect" class="form-label fw-bold fs-7">
+                    Establecimiento <span class="text-danger">*</span>
+                  </label>
+                  <select id="establecimientoSelect" class="form-select fs-7 px-2">
+                    <option value="COMAS" selected>Planta Principal - Comas</option>
+                    <option value="CARABAYLLO">Sucursal - Carabayllo</option>
+                  </select>
+                </div>
+
                 <!-- N° Orden de Compra -->
-                <div class="col-md-3">
-                  <label for="nroOrdenCompraInput" class="form-label fw-bold">N° Orden de Compra</label>
-                  <input type="text" id="nroOrdenCompraInput" class="form-control" placeholder="Ej: OC-2026-089">
+                <div class="col-md-2">
+                  <label for="nroOrdenCompraInput" class="form-label fw-bold fs-7">N° Orden de Compra</label>
+                  <input type="text" id="nroOrdenCompraInput" class="form-control fs-7" placeholder="Ej: OC-2026-089">
                 </div>
 
                 <!-- Condición de Pago -->
-                <div class="col-md-3">
-                  <label for="condicionPagoSelect" class="form-label fw-bold">
+                <div class="col-md-2">
+                  <label for="condicionPagoSelect" class="form-label fw-bold fs-7">
                     Condición de Pago <span class="text-danger">*</span>
                   </label>
-                  <select id="condicionPagoSelect" class="form-select"
-                    onchange="nuevoPedidoModule.onCondicionPagoChange()">
+                  <select id="condicionPagoSelect" class="form-select fs-7"
+                    onchange="nuevoPedidoModule.onCondicionPagoChange(this.value)">
                     <option value="CONTADO" selected>Contado</option>
                     <option value="CREDITO">Crédito</option>
                     <option value="FACTURA_NEGOCIABLE">Factura Negociable</option>
                     <option value="LETRAS">Letras</option>
+                    <option value="TRANSFERENCIA">Transferencia</option>
                   </select>
                 </div>
 
                 <!-- N° Días de Crédito -->
-                <div class="col-md-2 d-none" id="diasCreditoContainer">
-                  <label for="diasCreditoInput" class="form-label fw-bold text-primary">Días Crédito <span
-                      class="text-danger">*</span></label>
-                  <input type="number" id="diasCreditoInput" class="form-control" placeholder="30" min="1" value="30">
+                <div class="col-md-2" id="diasCreditoContainer">
+                  <label for="diasCreditoInput" class="form-label fw-bold fs-7">
+                    Días de Crédito <span class="text-danger">*</span>
+                  </label>
+                  <input type="number" id="diasCreditoInput" class="form-control fs-7" placeholder="0" min="0" value="0" disabled>
                 </div>
 
                 <!-- Fecha de Ingreso -->
-                <div class="col-md-3">
-                  <label for="fechaIngresoInput" class="form-label fw-bold">Fecha de Ingreso</label>
-                  <input type="date" id="fechaIngresoInput" class="form-control">
+                <div class="col-md-2">
+                  <label for="fechaIngresoInput" class="form-label fw-bold fs-7">Fecha de Ingreso</label>
+                  <input type="date" id="fechaIngresoInput" class="form-control fs-7 px-1">
                 </div>
 
                 <!-- Fecha de Entrega -->
-                <div class="col-md-3">
-                  <label for="fechaEntregaInput" class="form-label fw-bold">Fecha de Entrega</label>
-                  <input type="date" id="fechaEntregaInput" class="form-control">
+                <div class="col-md-2">
+                  <label for="fechaEntregaInput" class="form-label fw-bold fs-7">Fecha de Entrega</label>
+                  <input type="date" id="fechaEntregaInput" class="form-control fs-7 px-1">
                 </div>
 
                 <!-- Adelanto de Pago (Subido al mismo nivel / bloque horizontal) -->

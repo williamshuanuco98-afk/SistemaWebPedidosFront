@@ -48,7 +48,7 @@ import {
   saveProductFromModal, 
   deleteProduct 
 } from './modules/productos.module.js';
-import { renderConfigView } from './modules/config.module.js';
+import { renderConfigView, saveStorageConfig } from './modules/config.module.js';
 
 // Attach modules globally for inline HTML event handlers
 window.nuevoPedidoModule = {
@@ -88,6 +88,10 @@ window.productosModule = {
   openEditProductModal,
   saveProductFromModal,
   deleteProduct
+};
+
+window.configModule = {
+  saveStorageConfig
 };
 
 class ModularSpaApp {
@@ -215,6 +219,17 @@ class ModularSpaApp {
         document.body.style.removeProperty('overflow');
         document.body.style.removeProperty('padding-right');
         document.body.style.removeProperty('pointer-events');
+      }
+    });
+
+    // Global double-click handler for date inputs to open native calendar picker
+    document.addEventListener('dblclick', (e) => {
+      if (e.target && e.target.tagName === 'INPUT' && e.target.type === 'date') {
+        if (typeof e.target.showPicker === 'function') {
+          try {
+            e.target.showPicker();
+          } catch (err) {}
+        }
       }
     });
 

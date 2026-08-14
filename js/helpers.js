@@ -50,3 +50,27 @@ export function filterAndRankItems(items, queryStr, getSearchableText) {
   matched.sort((a, b) => b.score - a.score);
   return matched.map(m => m.item);
 }
+
+// Format date to DD/MM/YYYY format
+export function formatDate(dateStr) {
+  if (!dateStr || dateStr === '-' || dateStr === 'null' || dateStr === 'undefined') return '-';
+  const str = String(dateStr).trim();
+  if (!str) return '-';
+  
+  // Handle ISO YYYY-MM-DD or YYYY-MM-DDT...
+  if (str.includes('T')) {
+    const parts = str.split('T')[0].split('-');
+    if (parts.length === 3) return `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+  }
+  if (str.includes('-')) {
+    const parts = str.split('-');
+    if (parts.length === 3) return `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+  }
+  if (str.includes('/')) {
+    const parts = str.split('/');
+    if (parts.length === 3 && parts[0].length === 4) {
+      return `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+    }
+  }
+  return str;
+}

@@ -1,4 +1,4 @@
-import { escapeHtml } from '../helpers.js';
+import { escapeHtml, formatDate } from '../helpers.js';
 
 export function renderEnviosTable(shipments = [], searchQuery = '') {
   const tbody = document.getElementById('enviosTableBody');
@@ -28,7 +28,7 @@ export function renderEnviosTable(shipments = [], searchQuery = '') {
         <div class="fw-semibold">${escapeHtml(s.nombre_cliente || 'Cliente')}</div>
         <div class="small text-muted">📍 ${escapeHtml(s.direccion_destino || 'Dirección fiscal')}</div>
       </td>
-      <td>${s.fecha_guia || '-'}</td>
+      <td>${formatDate(s.fecha_guia)}</td>
       <td><span class="status-badge ${s.estado || 'ACTIVA'}">${s.estado || 'ACTIVA'}</span></td>
       <td class="text-center">
         <button class="btn btn-sm btn-outline-primary" onclick="app.openEditShipmentModal(${s.id_guia})">Modificar</button>

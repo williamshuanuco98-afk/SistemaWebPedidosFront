@@ -1,4 +1,4 @@
-import { escapeHtml, filterAndRankItems } from '../helpers.js';
+import { escapeHtml, filterAndRankItems, formatDate } from '../helpers.js';
 import { api } from '../api.js';
 
 let state = {
@@ -334,7 +334,7 @@ function renderAdelantosTable() {
     total += adv.monto;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="fw-semibold">${adv.fecha}</td>
+      <td class="fw-semibold">${formatDate(adv.fecha)}</td>
       <td><span class="badge bg-primary text-white px-2.5 py-1 fs-8 fw-bold">${escapeHtml(adv.banco)}</span></td>
       <td class="fw-semibold">${escapeHtml(adv.voucher)}</td>
       <td class="text-end fw-bold text-success">S/ ${adv.monto.toFixed(2)}</td>
@@ -355,30 +355,45 @@ export function removeAdelanto(index) {
   renderAdelantosTable();
 }
 
-export function onCondicionPagoChange() {
+export function onCondicionPagoChange(val) {
   const select = document.getElementById('condicionPagoSelect');
-  const container = document.getElementById('diasCreditoContainer');
-  if (!select || !container) return;
+  const input = document.getElementById('diasCreditoInput');
 
-  if (select.value === 'CONTADO') {
-    container.classList.add('d-none');
+  const selectedVal = val || (select ? select.value : 'CONTADO');
+
+  if (!input) return;
+
+  if (selectedVal === 'CONTADO') {
+    input.disabled = true;
+    input.value = '0';
   } else {
-    container.classList.remove('d-none');
+    input.disabled = false;
+    if (input.value === '0' || !input.value) {
+      input.value = '30';
+    }
+    input.focus();
   }
 }
 
 export function handleFilesAttached(files) {
   if (!files || files.length === 0) return;
   Array.from(files).forEach(file => {
+    const reader = new FileReader();
     const sizeKb = (file.size / 1024).toFixed(1);
-    state.attachedFiles.push({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      size: sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' MB' : sizeKb + ' KB',
-      type: file.type
-    });
+    const sizeStr = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' MB' : sizeKb + ' KB';
+
+    reader.onload = function (e) {
+      state.attachedFiles.push({
+        id: Date.now() + Math.random(),
+        name: file.name,
+        size: sizeStr,
+        type: file.type || 'application/pdf',
+        data: e.target.result
+      });
+      renderAttachedFilesList();
+    };
+    reader.readAsDataURL(file);
   });
-  renderAttachedFilesList();
 }
 
 export function removeAttachedFile(index) {
@@ -453,12 +468,15 @@ export async function submitNuevoPedido() {
     return;
   }
 
+  const establecimiento = document.getElementById('establecimientoSelect')?.value || 'COMAS';
   const nroOrdenCompra = document.getElementById('nroOrdenCompraInput')?.value.trim() || '';
   const condicionPago = document.getElementById('condicionPagoSelect')?.value || 'CONTADO';
   const diasCredito = condicionPago !== 'CONTADO' ? parseInt(document.getElementById('diasCreditoInput')?.value || 30, 10) : 0;
   const fechaIngreso = document.getElementById('fechaIngresoInput')?.value || new Date().toISOString().split('T')[0];
   const fechaEntrega = document.getElementById('fechaEntregaInput')?.value || fechaIngreso;
   const observaciones = document.getElementById('observacionesInput')?.value.trim() || '';
+  const storagePath = localStorage.getItem('inplabel_pdf_storage_path') || 'C:\\Users\\User\\OneDrive\\Escritorio\\OrdenesI';
+  const useSubfolders = localStorage.getItem('inplabel_pdf_subfolders') === 'true';
 
   const btnGuardar = document.getElementById('btnGuardarPedido');
   if (btnGuardar) {
@@ -469,6 +487,7 @@ export async function submitNuevoPedido() {
   const payload = {
     id_cliente: state.selectedClient.id_cliente,
     nombre_cliente: state.selectedClient.nombre_cliente,
+    establecimiento: establecimiento,
     nro_orden_compra: nroOrdenCompra,
     fecha_pedido: fechaIngreso,
     fecha_entrega: fechaEntrega,
@@ -476,8 +495,16 @@ export async function submitNuevoPedido() {
     condicion_pago: condicionPago,
     dias_credito: diasCredito,
     observaciones: observaciones,
+    storage_path: storagePath,
+    use_subfolders: useSubfolders,
     adelantos: state.advancePayments,
-    adjuntos: state.attachedFiles.map(f => f.name),
+    adjuntos: state.attachedFiles,
+    detalles: state.orderItems.map(item => ({
+      id_producto: item.id_producto,
+      nombre_producto: item.nombre_producto,
+      cantidad: item.cantidad
+    }))
+  };
     detalles: state.orderItems.map(item => ({
       id_producto: item.id_producto,
       nombre_producto: item.nombre_producto,
@@ -489,10 +516,7 @@ export async function submitNuevoPedido() {
     const res = await api.createPedido(payload);
     alert(`¡Pedido registrado exitosamente! ${res.nro_pedido ? 'N° Pedido: ' + res.nro_pedido : ''}`);
     
-    state.selectedClient = null;
-    state.advancePayments = [];
-    state.orderItems = [];
-    state.attachedFiles = [];
+    resetNuevoPedidoForm();
     window.app.navigateTo('pedidos');
   } catch (err) {
     console.error('Error al registrar pedido:', err);
@@ -503,4 +527,36 @@ export async function submitNuevoPedido() {
       btnGuardar.innerHTML = `<i class="bi bi-check-circle me-1"></i> Guardar Pedido`;
     }
   }
+}
+
+export function resetNuevoPedidoForm() {
+  state.selectedClient = null;
+  state.advancePayments = [];
+  state.orderItems = [];
+  state.attachedFiles = [];
+  state.activeClientIndex = -1;
+  state.activeProductIndex = -1;
+
+  const searchClientInput = document.getElementById('searchClientInput');
+  if (searchClientInput) searchClientInput.value = '';
+
+  const nroOrdenCompraInput = document.getElementById('nroOrdenCompraInput');
+  if (nroOrdenCompraInput) nroOrdenCompraInput.value = '';
+
+  const observacionesInput = document.getElementById('observacionesInput');
+  if (observacionesInput) observacionesInput.value = '';
+
+  const archivosAdjuntosInput = document.getElementById('archivosAdjuntosInput');
+  if (archivosAdjuntosInput) archivosAdjuntosInput.value = '';
+
+  const searchProductInput = document.getElementById('searchProductInput');
+  if (searchProductInput) searchProductInput.value = '';
+
+  const condicionPagoSelect = document.getElementById('condicionPagoSelect');
+  if (condicionPagoSelect) condicionPagoSelect.value = 'CONTADO';
+
+  onCondicionPagoChange('CONTADO');
+  renderAdelantosTable();
+  renderOrderItemsTable();
+  renderAttachedFilesList();
 }

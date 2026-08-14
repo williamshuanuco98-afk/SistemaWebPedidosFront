@@ -33,8 +33,8 @@
 }
 
 [data-theme="dark"] .status-badge.PENDIENTE {
-  background: #8f5331;
-  color: #0e0d0d00;
+  background: #d97706;
+  color: #fef3c7;
 }
 
 [data-theme="dark"] .status-badge.EN_PROCESO,

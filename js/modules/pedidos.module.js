@@ -1,4 +1,4 @@
-import { escapeHtml } from '../helpers.js';
+import { escapeHtml, formatDate } from '../helpers.js';
 import { api } from '../api.js';
 
 let currentOrders = [];
@@ -47,7 +47,7 @@ export function renderPedidosTable(orders = [], searchQuery = '') {
     tr.innerHTML = `
       <td class="fw-bold text-primary">${o.nro_pedido || ('PED-' + o.id_pedido)}</td>
       <td class="fw-semibold">${escapeHtml(o.nombre_cliente || 'Cliente General')}</td>
-      <td>${o.fecha_pedido || '-'}</td>
+      <td>${formatDate(o.fecha_pedido)}</td>
       <td><span class="small text-muted">${estabText}</span></td>
       <td><span class="status-badge ${estadoClass}">${estadoClass}</span></td>
       <td class="text-center">
@@ -187,7 +187,7 @@ export function openRegistrarEnvioModal(idPedido) {
           <td class="text-center">
             <input type="number" class="form-control form-control-sm text-center input-envio-cantidad" 
               data-product-id="${item.id_producto}" 
-              min="0" max="${cantSolicitada}" value="${pendiente}" required>
+              min="0" max="${cantSolicitada}" value="" placeholder="0">
           </td>
         `;
         tbody.appendChild(tr);
@@ -311,7 +311,7 @@ export function viewOrderDetail(idPedido) {
                 ${guiasList.map(g => `
                   <tr>
                     <td class="fw-bold text-primary">${escapeHtml(g.nro_guia || '-')}</td>
-                    <td>${g.fecha_guia || '-'}</td>
+                    <td>${formatDate(g.fecha_guia)}</td>
                     <td>
                       <ul class="mb-0 ps-3 small text-muted">
                         ${(g.detalles || []).map(d => `<li>${escapeHtml(d.nombre_producto || 'Producto')}: <strong>${d.cantidad} un.</strong></li>`).join('')}
@@ -323,6 +323,52 @@ export function viewOrderDetail(idPedido) {
             </table>
           </div>
         </div>
+      </div>
+    `;
+  }
+
+  // Parse attached files if present
+  let filesList = [];
+  if (order.adjuntos) {
+    try {
+      filesList = typeof order.adjuntos === 'string' ? JSON.parse(order.adjuntos) : order.adjuntos;
+    } catch (e) {
+      console.warn("Error parsing adjuntos JSON:", e);
+    }
+  }
+
+  let adjuntosHtml = '';
+  if (Array.isArray(filesList) && filesList.length > 0) {
+    adjuntosHtml = `
+      <h6 class="fw-bold mb-2 text-secondary"><i class="bi bi-file-earmark-pdf me-1"></i> Documentos Adjuntos (${filesList.length}):</h6>
+      <div class="d-flex flex-column gap-2 mb-3">
+        ${filesList.map(f => {
+          const fileName = f.name || `Orden_Compra_${order.nro_pedido}.pdf`;
+          const fileData = f.data || '#';
+          const fileSize = f.size || '';
+          return `
+            <div class="d-flex align-items-center justify-content-between p-2.5 border rounded bg-body-tertiary">
+              <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+                <i class="bi bi-file-earmark-pdf-fill text-danger fs-4"></i>
+                <div class="text-truncate">
+                  <div class="fw-semibold small text-truncate">${escapeHtml(fileName)}</div>
+                  <div class="text-muted fs-8">${fileSize ? fileSize + ' - ' : ''}Documento Adjunto</div>
+                </div>
+              </div>
+              <a href="${fileData}" download="${escapeHtml(fileName)}" class="btn btn-sm btn-outline-primary flex-shrink-0">
+                <i class="bi bi-download me-1"></i> Descargar PDF
+              </a>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  } else {
+    adjuntosHtml = `
+      <h6 class="fw-bold mb-2 text-secondary"><i class="bi bi-file-earmark-pdf me-1"></i> Documentos Adjuntos:</h6>
+      <div class="p-3 text-center text-muted border rounded bg-body-tertiary mb-3 fs-7">
+        <i class="bi bi-file-earmark-x fs-4 d-block mb-1 text-secondary"></i>
+        No se adjuntaron archivos PDF para este pedido.
       </div>
     `;
   }
@@ -342,7 +388,7 @@ export function viewOrderDetail(idPedido) {
             <span class="text-muted small text-uppercase font-monospace fw-bold">Estado Actual</span>
             <span class="status-badge ${estadoClass}">${estadoClass}</span>
           </div>
-          <div class="small mb-1"><strong>Fecha Pedido:</strong> ${order.fecha_pedido || '-'}</div>
+          <div class="small mb-1"><strong>Fecha Pedido:</strong> ${formatDate(order.fecha_pedido)}</div>
           ${order.nro_guia ? `<div class="small"><strong>N° Guía Oficial:</strong> ${escapeHtml(order.nro_guia)}</div>` : ''}
         </div>
       </div>
@@ -389,22 +435,7 @@ export function viewOrderDetail(idPedido) {
 
     ${guiasHtml}
 
-    <!-- Documentos / Adjuntos PDF para descargar (Solo Ícono y Botón Descargar) -->
-    <h6 class="fw-bold mb-2 text-secondary"><i class="bi bi-file-earmark-pdf me-1"></i> Documentos Adjuntos (PDF):</h6>
-    <div class="d-flex flex-column gap-2">
-      <div class="d-flex align-items-center justify-content-between p-2.5 border rounded bg-body-tertiary">
-        <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-file-earmark-pdf-fill text-danger fs-4"></i>
-          <div>
-            <div class="fw-semibold small">Orden_Compra_${order.nro_pedido || order.id_pedido}.pdf</div>
-            <div class="text-muted fs-8">Documento Oficial PDF - ${order.fecha_pedido || '2026-08-12'}</div>
-          </div>
-        </div>
-        <a href="data:application/pdf;base64,JVBERi0xLjQKJ..." download="Orden_Compra_${order.nro_pedido || order.id_pedido}.pdf" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-download me-1"></i> Descargar PDF
-        </a>
-      </div>
-    </div>
+    ${adjuntosHtml}
   `;
 
   const modalElem = document.getElementById('orderDetailModal');
