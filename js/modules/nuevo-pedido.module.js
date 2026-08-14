@@ -505,12 +505,6 @@ export async function submitNuevoPedido() {
       cantidad: item.cantidad
     }))
   };
-    detalles: state.orderItems.map(item => ({
-      id_producto: item.id_producto,
-      nombre_producto: item.nombre_producto,
-      cantidad: item.cantidad
-    }))
-  };
 
   try {
     const res = await api.createPedido(payload);
