@@ -819,22 +819,38 @@ const EMBEDDED_VIEWS = {
     </button>
   </div>
 
+  <!-- Cuadro de búsqueda ubicado debajo del título -->
   <div class="p-3 bg-body-tertiary border-bottom">
     <div class="input-group">
       <span class="input-group-text"><i class="bi bi-search"></i></span>
       <input type="text" id="searchClientesInput" class="form-control"
-        placeholder="Buscar por RUC/DNI, Razón Social o Dirección..."
+        placeholder="Buscar por RUC/DNI, Razón Social o Domicilio Fiscal..."
         oninput="clientesModule.filterClientes(this.value)">
     </div>
   </div>
+
+  <!-- Tabla de Clientes con 4 Columnas Solicitadas -->
   <div class="table-responsive">
-    <table class="table custom-table mb-0">
+    <table class="table custom-table mb-0 align-middle">
       <thead>
         <tr>
-          <th>Documento</th>
+          <th style="width: 200px;">Tipo y N° Documento</th>
           <th>Razón Social / Nombre</th>
-          <th>Dirección Fiscal</th>
-          <th>Estado</th>
+          <th>Domicilio Fiscal</th>
+          <th style="width: 170px;" class="text-center">Modificaciones</th>
+        </tr>
+      </thead>
+      <tbody id="clientesTableBody"></tbody>
+    </table>
+  </div>
+</div>
+    <table class="table custom-table mb-0 align-middle">
+      <thead>
+        <tr>
+          <th style="width: 200px;">Tipo y N° Documento</th>
+          <th>Razón Social / Nombre</th>
+          <th>Domicilio Fiscal</th>
+          <th style="width: 140px;" class="text-center">Modificaciones</th>
         </tr>
       </thead>
       <tbody id="clientesTableBody"></tbody>
@@ -842,15 +858,17 @@ const EMBEDDED_VIEWS = {
   </div>
 </div>
 
+<!-- Modal Registrar / Modificar Cliente con Consulta SUNAT Automática -->
 <div class="modal fade" id="modalCliente" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title fw-bold"><i class="bi bi-person-plus me-2 text-primary"></i>Registrar Cliente</h5>
+        <h5 class="modal-title fw-bold" id="modalClienteTitle"><i class="bi bi-person-plus me-2 text-primary"></i>Registrar Cliente</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="formCliente" onsubmit="event.preventDefault(); clientesModule.saveClientFromModal();">
+          <input type="hidden" id="modalClienteId" value="">
           <div class="row g-3">
             <div class="col-md-4">
               <label class="form-label fw-semibold">Tipo Doc. *</label>
@@ -877,7 +895,19 @@ const EMBEDDED_VIEWS = {
               <input type="text" id="modalClienteRazonSocial" class="form-control" placeholder="Razón social del cliente" required>
             </div>
             <div class="col-12">
-              <label class="form-label fw-semibold">Dirección Fiscal</label>
+              <label class="form-label fw-semibold">Domicilio Fiscal</label>
+              <input type="text" id="modalClienteDireccion" class="form-control" placeholder="Dirección fiscal devuelta por SUNAT">
+            </div>
+          </div>
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" id="btnSaveClienteModal" class="btn btn-primary"><i class="bi bi-save me-1"></i> Guardar Cliente</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
               <input type="text" id="modalClienteDireccion" class="form-control" placeholder="Dirección fiscal devuelta por SUNAT">
             </div>
           </div>

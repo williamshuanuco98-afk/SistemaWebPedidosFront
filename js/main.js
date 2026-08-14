@@ -49,6 +49,8 @@ import {
   renderClientesTable, 
   filterClientes, 
   openNewClientModal, 
+  openEditClientModal,
+  deleteClient,
   onTipoDocChange,
   onNroDocInput, 
   consultarSunatManual, 
@@ -98,6 +100,8 @@ window.enviosModule = {
 window.clientesModule = {
   filterClientes,
   openNewClientModal,
+  openEditClientModal,
+  deleteClient,
   onTipoDocChange,
   onNroDocInput,
   consultarSunatManual,

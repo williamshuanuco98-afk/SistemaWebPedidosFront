@@ -3,6 +3,7 @@ import { api } from '../api.js';
 
 let currentClients = [];
 let lastSunatQueryRuc = '';
+let editingClientIndex = -1;
 
 export function renderClientesTable(clients = [], searchQuery = '') {
   currentClients = clients || [];
@@ -27,21 +28,44 @@ export function filterClientes(queryStr = '') {
     return;
   }
 
-  filtered.forEach(c => {
+  filtered.forEach((c, idx) => {
     const tr = document.createElement('tr');
+    const badgeBg = (c.tipo_documento === 'DNI') ? 'bg-info text-dark' : 'bg-primary';
+    const clientId = c.id_cliente || c.id;
     tr.innerHTML = `
-      <td class="fw-bold"><span class="small text-muted d-block">${c.tipo_documento || 'RUC'}</span>${c.nro_documento}</td>
-      <td class="fw-semibold">${escapeHtml(c.nombre_cliente || '-')}</td>
-      <td class="small text-muted">${escapeHtml(c.direccion || 'No especificada')}</td>
-      <td><span class="status-badge COMPLETADO">ACTIVO</span></td>
+      <td class="fw-bold text-white">
+        <span class="badge ${badgeBg} me-1 fs-8">${escapeHtml(c.tipo_documento || 'RUC')}</span>
+        <span>${escapeHtml(c.nro_documento || 'S/D')}</span>
+      </td>
+      <td class="fw-semibold text-white">${escapeHtml(c.nombre_cliente || '-')}</td>
+      <td class="small text-white-50">${escapeHtml(c.direccion || 'No especificada')}</td>
+      <td class="text-center">
+        <div class="d-flex justify-content-center gap-1">
+          <button type="button" class="btn btn-outline-warning btn-sm py-1 px-2 fs-8" onclick="clientesModule.openEditClientModal(${idx})" title="Modificar Cliente">
+            <i class="bi bi-pencil-square me-1"></i> Modificar
+          </button>
+          <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2 fs-8" onclick="clientesModule.deleteClient(${clientId})" title="Eliminar de la BD MySQL">
+            <i class="bi bi-trash me-1"></i> Eliminar
+          </button>
+        </div>
+      </td>
     `;
     tbody.appendChild(tr);
   });
 }
 
 export function openNewClientModal() {
+  editingClientIndex = -1;
   const modalElem = document.getElementById('modalCliente');
   if (!modalElem) return;
+
+  const modalTitle = document.getElementById('modalClienteTitle');
+  if (modalTitle) {
+    modalTitle.innerHTML = '<i class="bi bi-person-plus me-2 text-primary"></i>Registrar Cliente';
+  }
+
+  const idInput = document.getElementById('modalClienteId');
+  if (idInput) idInput.value = '';
 
   const tipoSelect = document.getElementById('modalClienteTipoDoc');
   if (tipoSelect) tipoSelect.value = 'RUC';
@@ -55,6 +79,64 @@ export function openNewClientModal() {
   lastSunatQueryRuc = '';
   const modal = new bootstrap.Modal(modalElem);
   modal.show();
+}
+
+export function openEditClientModal(filteredIndex) {
+  const queryStr = document.getElementById('searchClientesInput')?.value || '';
+  const filtered = filterAndRankItems(
+    currentClients, 
+    queryStr, 
+    c => `${c.nro_documento || ''} ${c.nombre_cliente || ''} ${c.direccion || ''}`
+  );
+
+  const client = filtered[filteredIndex];
+  if (!client) return;
+
+  editingClientIndex = currentClients.indexOf(client);
+
+  const modalElem = document.getElementById('modalCliente');
+  if (!modalElem) return;
+
+  const modalTitle = document.getElementById('modalClienteTitle');
+  if (modalTitle) {
+    modalTitle.innerHTML = '<i class="bi bi-pencil-square me-2 text-warning"></i>Modificar Cliente';
+  }
+
+  const idInput = document.getElementById('modalClienteId');
+  if (idInput) idInput.value = client.id_cliente || client.id || '';
+
+  const tipoSelect = document.getElementById('modalClienteTipoDoc');
+  if (tipoSelect) tipoSelect.value = client.tipo_documento || 'RUC';
+
+  document.getElementById('modalClienteNroDoc').value = client.nro_documento || '';
+  document.getElementById('modalClienteRazonSocial').value = client.nombre_cliente || '';
+  document.getElementById('modalClienteDireccion').value = client.direccion || '';
+
+  onTipoDocChange(client.tipo_documento || 'RUC');
+
+  lastSunatQueryRuc = client.nro_documento || '';
+  const modal = new bootstrap.Modal(modalElem);
+  modal.show();
+}
+
+export async function deleteClient(clientId) {
+  if (!clientId) return;
+  const client = currentClients.find(c => (c.id_cliente || c.id) === clientId);
+  const clientName = client ? client.nombre_cliente : `ID #${clientId}`;
+
+  if (!confirm(`¿Está seguro de eliminar al cliente "${clientName}" de la base de datos MySQL?`)) {
+    return;
+  }
+
+  const res = await api.deleteCliente(clientId);
+  if (res && res.success !== false) {
+    // Re-fetch fresh clients from MySQL database
+    currentClients = await api.getClientes();
+    if (window.app) window.app.clients = [...currentClients];
+    filterClientes();
+  } else {
+    alert('No se pudo eliminar el cliente. Verifique si tiene pedidos o guías registradas.');
+  }
 }
 
 export function onTipoDocChange(tipo) {
@@ -181,6 +263,7 @@ export async function consultarDni(dni) {
 }
 
 export async function saveClientFromModal() {
+  const clientId = document.getElementById('modalClienteId')?.value;
   const tipoDoc = document.getElementById('modalClienteTipoDoc')?.value || 'RUC';
   const nroDoc = document.getElementById('modalClienteNroDoc')?.value.trim();
   const nombre = document.getElementById('modalClienteRazonSocial')?.value.trim();
@@ -201,16 +284,17 @@ export async function saveClientFromModal() {
   const modalElem = document.getElementById('modalCliente');
   const modal = bootstrap.Modal.getInstance(modalElem);
 
-  const res = await api.addCliente(payload);
-  if (res) {
-    currentClients.unshift({
-      id_cliente: res.id_cliente || Date.now(),
-      tipo_documento: tipoDoc,
-      nro_documento: nroDoc,
-      nombre_cliente: nombre,
-      direccion: direccion
-    });
+  if (clientId) {
+    // Update existing client in MySQL
+    await api.updateCliente(clientId, payload);
+  } else {
+    // Save new client in MySQL
+    await api.addCliente(payload);
   }
+
+  // Re-fetch fresh list directly from MySQL database
+  currentClients = await api.getClientes();
+  if (window.app) window.app.clients = [...currentClients];
 
   if (modal) modal.hide();
   filterClientes();

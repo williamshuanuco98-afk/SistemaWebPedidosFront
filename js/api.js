@@ -141,6 +141,40 @@ export const api = {
     return newClient;
   },
 
+  async updateCliente(id, clienteData) {
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/clientes/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clienteData),
+        timeout: 2000
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {}
+    const list = getLocalData('clientes', FALLBACK_CLIENTS);
+    const index = list.findIndex(c => (c.id_cliente || c.id) === id);
+    if (index !== -1) {
+      list[index] = { ...list[index], ...clienteData };
+      setLocalData('clientes', list);
+      return list[index];
+    }
+    return { success: false };
+  },
+
+  async deleteCliente(id) {
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/clientes/${id}`, {
+        method: 'DELETE',
+        timeout: 2000
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {}
+    let list = getLocalData('clientes', FALLBACK_CLIENTS);
+    list = list.filter(c => (c.id_cliente || c.id) !== id);
+    setLocalData('clientes', list);
+    return { success: true };
+  },
+
   async consultarSunatRuc(ruc) {
     if (!ruc || (ruc.length !== 11 && ruc.length !== 8)) {
       return { success: false };
