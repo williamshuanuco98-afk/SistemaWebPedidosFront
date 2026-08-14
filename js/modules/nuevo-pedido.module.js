@@ -487,7 +487,9 @@ export async function submitNuevoPedido() {
   const payload = {
     id_cliente: state.selectedClient.id_cliente,
     nombre_cliente: state.selectedClient.nombre_cliente,
+    nro_documento: state.selectedClient.nro_documento || '',
     establecimiento: establecimiento,
+    nro_orden: nroOrdenCompra,
     nro_orden_compra: nroOrdenCompra,
     fecha_pedido: fechaIngreso,
     fecha_entrega: fechaEntrega,
@@ -502,16 +504,30 @@ export async function submitNuevoPedido() {
     detalles: state.orderItems.map(item => ({
       id_producto: item.id_producto,
       nombre_producto: item.nombre_producto,
-      cantidad: item.cantidad
+      codigo_producto: item.codigo_producto || '',
+      cantidad: item.cantidad,
+      cantidad_entregada: 0
     }))
   };
 
   try {
-    const res = await api.createPedido(payload);
-    alert(`¡Pedido registrado exitosamente! ${res.nro_pedido ? 'N° Pedido: ' + res.nro_pedido : ''}`);
+    const newOrder = await api.createPedido(payload);
+    alert(`¡Pedido registrado exitosamente! ${newOrder.nro_pedido ? 'N° Pedido: ' + newOrder.nro_pedido : ''}`);
     
+    // Update window.app.orders in memory immediately (no full page reload required)
+    if (window.app) {
+      if (!Array.isArray(window.app.orders)) window.app.orders = [];
+      const exists = window.app.orders.some(o => String(o.id_pedido) === String(newOrder.id_pedido));
+      if (!exists) {
+        window.app.orders.unshift(newOrder);
+      }
+    }
+
     resetNuevoPedidoForm();
-    window.app.navigateTo('pedidos');
+    if (window.app) {
+      window.app.navigateTo('pedidos');
+      window.app.renderCurrentView();
+    }
   } catch (err) {
     console.error('Error al registrar pedido:', err);
     alert('Ocurrió un error al guardar el pedido en el servidor. Por favor intente nuevamente.');

@@ -118,7 +118,7 @@ export const api = {
       const res = await fetchWithTimeout(`${BASE_URL}/clientes`, { timeout: 1500 });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) return data;
+        if (Array.isArray(data)) return data;
       }
     } catch (e) {}
     return getLocalData('clientes', FALLBACK_CLIENTS);
@@ -210,7 +210,7 @@ export const api = {
       const res = await fetchWithTimeout(`${BASE_URL}/productos`, { timeout: 1500 });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) return data;
+        if (Array.isArray(data)) return data;
       }
     } catch (e) {}
     return getLocalData('productos', FALLBACK_PRODUCTS);
@@ -272,7 +272,7 @@ export const api = {
       const res = await fetchWithTimeout(`${BASE_URL}/pedidos`, { timeout: 1500 });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) return data;
+        if (Array.isArray(data)) return data;
       }
     } catch (e) {}
     return getLocalData('pedidos', FALLBACK_ORDERS);
@@ -286,14 +286,22 @@ export const api = {
         body: JSON.stringify(pedidoData),
         timeout: 2500
       });
-      if (res.ok) return await res.json();
+      if (res.ok) {
+        const created = await res.json();
+        const list = getLocalData('pedidos', FALLBACK_ORDERS);
+        list.unshift(created);
+        setLocalData('pedidos', list);
+        return created;
+      }
     } catch (e) {}
     const list = getLocalData('pedidos', FALLBACK_ORDERS);
     const newOrder = {
       id_pedido: Date.now(),
       nro_pedido: 'PED-' + String(list.length + 1).padStart(4, '0'),
       estado: 'PENDIENTE',
-      fecha_pedido: new Date().toISOString().split('T')[0],
+      fecha_pedido: pedidoData.fecha_pedido || new Date().toISOString().split('T')[0],
+      fecha_entrega: pedidoData.fecha_entrega || pedidoData.fecha_pedido || new Date().toISOString().split('T')[0],
+      nro_orden: pedidoData.nro_orden || pedidoData.nro_orden_compra || '',
       ...pedidoData
     };
     list.unshift(newOrder);

@@ -17,6 +17,8 @@ export function renderPedidosTable(orders = [], searchQuery = '') {
   const dateFrom = document.getElementById('filterDateFrom')?.value;
   const dateTo = document.getElementById('filterDateTo')?.value;
   const establishment = document.getElementById('filterEstablishment')?.value || 'ALL';
+  const orderStatus = document.getElementById('filterOrderStatus')?.value || 'ALL';
+  const todayStr = new Date().toISOString().split('T')[0];
 
   const filtered = currentOrders.filter(o => {
     const matchClient = !clientQuery ||
@@ -36,7 +38,21 @@ export function renderPedidosTable(orders = [], searchQuery = '') {
       matchEstab = oEstab.includes(establishment);
     }
 
-    return matchClient && matchDate && matchEstab;
+    let matchStatus = true;
+    if (orderStatus && orderStatus !== 'ALL') {
+      const ost = (o.estado || 'PENDIENTE').toUpperCase();
+      const isOverdue = o.fecha_entrega && o.fecha_entrega < todayStr && ost !== 'COMPLETADO' && ost !== 'CANCELADO';
+
+      if (orderStatus === 'FUERA_DE_PLAZO') {
+        matchStatus = isOverdue;
+      } else if (orderStatus === 'EN_PROCESO') {
+        matchStatus = (ost === 'EN_PROCESO' || ost === 'PARCIAL');
+      } else {
+        matchStatus = (ost === orderStatus);
+      }
+    }
+
+    return matchClient && matchDate && matchEstab && matchStatus;
   });
 
   const badge = document.getElementById('ordersCountBadge');
@@ -430,6 +446,23 @@ export function viewOrderDetail(idPedido) {
     </div>
   ` : '';
 
+    // Consolidate duplicate order items by product name
+    const consolidatedDetalles = [];
+    (detalles || []).forEach(item => {
+      const name = (item.nombre_producto || 'Producto').trim();
+      const existing = consolidatedDetalles.find(d => (d.nombre_producto || '').trim().toLowerCase() === name.toLowerCase());
+      if (existing) {
+        existing.cantidad = Number(existing.cantidad || 0) + Number(item.cantidad || 0);
+        existing.cantidad_entregada = Number(existing.cantidad_entregada || 0) + Number(item.cantidad_entregada || 0);
+      } else {
+        consolidatedDetalles.push({
+          ...item,
+          cantidad: Number(item.cantidad || 0),
+          cantidad_entregada: Number(item.cantidad_entregada || 0)
+        });
+      }
+    });
+
     modalBody.innerHTML = `
     ${overdueBanner}
     <div class="row g-3 mb-3">
@@ -449,7 +482,7 @@ export function viewOrderDetail(idPedido) {
           </div>
           <div class="small mb-1"><strong>N° Orden Compra:</strong> ${order.nro_orden ? escapeHtml(order.nro_orden) : '<span class="text-muted">Sin Asignar</span>'}</div>
           <div class="small mb-1"><strong>Fecha Pedido:</strong> ${formatDate(order.fecha_pedido)}</div>
-          ${order.fecha_entrega ? `<div class="small mb-1"><strong>Fecha Entrega:</strong> ${formatDate(order.fecha_entrega)} ${isOverdue && order.estado !== 'COMPLETADO' ? '<span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">Fuera del plazo</span>' : ''}</div>` : ''}
+          <div class="small mb-1"><strong>Fecha de Entrega:</strong> ${formatDate(order.fecha_entrega)} ${isOverdue && order.estado !== 'COMPLETADO' ? '<span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">Fuera del plazo</span>' : ''}</div>
           ${order.nro_guia ? `<div class="small"><strong>N° Guía Oficial:</strong> ${escapeHtml(order.nro_guia)}</div>` : ''}
         </div>
       </div>
@@ -468,8 +501,8 @@ export function viewOrderDetail(idPedido) {
           </tr>
         </thead>
         <tbody>
-          ${detalles.length === 0 ? '<tr><td colspan="4" class="text-center text-muted py-3">Sin productos especificados.</td></tr>' :
-        detalles.map(item => {
+          ${consolidatedDetalles.length === 0 ? '<tr><td colspan="4" class="text-center text-muted py-3">Sin productos especificados.</td></tr>' :
+        consolidatedDetalles.map(item => {
           const sol = item.cantidad || 0;
           const ent = item.cantidad_entregada || 0;
           const isDone = ent >= sol && sol > 0;
@@ -502,6 +535,12 @@ export function viewOrderDetail(idPedido) {
       }
         </tbody>
       </table>
+    </div>
+
+    <!-- Observaciones del Pedido -->
+    <h6 class="fw-bold mb-2 text-secondary"><i class="bi bi-chat-left-text me-1"></i> Observaciones:</h6>
+    <div class="p-3 border rounded bg-body-tertiary mb-3 fs-7">
+      ${order.observaciones ? escapeHtml(order.observaciones) : '<span class="text-muted">-</span>'}
     </div>
 
     ${guiasHtml}

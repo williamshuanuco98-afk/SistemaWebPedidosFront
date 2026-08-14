@@ -236,8 +236,8 @@ export function openProductDetailModal(idProducto) {
                     ${c.nro_orden ? `<div class="small text-muted">N° Orden: ${escapeHtml(c.nro_orden)}</div>` : '<div class="small text-muted fs-8">Sin N° Orden</div>'}
                   </td>
                   <td>
-                    <div>${formatDate(c.fecha_pedido)}</div>
-                    ${c.fecha_entrega ? `<div class="fs-8 text-muted">Entrega: ${formatDate(c.fecha_entrega)}</div>` : ''}
+                    <div>F. Pedido: ${formatDate(c.fecha_pedido)}</div>
+                    <div class="small text-muted">F. Entrega: ${formatDate(c.fecha_entrega)}</div>
                   </td>
                   <td><span class="small text-muted">${escapeHtml(c.establecimiento)}</span></td>
                   <td class="text-center fw-bold text-body">${sol.toLocaleString()}</td>

@@ -149,13 +149,13 @@ const EMBEDDED_VIEWS = {
   <div class="p-3 bg-body-tertiary border-bottom">
     <form id="formSearchPedidos" onsubmit="event.preventDefault(); app.triggerPedidosSearch();">
       <div class="row g-2 align-items-end">
-        <!-- Buscador por Nombre del Cliente o N° Orden -->
-        <div class="col-md-4">
-          <label for="searchClientNameInput" class="form-label small fw-bold mb-1">Cliente o N° de Orden</label>
+        <!-- Buscar por Cliente o N° Orden -->
+        <div class="col-md-3">
+          <label for="searchClientNameInput" class="form-label small fw-bold mb-1">Cliente / N° Orden</label>
           <div class="input-group input-group-sm">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
             <input type="text" id="searchClientNameInput" class="form-control"
-              placeholder="Buscar cliente o N° orden (Enter)...">
+              placeholder="Buscar (Enter)...">
           </div>
         </div>
 
@@ -171,18 +171,31 @@ const EMBEDDED_VIEWS = {
           <input type="date" id="filterDateTo" class="form-control form-control-sm">
         </div>
 
+        <!-- Filtro Estado del Pedido (Predeterminado: TODOS) -->
+        <div class="col-md-2">
+          <label for="filterOrderStatus" class="form-label small fw-bold mb-1">Estado</label>
+          <select id="filterOrderStatus" class="form-select form-select-sm">
+            <option value="ALL" selected>TODOS LOS ESTADOS</option>
+            <option value="PENDIENTE">PENDIENTE</option>
+            <option value="EN_PROCESO">EN PROCESO / PARCIAL</option>
+            <option value="FUERA_DE_PLAZO">FUERA DE PLAZO</option>
+            <option value="COMPLETADO">COMPLETADO</option>
+            <option value="CANCELADO">CANCELADO</option>
+          </select>
+        </div>
+
         <!-- Seleccionador de Establecimiento (2 opciones) -->
         <div class="col-md-2">
           <label for="filterEstablishment" class="form-label small fw-bold mb-1">Establecimiento</label>
           <select id="filterEstablishment" class="form-select form-select-sm">
             <option value="ALL">Todos los locales</option>
-            <option value="COMAS">Planta Principal - Comas</option>
+            <option value="COMAS">Planta - Comas</option>
             <option value="CARABAYLLO">Sucursal - Carabayllo</option>
           </select>
         </div>
 
         <!-- Botón de Búsqueda -->
-        <div class="col-md-2">
+        <div class="col-md-1">
           <button type="submit" class="btn btn-primary btn-sm w-100">
             <i class="bi bi-search me-1"></i> Buscar
           </button>
