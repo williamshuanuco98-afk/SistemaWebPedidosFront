@@ -337,10 +337,13 @@ export function generateGuiaHTML(guia) {
           background: #fff;
           font-family: Arial, sans-serif;
         }
-      </style>
-    </head>
     <body>
       ${generateGuiaInnerSheetHTML(guia)}
+    </body>
+    </html>
+  `;
+}
+
 export function openGuiaPDFInNewTab(guia) {
   const htmlContent = generateGuiaHTML(guia);
   const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
