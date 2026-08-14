@@ -31,7 +31,20 @@ import {
   handleFilesAttached,
   removeAttachedFile
 } from './modules/nuevo-pedido.module.js';
-import { renderEnviosTable } from './modules/envios.module.js';
+import { 
+  renderEnviosTable, 
+  confirmAnularGuia, 
+  openAnularModal, 
+  openPDF as openGuiaPDF, 
+  printPDF as printGuiaPDF 
+} from './modules/envios.module.js';
+import { 
+  initNuevaGuiaView, 
+  submitNuevaGuia, 
+  onLocalChanged, 
+  updateItemQty as updateGuiaItemQty, 
+  removeItemRow as removeGuiaItemRow 
+} from './modules/nueva-guia.module.js';
 import { 
   renderClientesTable, 
   filterClientes, 
@@ -64,6 +77,22 @@ window.nuevoPedidoModule = {
   removeOrderItem,
   handleFilesAttached,
   removeAttachedFile
+};
+
+window.nuevaGuiaModule = {
+  initNuevaGuiaView,
+  submitNuevaGuia,
+  onLocalChanged,
+  updateItemQty: updateGuiaItemQty,
+  removeItemRow: removeGuiaItemRow
+};
+
+window.enviosModule = {
+  renderEnviosTable,
+  confirmAnularGuia,
+  openAnularModal,
+  openPDF: openGuiaPDF,
+  printPDF: printGuiaPDF
 };
 
 window.clientesModule = {
@@ -151,7 +180,7 @@ class ModularSpaApp {
     } catch (e) {}
 
     const hash = window.location.hash.replace('#', '');
-    const initialRoute = (hash && ['dashboard', 'pedidos', 'nuevo-pedido', 'envios', 'clientes', 'productos', 'produccion', 'config', 'bd'].includes(hash))
+    const initialRoute = (hash && ['dashboard', 'pedidos', 'nuevo-pedido', 'envios', 'nueva-guia', 'clientes', 'productos', 'produccion', 'config', 'bd'].includes(hash))
       ? hash
       : 'dashboard';
 
@@ -193,6 +222,10 @@ class ModularSpaApp {
     this.renderCurrentView();
   }
 
+  triggerGuiasSearch() {
+    this.renderCurrentView();
+  }
+
   setTheme(theme) {
     themeManager.setTheme(theme);
   }
@@ -211,7 +244,7 @@ class ModularSpaApp {
     document.querySelectorAll('.modal').forEach(m => {
       m.classList.remove('show');
       m.style.display = 'none';
-      m.style.pointerEvents = 'none';
+      m.style.removeProperty('pointer-events');
     });
 
     if (typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
@@ -400,6 +433,8 @@ class ModularSpaApp {
         renderNuevoPedidoPage(this.clients, this.products);
       } else if (route === 'envios') {
         renderEnviosTable(this.shipments, this.searchQuery);
+      } else if (route === 'nueva-guia') {
+        initNuevaGuiaView();
       } else if (route === 'clientes') {
         renderClientesTable(this.clients, this.searchQuery);
       } else if (route === 'productos') {

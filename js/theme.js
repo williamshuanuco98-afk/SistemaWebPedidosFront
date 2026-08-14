@@ -1,8 +1,8 @@
 export const themeManager = {
-  currentTheme: 'light',
+  currentTheme: 'dark',
 
   initTheme() {
-    const savedTheme = localStorage.getItem('inplabel_theme') || 'light';
+    const savedTheme = localStorage.getItem('inplabel_theme') || 'dark';
     // Preload logo images to avoid white flash on theme switch
     const imgDark = new Image();
     imgDark.src = 'img/inplabel-logo-dark.png';

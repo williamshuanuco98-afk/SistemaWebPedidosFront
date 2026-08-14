@@ -34,6 +34,14 @@
   opacity: 0.45 !important;
 }
 
+.modal.show {
+  pointer-events: auto !important;
+}
+
+.modal.show .modal-dialog {
+  pointer-events: auto !important;
+}
+
 /* Ensure hidden modals NEVER capture clicks or block the viewport */
 .modal:not(.show) {
   display: none !important;

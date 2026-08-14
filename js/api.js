@@ -342,10 +342,34 @@ export const api = {
       const res = await fetchWithTimeout(`${BASE_URL}/guias`, { timeout: 1500 });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) return data;
+        if (Array.isArray(data)) return data;
       }
     } catch (e) {}
     return getLocalData('guias', FALLBACK_SHIPMENTS);
+  },
+
+  async getNextGuiaNumber(serie = 'GR001') {
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/guias/next-number?serie=${encodeURIComponent(serie)}`, { timeout: 1500 });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.next_nro_guia) return data.next_nro_guia;
+      }
+    } catch (e) {}
+
+    const list = getLocalData('guias', FALLBACK_SHIPMENTS);
+    const prefix = serie.toUpperCase().startsWith('GR002') ? 'GR002' : 'GR001';
+    let maxNum = 0;
+    list.forEach(g => {
+      if (g.nro_guia && g.nro_guia.startsWith(prefix + '-')) {
+        const parts = g.nro_guia.split('-');
+        if (parts[1]) {
+          const num = parseInt(parts[1], 10);
+          if (!isNaN(num) && num > maxNum) maxNum = num;
+        }
+      }
+    });
+    return `${prefix}-${String(maxNum + 1).padStart(4, '0')}`;
   },
 
   async addGuia(guiaData) {
@@ -359,10 +383,19 @@ export const api = {
       if (res.ok) return await res.json();
     } catch (e) {}
     const list = getLocalData('guias', FALLBACK_SHIPMENTS);
-    const newGuia = { id_guia: Date.now(), estado: 'ENTREGADO', ...guiaData };
+    const newGuia = {
+      id_guia: Date.now(),
+      estado: 'EMITIDA',
+      fecha_guia: guiaData.fecha_guia || new Date().toISOString().split('T')[0],
+      ...guiaData
+    };
     list.unshift(newGuia);
     setLocalData('guias', list);
     return newGuia;
+  },
+
+  async createGuia(guiaData) {
+    return this.addGuia(guiaData);
   },
 
   async updateGuia(id, fields) {
@@ -375,6 +408,28 @@ export const api = {
       });
       if (res.ok) return await res.json();
     } catch (e) {}
+    return null;
+  },
+
+  async anularGuia(id, motivo) {
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/guias/${id}/anular`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ motivo_anulacion: motivo }),
+        timeout: 2000
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {}
+
+    const list = getLocalData('guias', FALLBACK_SHIPMENTS);
+    const g = list.find(x => String(x.id_guia) === String(id));
+    if (g) {
+      g.estado = 'ANULADA';
+      g.motivo_anulacion = motivo;
+      setLocalData('guias', list);
+      return g;
+    }
     return null;
   }
 };

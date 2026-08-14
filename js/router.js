@@ -562,26 +562,250 @@ const EMBEDDED_VIEWS = {
 
   envios: `
 <div class="content-card">
+  <!-- Cabecera de la Vista -->
   <div class="card-header flex-wrap gap-2">
     <div class="d-flex align-items-center gap-2">
-      <h3 class="card-title mb-0"><i class="bi bi-truck text-primary"></i> Guías y Envíos</h3>
-      <span id="shipmentsCountBadge" class="badge bg-secondary">0</span>
+      <h3 class="card-title mb-0"><i class="bi bi-truck text-primary"></i> Listado de Guías de Remisión</h3>
+      <span id="shipmentsCountBadge" class="badge bg-secondary">0 guías</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-primary" onclick="app.navigateTo('nueva-guia')">
+        <i class="bi bi-plus-lg me-1"></i> Generar Nueva Guía
+      </button>
     </div>
   </div>
 
+  <!-- Barra de Búsqueda y Filtros de Guías -->
+  <div class="p-3 bg-body-tertiary border-bottom">
+    <form id="formSearchGuias" onsubmit="event.preventDefault(); app.triggerGuiasSearch();">
+      <div class="row g-2 align-items-end">
+        <!-- Buscar por N° Guía, Cliente o RUC/DNI -->
+        <div class="col-md-4">
+          <label for="searchGuiaInput" class="form-label small fw-bold mb-1">Cliente, N° Guía o Doc</label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchGuiaInput" class="form-control" placeholder="Buscar cliente, N° guía (GR001-...) (Enter)...">
+          </div>
+        </div>
+
+        <!-- Fecha Desde -->
+        <div class="col-md-2">
+          <label for="filterGuiaDateFrom" class="form-label small fw-bold mb-1">Desde</label>
+          <input type="date" id="filterGuiaDateFrom" class="form-control form-control-sm">
+        </div>
+
+        <!-- Fecha Hasta -->
+        <div class="col-md-2">
+          <label for="filterGuiaDateTo" class="form-label small fw-bold mb-1">Hasta</label>
+          <input type="date" id="filterGuiaDateTo" class="form-control form-control-sm">
+        </div>
+
+        <!-- Seleccionador de Local (Establecimiento) -->
+        <div class="col-md-3">
+          <label for="filterGuiaEstablishment" class="form-label small fw-bold mb-1">Local / Serie</label>
+          <select id="filterGuiaEstablishment" class="form-select form-select-sm">
+            <option value="ALL" selected>Todos los locales</option>
+            <option value="CARABAYLLO">Carabayllo (Serie GR001)</option>
+            <option value="COMAS">Comas (Serie GR002)</option>
+          </select>
+        </div>
+
+        <!-- Botón de Búsqueda -->
+        <div class="col-md-1">
+          <button type="submit" class="btn btn-primary btn-sm w-100">
+            <i class="bi bi-search me-1"></i> Buscar
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de Guías -->
   <div class="table-responsive">
     <table class="table custom-table mb-0">
       <thead>
         <tr>
           <th>N° Guía</th>
-          <th>Cliente y Destino</th>
-          <th>Fecha Guía</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>N° Doc (RUC/DNI)</th>
           <th>Estado</th>
-          <th class="text-center">Acciones</th>
+          <th class="text-center" style="width: 220px;">Acciones</th>
         </tr>
       </thead>
       <tbody id="enviosTableBody"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- Modal para Dar de Baja (Anular Guía) -->
+<div class="modal fade" id="modalAnularGuia" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white py-3">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i> Dar de Baja / Anular Guía
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="alert alert-warning d-flex align-items-center mb-3 fs-7" role="alert">
+          <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+          <div>
+            <strong>¡Advertencia!</strong> Está a punto de dar de baja la guía <span id="anularNroGuiaLabel" class="fw-bold text-dark"></span>. Esta acción no se puede deshacer.
+          </div>
+        </div>
+        
+        <input type="hidden" id="anularGuiaIdInput">
+        
+        <div class="mb-3">
+          <label for="motivoAnulacionInput" class="form-label fw-bold small">Motivo de Anulación / Baja <span class="text-danger">*</span></label>
+          <textarea id="motivoAnulacionInput" class="form-control form-control-sm" rows="3" placeholder="Escriba detalladamente el motivo de la anulación..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer bg-body-tertiary">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-sm btn-danger px-3" onclick="enviosModule.confirmAnularGuia()">
+          <i class="bi bi-x-circle me-1"></i> Confirmar Anulación
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`,
+
+  'nueva-guia': `
+<div class="content-card">
+  <!-- Cabecera de la Vista -->
+  <div class="card-header flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <h3 class="card-title mb-0">
+        <i class="bi bi-file-earmark-plus text-primary me-1"></i> Generar Nueva Guía de Remisión
+      </h3>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="app.navigateTo('envios')">
+        <i class="bi bi-arrow-left me-1"></i> Volver a Listado de Guías
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body p-4">
+    <form id="formNuevaGuia" onsubmit="event.preventDefault(); nuevaGuiaModule.submitNuevaGuia();">
+      
+      <!-- Fila 1: 1. N° Guía, 2. Documento de Referencia, 3. Local de Salida, 4. Dirección del Punto de Partida -->
+      <div class="row g-2 mb-3 p-3 border rounded bg-body-tertiary align-items-end">
+        <!-- 1. N° Guía (Correlativo) -->
+        <div class="col-md-2">
+          <label for="nroGuiaInput" class="form-label fw-bold small mb-1">N° Guía <span class="text-danger">*</span></label>
+          <input type="text" id="nroGuiaInput" class="form-control form-control-sm fw-bold text-primary" readonly>
+        </div>
+
+        <!-- 2. Documento de Referencia -->
+        <div class="col-md-3">
+          <label for="docReferenciaGuiaInput" class="form-label fw-bold small mb-1">Documento de Referencia</label>
+          <input type="text" id="docReferenciaGuiaInput" class="form-control form-control-sm">
+        </div>
+
+        <!-- 3. Local de Salida (Punto de Partida) -->
+        <div class="col-md-3">
+          <label for="selectLocalGuia" class="form-label fw-bold small mb-1">Local de Salida <span class="text-danger">*</span></label>
+          <select id="selectLocalGuia" class="form-select form-select-sm" onchange="nuevaGuiaModule.onLocalChanged(this.value)">
+            <option value="CARABAYLLO" selected>Sucursal - Carabayllo (Serie GR001)</option>
+            <option value="COMAS">Planta Principal - Comas (Serie GR002)</option>
+          </select>
+        </div>
+
+        <!-- 4. Dirección del Punto de Partida -->
+        <div class="col-md-4">
+          <label for="puntoPartidaInput" class="form-label fw-bold small mb-1">Dirección del Punto de Partida</label>
+          <input type="text" id="puntoPartidaInput" class="form-control form-control-sm" readonly>
+        </div>
+      </div>
+
+      <!-- Fila 2: Datos del Cliente, Fecha de Emisión y Punto de Llegada -->
+      <div class="row g-2 mb-3 p-3 border rounded bg-body-tertiary">
+        <!-- Buscador Interactivo de Cliente -->
+        <div class="col-md-5 position-relative">
+          <label for="searchClienteGuiaInput" class="form-label fw-bold small mb-1">Cliente / Razón Social <span class="text-danger">*</span></label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-person-search"></i></span>
+            <input type="text" id="searchClienteGuiaInput" class="form-control" autocomplete="off">
+          </div>
+          <!-- Dropdown Autocompletado de Clientes -->
+          <ul id="clientSearchResultsGuiaList" class="list-group position-absolute w-100 shadow-sm d-none z-3" style="max-height: 260px; overflow-y: auto;"></ul>
+        </div>
+
+        <div class="col-md-3">
+          <label for="rucDniGuiaInput" class="form-label fw-bold small mb-1">RUC / DNI del Cliente</label>
+          <input type="text" id="rucDniGuiaInput" class="form-control form-control-sm" readonly>
+        </div>
+
+        <div class="col-md-4">
+          <label for="fechaEmisionGuiaInput" class="form-label fw-bold small mb-1">Fecha de Emisión <span class="text-danger">*</span></label>
+          <input type="date" id="fechaEmisionGuiaInput" class="form-control form-control-sm">
+        </div>
+
+        <!-- Punto de Llegada (Solo Lectura) -->
+        <div class="col-12 mt-2">
+          <label for="puntoLlegadaGuiaInput" class="form-label fw-bold small mb-1">Punto de Llegada (Dirección del Cliente) <span class="text-danger">*</span></label>
+          <input type="text" id="puntoLlegadaGuiaInput" class="form-control form-control-sm bg-body-secondary" readonly>
+        </div>
+      </div>
+
+      <!-- Fila 3: Buscador y Selección de Productos -->
+      <div class="mb-4">
+        <h5 class="card-title fs-6 mb-2 text-secondary">
+          <i class="bi bi-box-seam me-1"></i> Productos a Enviar en la Guía
+        </h5>
+
+        <!-- Buscador de Productos -->
+        <div class="row g-2 mb-3">
+          <div class="col-md-7 position-relative">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" id="searchProductGuiaInput" class="form-control" autocomplete="off">
+            </div>
+            <!-- Autocompletado Productos -->
+            <ul id="productSearchResultsGuiaList" class="list-group position-absolute w-100 shadow-sm d-none z-3" style="max-height: 220px; overflow-y: auto;"></ul>
+          </div>
+        </div>
+
+        <!-- Tabla de Productos Seleccionados -->
+        <div class="table-responsive border rounded">
+          <table class="table custom-table table-sm align-middle mb-0">
+            <thead class="bg-body-tertiary">
+              <tr>
+                <th style="width: 120px;">Código</th>
+                <th>Descripción del Producto</th>
+                <th style="width: 150px;" class="text-center">Cantidad Enviada</th>
+                <th style="width: 80px;" class="text-center">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tableProductosGuiaBody">
+              <tr>
+                <td colspan="4" class="text-center text-muted py-4">No se han agregado productos a la guía.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Fila 4: Observaciones -->
+      <div class="mb-4">
+        <label for="observacionesGuiaInput" class="form-label fw-bold small mb-1">Observaciones</label>
+        <textarea id="observacionesGuiaInput" class="form-control form-control-sm" rows="2"></textarea>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="d-flex justify-content-end gap-2 border-top pt-3">
+        <button type="button" class="btn btn-outline-secondary" onclick="app.navigateTo('envios')">Cancelar</button>
+        <button type="submit" id="btnGuardarGuia" class="btn btn-primary px-4">
+          <i class="bi bi-check-circle me-1"></i> Emitir Guía de Remisión
+        </button>
+      </div>
+
+    </form>
   </div>
 </div>
 `,
@@ -1001,7 +1225,8 @@ export class Router {
       dashboard: '<i class="bi bi-speedometer2 text-primary"></i> Panel General de Control',
       pedidos: '<i class="bi bi-cart-check text-primary"></i> Pedidos',
       'nuevo-pedido': '<i class="bi bi-cart-plus text-primary"></i> Registrar Nuevo Pedido',
-      envios: '<i class="bi bi-truck text-primary"></i> Guías ',
+      envios: '<i class="bi bi-truck text-primary"></i> Listado de Guías de Remisión',
+      'nueva-guia': '<i class="bi bi-file-earmark-plus text-primary"></i> Generar Nueva Guía de Remisión',
       clientes: '<i class="bi bi-people text-primary"></i> Clientes',
       productos: '<i class="bi bi-box-seam text-primary"></i> Productos',
       produccion: '<i class="bi bi-gear-wide-connected text-primary"></i> Control de Producción',

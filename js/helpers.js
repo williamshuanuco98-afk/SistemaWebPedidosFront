@@ -83,16 +83,10 @@ export function showBootstrapModal(modalElemOrId) {
     alert("No se encontró la ventana emergente.");
     return;
   }
+  if (!elem) return;
 
-  // Purge any orphan backdrops and unblock body
-  document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-  document.body.classList.remove('modal-open');
-
-  // Wire close buttons inside the modal cleanly
-  const closeBtns = elem.querySelectorAll('[data-bs-dismiss="modal"], .btn-close');
-  closeBtns.forEach(btn => {
-    btn.onclick = () => hideBootstrapModal(elem);
-  });
+  elem.style.removeProperty('pointer-events');
+  elem.style.pointerEvents = 'auto';
 
   try {
     const bsModal = window.bootstrap && window.bootstrap.Modal;
@@ -140,7 +134,7 @@ export function hideBootstrapModal(modalElemOrId) {
 
     elem.classList.remove('show');
     elem.style.display = 'none';
-    elem.style.pointerEvents = 'none';
+    elem.style.removeProperty('pointer-events');
     elem.setAttribute('aria-hidden', 'true');
     elem.removeAttribute('aria-modal');
   }
