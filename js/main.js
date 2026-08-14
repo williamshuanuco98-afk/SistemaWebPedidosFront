@@ -33,8 +33,6 @@ import {
 } from './modules/nuevo-pedido.module.js';
 import { 
   renderEnviosTable, 
-  confirmAnularGuia, 
-  openAnularModal, 
   openPDF as openGuiaPDF, 
   printPDF as printGuiaPDF 
 } from './modules/envios.module.js';
@@ -67,6 +65,12 @@ import {
 import { renderConfigView, saveStorageConfig } from './modules/config.module.js';
 import { renderProduccionTable, openProductDetailModal, onSearchInput as onProduccionSearch } from './modules/produccion.module.js';
 
+// Early stub for instant global accessibility
+window.app = {
+  navigateTo: (route) => { window.location.hash = '#' + route; },
+  toggleTheme: () => { themeManager.toggleTheme(); }
+};
+
 // Attach modules globally for inline HTML event handlers
 window.nuevoPedidoModule = {
   clearSelectedClient,
@@ -91,8 +95,6 @@ window.nuevaGuiaModule = {
 
 window.enviosModule = {
   renderEnviosTable,
-  confirmAnularGuia,
-  openAnularModal,
   openPDF: openGuiaPDF,
   printPDF: printGuiaPDF
 };
@@ -142,11 +144,11 @@ class ModularSpaApp {
     window.app = this;
     this.searchQuery = '';
 
-    // Synchronously pre-populate local datasets (0ms delay) so tables and charts render immediately
-    this.clients = api.getLocalClientes();
-    this.products = api.getLocalProductos();
-    this.orders = api.getLocalPedidos();
-    this.shipments = api.getLocalGuias();
+    // Pre-populate initial datasets
+    this.clients = api.getLocalClientes() || [];
+    this.products = api.getLocalProductos() || [];
+    this.orders = api.getLocalPedidos() || [];
+    this.shipments = api.getLocalGuias() || [];
     this.statusData = { connected: false };
 
     this.orderModal = null;
@@ -184,12 +186,11 @@ class ModularSpaApp {
     } catch (e) {}
 
     const hash = window.location.hash.replace('#', '');
-    const initialRoute = (hash && ['dashboard', 'pedidos', 'nuevo-pedido', 'envios', 'nueva-guia', 'clientes', 'productos', 'produccion', 'config', 'bd'].includes(hash))
-      ? hash
-      : 'dashboard';
+    const validRoutes = ['dashboard', 'pedidos', 'nuevo-pedido', 'envios', 'nueva-guia', 'clientes', 'productos', 'produccion', 'config', 'bd'];
+    const initialRoute = (hash && validRoutes.includes(hash)) ? hash : 'dashboard';
 
-    // Navigate to initial route immediately for instant template rendering
-    this.router.navigateTo(initialRoute);
+    // Navigate to initial route immediately
+    await this.router.navigateTo(initialRoute);
     this.renderCurrentView();
 
     // Refresh backend data asynchronously in background
@@ -197,7 +198,7 @@ class ModularSpaApp {
   }
 
   get currentRoute() {
-    return this.router.currentRoute;
+    return this.router?.currentRoute || 'dashboard';
   }
 
   navigateTo(route) {
@@ -206,7 +207,11 @@ class ModularSpaApp {
         return;
       }
     }
-    this.router.navigateTo(route);
+    if (this.router) {
+      this.router.navigateTo(route);
+    } else {
+      window.location.hash = '#' + route;
+    }
   }
 
   openNewOrderModal() {
@@ -219,7 +224,7 @@ class ModularSpaApp {
         return;
       }
     }
-    this.router.navigateTo('pedidos');
+    this.navigateTo('pedidos');
   }
 
   triggerPedidosSearch() {
@@ -239,7 +244,6 @@ class ModularSpaApp {
   }
 
   initBootstrapModals() {
-    // Purge any lingering backdrops or pointer lockouts on startup
     document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
     document.body.classList.remove('modal-open');
     document.body.style.removeProperty('overflow');
@@ -387,10 +391,10 @@ class ModularSpaApp {
     }
 
     this.statusData = statusData;
-    this.clients = clients || [];
-    this.products = products || [];
-    this.orders = orders || [];
-    this.shipments = shipments || [];
+    if (clients && clients.length > 0) this.clients = clients;
+    if (products && products.length > 0) this.products = products;
+    if (orders && orders.length > 0) this.orders = orders;
+    if (shipments && shipments.length > 0) this.shipments = shipments;
 
     const indicator = document.getElementById('backendStatusIndicator');
     if (indicator) {

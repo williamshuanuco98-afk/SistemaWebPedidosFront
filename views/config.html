@@ -1,73 +1,52 @@
 <div class="row g-4 mb-4">
-  <!-- Appearance & Theme Card -->
-  <div class="col-md-6">
-    <div class="content-card p-4 h-100">
-      <div class="d-flex align-items-center gap-3 mb-3">
-        <div class="p-3 rounded-circle bg-success bg-opacity-10 text-success">
-          <i class="bi bi-palette-fill fs-3"></i>
-        </div>
-        <div>
-          <h2 class="h5 fw-bold mb-1">Apariencia del Sistema</h2>
-          <p class="text-muted small mb-0">Personaliza la interfaz del sistema Inplabel</p>
-        </div>
-      </div>
-      <hr>
-      <div class="d-flex align-items-center justify-content-between p-3 rounded border">
-        <div>
-          <strong class="d-block mb-1">Tema de Color</strong>
-          <span class="text-muted small">Alterna entre Modo Claro minimalista y Modo Oscuro Carbon</span>
-        </div>
-        <button id="configThemeToggleBtn" class="btn btn-outline-success d-flex align-items-center gap-2" onclick="app.toggleTheme()">
-          <i id="configThemeIcon" class="bi bi-moon-stars-fill"></i>
-          <span id="configThemeText">Cambiar Tema</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Document Storage Folder Configuration Card -->
-  <div class="col-md-6">
-    <div class="content-card p-4 h-100">
+  <!-- Document Storage Folder Configuration Card (Full Width) -->
+  <div class="col-12">
+    <div class="content-card p-4">
       <div class="d-flex align-items-center gap-3 mb-3">
         <div class="p-3 rounded-circle bg-warning bg-opacity-10 text-warning-emphasis">
           <i class="bi bi-folder-symlink-fill fs-3"></i>
         </div>
         <div>
-          <h2 class="h5 fw-bold mb-1">Ruta de Almacenamiento de Archivos PDF</h2>
-          <p class="text-muted small mb-0">Especifica en qué carpeta local o de servidor se guardarán los documentos</p>
+          <h2 class="h5 fw-bold mb-1">Ruta de Almacenamiento de Archivos en el Equipo</h2>
+          <p class="text-muted small mb-0">Configura la carpeta local o de red donde se guardarán las Guías de Remisión y Documentos del sistema</p>
         </div>
       </div>
       <hr>
+      
       <form onsubmit="event.preventDefault(); configModule.saveStorageConfig();">
-        <div class="mb-3">
-          <label for="pdfFolderPathInput" class="form-label fw-semibold fs-7">Ruta de Almacenamiento de Pedidos (PDF) *</label>
-          <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="bi bi-folder2-open"></i></span>
-            <input type="text" id="pdfFolderPathInput" class="form-control" placeholder="Ej: C:\Users\User\OneDrive\Escritorio\OrdenesI" required>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="guiasPdfFolderPathInput" class="form-label fw-semibold fs-7">Ruta de Guardado para Guías de Remisión (PDF) *</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="bi bi-truck"></i></span>
+              <input type="text" id="guiasPdfFolderPathInput" class="form-control font-monospace" placeholder="Ej: C:\Inplabel\Guias" required>
+            </div>
+            <div class="form-text fs-8">Directorio en el disco local de la PC donde se almacenarán las guías emitidas.</div>
           </div>
-          <div class="form-text fs-8">Ruta absoluta en el disco local o servidor donde se guardarán los PDF de pedidos.</div>
-        </div>
 
-        <div class="mb-3">
-          <label for="guiasPdfFolderPathInput" class="form-label fw-semibold fs-7">Ruta de Almacenamiento de Guías de Remisión (PDF) *</label>
-          <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="bi bi-truck-front-fill"></i></span>
-            <input type="text" id="guiasPdfFolderPathInput" class="form-control" placeholder="Ej: C:\Users\User\OneDrive\Escritorio\GuiasI" required>
+          <div class="col-md-6">
+            <label for="pdfFolderPathInput" class="form-label fw-semibold fs-7">Ruta de Guardado para Pedidos / Cotizaciones (PDF) *</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="bi bi-folder2-open"></i></span>
+              <input type="text" id="pdfFolderPathInput" class="form-control font-monospace" placeholder="Ej: C:\Inplabel\Pedidos" required>
+            </div>
+            <div class="form-text fs-8">Directorio en el disco local para exportaciones de órdenes y cotizaciones.</div>
           </div>
-          <div class="form-text fs-8">Ruta absoluta en el disco local donde se guardarán los archivos PDF emitidos de guías.</div>
+
+          <div class="col-12">
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" id="pdfSubfolderCheckbox">
+              <label class="form-check-label fw-semibold fs-7" for="pdfSubfolderCheckbox">
+                Organizar automáticamente en subcarpetas por año y mes (ej. <code>/2026/08/</code>)
+              </label>
+            </div>
+          </div>
         </div>
 
-        <div class="form-check form-switch mb-3">
-          <input class="form-check-input" type="checkbox" id="pdfSubfolderCheckbox">
-          <label class="form-check-label fw-semibold fs-7" for="pdfSubfolderCheckbox">
-            Organizar automáticamente en subcarpetas por N° de Pedido (ej. <code>/PED-0001/</code>)
-          </label>
-        </div>
+        <div id="storageConfigFeedback" class="mt-3 d-none"></div>
 
-        <div id="storageConfigFeedback" class="mb-3 d-none"></div>
-
-        <div class="d-flex justify-content-end">
-          <button type="submit" class="btn btn-primary btn-sm px-3">
+        <div class="d-flex justify-content-end mt-4 pt-2 border-top">
+          <button type="submit" class="btn btn-primary btn-sm px-4">
             <i class="bi bi-save me-1"></i> Guardar Rutas de Almacenamiento
           </button>
         </div>
@@ -76,7 +55,7 @@
   </div>
 
   <!-- System Information & Database Status Card -->
-  <div class="col-md-12">
+  <div class="col-12">
     <div class="content-card p-4">
       <div class="d-flex align-items-center gap-3 mb-3">
         <div class="p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
@@ -84,31 +63,31 @@
         </div>
         <div>
           <h2 class="h5 fw-bold mb-1">Estado del Servidor & Base de Datos</h2>
-          <p class="text-muted small mb-0">API REST Spring Boot 3.2.5 + MySQL 8.0</p>
+          <p class="text-muted small mb-0">API REST Spring Boot 3.2.5 + MySQL 8.0 (Host Local)</p>
         </div>
       </div>
       <hr>
       <div class="row g-3">
-        <div class="col-md-3">
-          <div class="p-3 bg-light rounded border">
+        <div class="col-md-3 col-6">
+          <div class="p-3 bg-body-tertiary rounded border">
             <span class="small text-muted d-block font-monospace">ESTADO CONEXIÓN</span>
             <span class="badge bg-success mt-1">MySQL CONECTADO</span>
           </div>
         </div>
-        <div class="col-md-3">
-          <div class="p-3 bg-light rounded border">
+        <div class="col-md-3 col-6">
+          <div class="p-3 bg-body-tertiary rounded border">
             <span class="small text-muted d-block font-monospace">ENDPOINT API</span>
             <span class="small fw-semibold text-primary">http://localhost:8080/api</span>
           </div>
         </div>
-        <div class="col-md-3">
-          <div class="p-3 bg-light rounded border">
+        <div class="col-md-3 col-6">
+          <div class="p-3 bg-body-tertiary rounded border">
             <span class="small text-muted d-block font-monospace">CLIENTES REGISTRADOS</span>
-            <strong id="bdClientsCount" class="fs-6 text-primary">342 Clientes</strong>
+            <strong id="bdClientsCount" class="fs-6 text-primary">340 Clientes</strong>
           </div>
         </div>
-        <div class="col-md-3">
-          <div class="p-3 bg-light rounded border">
+        <div class="col-md-3 col-6">
+          <div class="p-3 bg-body-tertiary rounded border">
             <span class="small text-muted d-block font-monospace">CATÁLOGO PRODUCTOS</span>
             <strong id="bdProductsCount" class="fs-6 text-success">804 Productos</strong>
           </div>
