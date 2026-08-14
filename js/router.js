@@ -4,69 +4,69 @@ const EMBEDDED_VIEWS = {
   dashboard: `
 <!-- Top Metrics 5 KPI Grid -->
 <div class="metrics-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-  <div class="metric-card">
+  <div class="metric-card card-blue">
     <div class="metric-info">
       <h4>Total Pedidos</h4>
       <div id="statTotalOrders" class="metric-value">0</div>
     </div>
-    <div class="metric-icon-box metric-blue">
+    <div class="metric-icon-box">
       <i class="bi bi-cart3 fs-3"></i>
     </div>
   </div>
 
-  <div class="metric-card">
+  <div class="metric-card card-amber">
     <div class="metric-info">
       <h4>Pedidos Pendientes</h4>
       <div id="statPendingOrders" class="metric-value">0</div>
     </div>
-    <div class="metric-icon-box metric-amber">
+    <div class="metric-icon-box">
       <i class="bi bi-clock-history fs-3"></i>
     </div>
   </div>
 
-  <div class="metric-card">
+  <div class="metric-card card-emerald">
     <div class="metric-info">
       <h4>Pedidos Entregados</h4>
       <div id="statCompletedOrders" class="metric-value">0</div>
     </div>
-    <div class="metric-icon-box metric-emerald">
+    <div class="metric-icon-box">
       <i class="bi bi-check2-circle fs-3"></i>
     </div>
   </div>
 
-  <div class="metric-card">
+  <div class="metric-card card-cyan">
     <div class="metric-info">
       <h4>Clientes Registrados</h4>
       <div id="statTotalClients" class="metric-value">0</div>
     </div>
-    <div class="metric-icon-box metric-emerald">
+    <div class="metric-icon-box">
       <i class="bi bi-people fs-3"></i>
     </div>
   </div>
 
-  <div class="metric-card">
+  <div class="metric-card card-indigo">
     <div class="metric-info">
       <h4>Productos Totales</h4>
       <div id="statTotalProducts" class="metric-value">0</div>
     </div>
-    <div class="metric-icon-box metric-indigo">
+    <div class="metric-icon-box">
       <i class="bi bi-box-seam fs-3"></i>
     </div>
   </div>
 </div>
 
-<!-- Charts Section Row 1 -->
+<!-- Charts Section Row 1: Establecimientos & Pedidos al Mes -->
 <div class="row g-4 mb-4">
   <div class="col-lg-6">
     <div class="content-card p-3 h-100">
       <div class="card-header border-0 pb-0 bg-transparent">
         <h3 class="card-title d-flex align-items-center">
-          <i class="bi bi-bar-chart-line-fill text-primary"></i>
-          <span>Clientes Mayores Solicitantes (Ingresos S/)</span>
+          <i class="bi bi-buildings text-primary me-2"></i>
+          <span>Pedidos por Establecimiento</span>
         </h3>
       </div>
       <div class="p-3" style="height: 280px; position: relative;">
-        <canvas id="chartTopClients"></canvas>
+        <canvas id="chartEstablecimientos"></canvas>
       </div>
     </div>
   </div>
@@ -75,7 +75,7 @@ const EMBEDDED_VIEWS = {
     <div class="content-card p-3 h-100">
       <div class="card-header border-0 pb-0 bg-transparent">
         <h3 class="card-title d-flex align-items-center">
-          <i class="bi bi-bar-chart-steps text-success"></i>
+          <i class="bi bi-graph-up-arrow text-success me-2"></i>
           <span>Cantidad de Pedidos al Mes</span>
         </h3>
       </div>
@@ -86,14 +86,28 @@ const EMBEDDED_VIEWS = {
   </div>
 </div>
 
-<!-- Charts Section Row 2 & Recent Orders -->
-<div class="row g-4">
-  <div class="col-lg-5">
+<!-- Charts Section Row 2: Estado Operativo & Productos Más Pedidos -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-6">
     <div class="content-card p-3 h-100">
       <div class="card-header border-0 pb-0 bg-transparent">
         <h3 class="card-title d-flex align-items-center">
-          <i class="bi bi-award-fill text-warning"></i>
-          <span>Productos Más Pedidos</span>
+          <i class="bi bi-pie-chart-fill text-warning me-2"></i>
+          <span>Distribución de Pedidos por Estado Operativo</span>
+        </h3>
+      </div>
+      <div class="p-3" style="height: 280px; position: relative;">
+        <canvas id="chartOrderStatus"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="content-card p-3 h-100">
+      <div class="card-header border-0 pb-0 bg-transparent">
+        <h3 class="card-title d-flex align-items-center">
+          <i class="bi bi-award-fill text-info me-2"></i>
+          <span>Productos Más Solicitados</span>
         </h3>
       </div>
       <div class="p-3" style="height: 280px; position: relative;">
@@ -101,23 +115,27 @@ const EMBEDDED_VIEWS = {
       </div>
     </div>
   </div>
+</div>
 
-  <div class="col-lg-7">
+<!-- Recent Orders Section -->
+<div class="row g-4">
+  <div class="col-12">
     <div class="content-card h-100">
-      <div class="card-header bg-transparent">
-        <h3 class="card-title d-flex align-items-center">
-          <i class="bi bi-cart3 text-primary"></i>
+      <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+        <h3 class="card-title d-flex align-items-center mb-0">
+          <i class="bi bi-cart3 text-primary me-2"></i>
           <span>Últimos Pedidos Registrados</span>
         </h3>
         <button class="btn btn-sm btn-outline-secondary" onclick="app.navigateTo('pedidos')">Ver Todos</button>
       </div>
       <div class="table-responsive">
-        <table class="table custom-table mb-0">
+        <table class="table custom-table mb-0 align-middle">
           <thead>
             <tr>
               <th>N° Pedido</th>
               <th>Cliente</th>
-              <th>Fecha</th>
+              <th>Establecimiento</th>
+              <th>Fecha Pedido</th>
               <th>Estado</th>
               <th class="text-center">Acciones</th>
             </tr>
@@ -767,7 +785,7 @@ const EMBEDDED_VIEWS = {
               <input type="text" id="searchProductGuiaInput" class="form-control" autocomplete="off">
             </div>
             <!-- Autocompletado Productos -->
-            <ul id="productSearchResultsGuiaList" class="list-group position-absolute w-100 shadow-sm d-none z-3" style="max-height: 220px; overflow-y: auto;"></ul>
+            <ul id="productSearchResultsGuiaList" class="list-group position-absolute w-100 shadow mt-1 d-none" style="z-index: 1050; max-height: 600px; overflow-y: auto;"></ul>
           </div>
         </div>
 
@@ -837,7 +855,7 @@ const EMBEDDED_VIEWS = {
           <th style="width: 200px;">Tipo y N° Documento</th>
           <th>Razón Social / Nombre</th>
           <th>Domicilio Fiscal</th>
-          <th style="width: 170px;" class="text-center">Modificaciones</th>
+          <th style="width: 110px;" class="text-center">Modificaciones</th>
         </tr>
       </thead>
       <tbody id="clientesTableBody"></tbody>
@@ -896,7 +914,7 @@ const EMBEDDED_VIEWS = {
             </div>
             <div class="col-12">
               <label class="form-label fw-semibold">Domicilio Fiscal</label>
-              <input type="text" id="modalClienteDireccion" class="form-control" placeholder="Dirección fiscal devuelta por SUNAT">
+              <textarea id="modalClienteDireccion" class="form-control" rows="2" placeholder="Domicilio fiscal completo devuelto por SUNAT"></textarea>
             </div>
           </div>
           <div class="d-flex justify-content-end gap-2 mt-4">
@@ -994,6 +1012,7 @@ const EMBEDDED_VIEWS = {
 
   produccion: `
 <div class="content-card">
+  <!-- Cabecera de la Vista -->
   <div class="card-header flex-wrap gap-2">
     <div class="d-flex align-items-center gap-2">
       <h3 class="card-title mb-0"><i class="bi bi-gear-wide-connected text-primary"></i> Control de Producción</h3>
@@ -1002,48 +1021,79 @@ const EMBEDDED_VIEWS = {
   </div>
 
   <div class="p-3">
-    <div class="metrics-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
-      <div class="metric-card">
+    <!-- Indicadores Rápidos / 6 KPI Cards de Producción -->
+    <div class="metrics-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+      <div class="metric-card card-blue">
         <div class="metric-info">
           <h4>Ítems Distintos</h4>
-          <div id="statProdItemsCount" class="metric-value text-primary">0</div>
+          <div id="statProdItemsCount" class="metric-value">0</div>
         </div>
-        <div class="metric-icon-box metric-blue">
+        <div class="metric-icon-box">
           <i class="bi bi-box-seam fs-3"></i>
         </div>
       </div>
 
-      <div class="metric-card">
+      <div class="metric-card card-indigo">
         <div class="metric-info">
-          <h4>Unidades Solicitadas</h4>
-          <div id="statProdTotalSolicitado" class="metric-value">0</div>
+          <h4>Más Solicitado</h4>
+          <div id="statProdTopName" class="fs-7 fw-bold text-white text-truncate" style="max-width: 140px;" title="-">-</div>
+          <div id="statProdTopQty" class="metric-value fs-5 mt-1">0 und</div>
         </div>
-        <div class="metric-icon-box metric-indigo">
-          <i class="bi bi-cart-check fs-3"></i>
+        <div class="metric-icon-box">
+          <i class="bi bi-trophy fs-3"></i>
         </div>
       </div>
 
-      <div class="metric-card">
+      <div class="metric-card card-cyan">
         <div class="metric-info">
-          <h4>Unidades Entregadas</h4>
-          <div id="statProdTotalEntregado" class="metric-value text-success">0</div>
+          <h4>Cant. Clientes</h4>
+          <div id="statProdClientsCount" class="metric-value">0</div>
         </div>
-        <div class="metric-icon-box metric-emerald">
-          <i class="bi bi-check2-circle fs-3"></i>
+        <div class="metric-icon-box">
+          <i class="bi bi-people fs-3"></i>
         </div>
       </div>
 
-      <div class="metric-card">
+      <div class="metric-card card-emerald">
         <div class="metric-info">
-          <h4>Unidades Pendientes</h4>
-          <div id="statProdTotalPendiente" class="metric-value text-warning">0</div>
+          <h4>Cant. Frascos</h4>
+          <div id="statProdFrascosCount" class="metric-value">0</div>
         </div>
-        <div class="metric-icon-box metric-amber">
-          <i class="bi bi-clock-history fs-3"></i>
+        <div class="metric-icon-box">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="9.5" y="1" width="5" height="2.5" rx="0.6"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M10 3.5h4v1.8c2.2 1 3.5 3 3.5 6.2v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 6.5 20.5V11.5c0-3.2 1.3-5.2 3.5-6.2V3.5zm4 6.8v6.2c1.3-.4 1.8-1.5 1.8-3.1 0-1.6-.5-2.7-1.8-3.1z"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="metric-card card-amber">
+        <div class="metric-info">
+          <h4>Cant. Galones</h4>
+          <div id="statProdGalonesCount" class="metric-value">0</div>
+        </div>
+        <div class="metric-icon-box">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="4" y="1.5" width="4.5" height="2.5" rx="0.5"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M4 4h5v1.2c.9-.4 2-.7 3.5-.7h5c2 0 3.5 1.5 3.5 3.5v12.5a1.5 1.5 0 0 1-1.5 1.5h-16A1.5 1.5 0 0 1 2 20.5V6C2 4.9 2.9 4 4 4zm7 2.5h6.5c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5H11c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5z"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="metric-card card-purple">
+        <div class="metric-info">
+          <h4>Cant. Tapas</h4>
+          <div id="statProdTapasCount" class="metric-value">0</div>
+        </div>
+        <div class="metric-icon-box">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2H4V6zm0 4h16v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-6zm2 2v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4H6z"/>
+          </svg>
         </div>
       </div>
     </div>
 
+    <!-- Buscador de Productos en Producción -->
     <div class="row g-2 align-items-center mb-3">
       <div class="col-md-6 col-12">
         <div class="input-group input-group-sm">
@@ -1053,21 +1103,23 @@ const EMBEDDED_VIEWS = {
         </div>
       </div>
       <div class="col-md-6 col-12 text-md-end text-muted small">
-        <i class="bi bi-info-circle me-1"></i> Muestra el acumulado de productos solicitados en las órdenes registradas.
+        <i class="bi bi-info-circle me-1"></i> Control de demanda activa de pedidos en producción.
       </div>
     </div>
 
+    <!-- Tabla de Control de Producción -->
     <div class="table-responsive border rounded">
       <table class="table custom-table align-middle mb-0">
         <thead>
           <tr>
-            <th>Código</th>
+            <th style="width: 120px;">Código</th>
             <th>Nombre del Producto</th>
-            <th class="text-center">Total Solicitado</th>
-            <th class="text-center">Total Entregado</th>
-            <th class="text-center">Total Pendiente</th>
-            <th class="text-center">Clientes</th>
-            <th class="text-center">Acciones</th>
+            <th style="width: 110px;">Categoría</th>
+            <th class="text-center" style="width: 130px;">Total Solicitado</th>
+            <th class="text-center" style="width: 130px;">Total Entregado</th>
+            <th class="text-center" style="width: 130px;">Total Pendiente</th>
+            <th class="text-center" style="width: 110px;">Clientes</th>
+            <th class="text-center" style="width: 120px;">Acciones</th>
           </tr>
         </thead>
         <tbody id="produccionTableBody"></tbody>

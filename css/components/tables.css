@@ -8,8 +8,8 @@
 
 .custom-table th, .table th {
   background: #f1f5f9 !important;
-  padding: 8px 12px !important;
-  font-size: 0.825rem !important;
+  padding: 8px !important;
+  font-size: 14.4px !important;
   font-weight: 800 !important;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -19,9 +19,9 @@
 }
 
 .custom-table td, .table td {
-  padding: 8px 12px !important;
+  padding: 8px !important;
   border-bottom: 1px solid var(--border-color);
-  font-size: 0.85rem !important;
+  font-size: 14.4px !important;
   vertical-align: middle !important;
 }
 

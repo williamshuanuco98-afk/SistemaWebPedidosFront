@@ -147,16 +147,11 @@ export const api = {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(clienteData),
-        timeout: 2000
+        timeout: 3000
       });
       if (res.ok) return await res.json();
-    } catch (e) {}
-    const list = getLocalData('clientes', FALLBACK_CLIENTS);
-    const index = list.findIndex(c => (c.id_cliente || c.id) === id);
-    if (index !== -1) {
-      list[index] = { ...list[index], ...clienteData };
-      setLocalData('clientes', list);
-      return list[index];
+    } catch (e) {
+      console.error('Error al actualizar cliente en MySQL:', e);
     }
     return { success: false };
   },
@@ -165,14 +160,13 @@ export const api = {
     try {
       const res = await fetchWithTimeout(`${BASE_URL}/clientes/${id}`, {
         method: 'DELETE',
-        timeout: 2000
+        timeout: 3000
       });
       if (res.ok) return await res.json();
-    } catch (e) {}
-    let list = getLocalData('clientes', FALLBACK_CLIENTS);
-    list = list.filter(c => (c.id_cliente || c.id) !== id);
-    setLocalData('clientes', list);
-    return { success: true };
+    } catch (e) {
+      console.error('Error al eliminar cliente en MySQL:', e);
+    }
+    return { success: false };
   },
 
   async consultarSunatRuc(ruc) {
@@ -180,7 +174,7 @@ export const api = {
       return { success: false };
     }
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/clientes/sunat/${ruc}`, { timeout: 2000 });
+      const res = await fetchWithTimeout(`${BASE_URL}/clientes/sunat/${ruc}`, { timeout: 2500 });
       if (res.ok) {
         const data = await res.json();
         if (data && data.success) return data;
@@ -188,15 +182,24 @@ export const api = {
     } catch (e) {}
 
     try {
-      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/ruc?numero=${ruc}`, { timeout: 2000 });
+      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/ruc?numero=${ruc}`, { timeout: 2500 });
       if (res.ok) {
         const data = await res.json();
         if (data && data.nombre) {
+          let dir = (data.direccion || '').trim();
+          if (!dir) {
+            dir = `${data.viaTipo || ''} ${data.viaNombre || ''} ${data.numero ? 'NRO ' + data.numero : ''} ${data.zonaTipo || ''} ${data.zonaCodigo || ''}`.replace(/\s+/g, ' ').trim();
+          }
+          if (data.distrito && !dir.toUpperCase().includes(data.distrito.toUpperCase())) {
+            const loc = [data.departamento, data.provincia, data.distrito].filter(Boolean).join(' - ');
+            if (loc) dir = dir ? `${dir} - ${loc}` : loc;
+          }
+
           return {
             success: true,
             nro_documento: ruc,
             nombre_cliente: data.nombre,
-            direccion: data.direccion || `${data.viaNombre || ''} ${data.distrito || ''} ${data.departamento || ''}`.trim(),
+            direccion: dir,
             estado: data.estado || 'ACTIVO',
             condicion: data.condicion || 'HABIDO'
           };

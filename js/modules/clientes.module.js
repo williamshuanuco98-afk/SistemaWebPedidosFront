@@ -40,18 +40,24 @@ export function filterClientes(queryStr = '') {
       <td class="fw-semibold text-white">${escapeHtml(c.nombre_cliente || '-')}</td>
       <td class="small text-white-50">${escapeHtml(c.direccion || 'No especificada')}</td>
       <td class="text-center">
-        <div class="d-flex justify-content-center gap-1">
-          <button type="button" class="btn btn-outline-warning btn-sm py-1 px-2 fs-8" onclick="clientesModule.openEditClientModal(${idx})" title="Modificar Cliente">
-            <i class="bi bi-pencil-square me-1"></i> Modificar
+        <div class="d-flex justify-content-center gap-2">
+          <button type="button" class="btn btn-warning btn-sm p-0 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;" onclick="clientesModule.openEditClientModal(${idx})" title="Modificar Cliente" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":1000,"hide":100}'>
+            <i class="bi bi-pencil-square text-dark fs-6"></i>
           </button>
-          <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2 fs-8" onclick="clientesModule.deleteClient(${clientId})" title="Eliminar de la BD MySQL">
-            <i class="bi bi-trash me-1"></i> Eliminar
+          <button type="button" class="btn btn-danger btn-sm p-0 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;" onclick="clientesModule.deleteClient(${clientId})" title="Eliminar Cliente" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":1000,"hide":100}'>
+            <i class="bi bi-trash fs-6"></i>
           </button>
         </div>
       </td>
     `;
     tbody.appendChild(tr);
   });
+
+  // Re-initialize Bootstrap tooltips with 1-second delay
+  if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+    const tooltipTriggers = tbody.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipTriggers.forEach(el => new bootstrap.Tooltip(el, { delay: { show: 1000, hide: 100 } }));
+  }
 }
 
 export function openNewClientModal() {

@@ -126,7 +126,11 @@ function setupClientSearch() {
       e.preventDefault();
       if (state.activeClientIndex >= 0 && items[state.activeClientIndex]) {
         items[state.activeClientIndex].click();
+      } else if (items.length > 0) {
+        items[0].click();
       }
+    } else if (e.key === 'Escape') {
+      list.classList.add('d-none');
     }
   });
 
@@ -186,11 +190,14 @@ function setupProductSearch() {
       return;
     }
 
-    const products = window.app?.products || [];
+    const products = (window.app?.products && window.app.products.length > 0) 
+      ? window.app.products 
+      : (state.products || []);
+
     const matches = filterAndRankItems(
       products,
       val,
-      p => `${p.codigo_producto || ''} ${p.nombre_producto || ''}`
+      p => `#${p.id_producto || ''} ${p.id_producto || ''} ${p.codigo_producto || ''} ${p.nombre_producto || ''} ${p.tipo_producto || ''}`
     ).slice(0, 15);
 
     if (matches.length === 0) {
@@ -212,6 +219,31 @@ function setupProductSearch() {
         addProductToGuia(matches[idx]);
       });
     });
+  });
+
+  input.addEventListener('keydown', (e) => {
+    const items = list.querySelectorAll('.prod-opt-item');
+    if (items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      state.activeProductIndex = Math.min(state.activeProductIndex + 1, items.length - 1);
+      updateActiveItem(items, state.activeProductIndex);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      state.activeProductIndex = Math.max(state.activeProductIndex - 1, 0);
+      updateActiveItem(items, state.activeProductIndex);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (state.activeProductIndex >= 0 && items[state.activeProductIndex]) {
+        items[state.activeProductIndex].click();
+      } else if (items.length > 0) {
+        // If user presses Enter without arrowing, select first item
+        items[0].click();
+      }
+    } else if (e.key === 'Escape') {
+      list.classList.add('d-none');
+    }
   });
 
   document.addEventListener('click', (e) => {

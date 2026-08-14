@@ -336,15 +336,83 @@ export function generateGuiaHTML(guia) {
   `;
 }
 
-export function openGuiaPDFInNewTab(guia) {
+export async function openGuiaPDFInNewTab(guia) {
   const htmlContent = generateGuiaHTML(guia);
+  const nroGuia = guia.nro_guia || 'GR001-0001';
+
+  if (typeof window.html2pdf !== 'undefined') {
+    // Create temporary offscreen container
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '1120px';
+    container.style.background = '#ffffff';
+    container.innerHTML = htmlContent;
+    document.body.appendChild(container);
+
+    const opt = {
+      margin: [4, 4, 4, 4],
+      filename: `GUIA_${nroGuia}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    try {
+      const pdfBlob = await window.html2pdf().set(opt).from(container).output('blob');
+      document.body.removeChild(container);
+      const pdfBlobTyped = new Blob([pdfBlob], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(pdfBlobTyped);
+      window.open(blobUrl, '_blank');
+      return;
+    } catch (err) {
+      console.warn("html2pdf generation error, using fallback:", err);
+      if (document.body.contains(container)) document.body.removeChild(container);
+    }
+  }
+
+  // Fallback: Open HTML print window
   const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
   const blobUrl = URL.createObjectURL(blob);
   window.open(blobUrl, '_blank');
 }
 
-export function printGuiaPDF(guia) {
+export async function printGuiaPDF(guia) {
   const htmlContent = generateGuiaHTML(guia);
+  const nroGuia = guia.nro_guia || 'GR001-0001';
+
+  if (typeof window.html2pdf !== 'undefined') {
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '1120px';
+    container.style.background = '#ffffff';
+    container.innerHTML = htmlContent;
+    document.body.appendChild(container);
+
+    const opt = {
+      margin: [4, 4, 4, 4],
+      filename: `GUIA_${nroGuia}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    try {
+      const pdfBlob = await window.html2pdf().set(opt).from(container).output('blob');
+      document.body.removeChild(container);
+      const pdfBlobTyped = new Blob([pdfBlob], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(pdfBlobTyped);
+      const printWindow = window.open(blobUrl, '_blank');
+      return;
+    } catch (err) {
+      console.warn("html2pdf generation error, using fallback:", err);
+      if (document.body.contains(container)) document.body.removeChild(container);
+    }
+  }
+
   const printWindow = window.open('', '_blank');
   if (printWindow) {
     printWindow.document.write(htmlContent);

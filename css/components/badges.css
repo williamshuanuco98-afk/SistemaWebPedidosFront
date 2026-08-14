@@ -54,3 +54,7 @@
   background: #7f1d1d;
   color: #fca5a5;
 }
+
+.badge.bg-emerald { background-color: #10b981 !important; color: #ffffff !important; }
+.badge.bg-amber { background-color: #f59e0b !important; color: #1e293b !important; }
+.badge.bg-purple { background-color: #8b5cf6 !important; color: #ffffff !important; }
