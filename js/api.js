@@ -17,71 +17,27 @@ async function fetchWithTimeout(resource, options = {}) {
   }
 }
 
-// Fallback Initial Data when Spring Boot Backend is Offline
-const FALLBACK_CLIENTS = [
-  { id: 1, nro_documento: '20601234567', nombre_cliente: 'INVERSIONES PLASTICAS S.A.C.', direccion: 'Av. Industrial 450, Comas, Lima', tipo_doc: 'RUC', estado: 'ACTIVO' },
-  { id: 2, nro_documento: '20509876543', nombre_cliente: 'DISTRIBUIDORA Y PACKAGING PERU E.I.R.L.', direccion: 'Calle Los Cedros 128, Carabayllo, Lima', tipo_doc: 'RUC', estado: 'ACTIVO' },
-  { id: 3, nro_documento: '10458796321', nombre_cliente: 'AGUIRRE ALVAREZ CARLOS EDUARDO', direccion: 'Jr. Comercio 880, Los Olivos, Lima', tipo_doc: 'DNI', estado: 'ACTIVO' }
-];
-
-const FALLBACK_PRODUCTS = [
-  { id: 1, codigo_producto: 'PROD-438', nombre_producto: 'BALDE INDUSTRIAL 4 LT C/BLANCO', tipo_producto: 'GALONES', estado: 'ACTIVO' },
-  { id: 2, codigo_producto: 'PROD-502', nombre_producto: 'FRASCO PET 500 ML TRANSPARENTE', tipo_producto: 'FRASCOS', estado: 'ACTIVO' },
-  { id: 3, codigo_producto: 'PROD-109', nombre_producto: 'TAPA ROSCA 28 MM AZUL', tipo_producto: 'TAPAS', estado: 'ACTIVO' },
-  { id: 4, codigo_producto: 'PROD-773', nombre_producto: 'GALONERO PLASTICO 5 LT HEAVY', tipo_producto: 'GALONES', estado: 'ACTIVO' },
-  { id: 5, codigo_producto: 'PROD-210', nombre_producto: 'ASA PLASTICA REFORZADA 4L', tipo_producto: 'ASAS', estado: 'ACTIVO' }
-];
-
-const FALLBACK_ORDERS = [
-  {
-    id_pedido: 1,
-    nro_pedido: 'PED-0001',
-    nro_orden: 'OC-2026-089',
-    nombre_cliente: 'INVERSIONES PLASTICAS S.A.C.',
-    nro_documento_cliente: '20601234567',
-    fecha_pedido: '2026-08-10',
-    fecha_entrega: '2026-08-20',
-    establecimiento: 'CARABAYLLO',
-    condicion_pago: 'CONTADO',
-    estado: 'PENDIENTE',
-    detalles: [
-      { id_detalle: 1, id_producto: 1, codigo_producto: 'PROD-438', nombre_producto: 'BALDE INDUSTRIAL 4 LT C/BLANCO', cantidad: 500, cantidad_entregada: 200 },
-      { id_detalle: 2, id_producto: 3, codigo_producto: 'PROD-109', nombre_producto: 'TAPA ROSCA 28 MM AZUL', cantidad: 500, cantidad_entregada: 500 }
-    ]
-  },
-  {
-    id_pedido: 2,
-    nro_pedido: 'PED-0002',
-    nro_orden: 'OC-2026-104',
-    nombre_cliente: 'DISTRIBUIDORA Y PACKAGING PERU E.I.R.L.',
-    nro_documento_cliente: '20509876543',
-    fecha_pedido: '2026-08-12',
-    fecha_entrega: '2026-08-25',
-    establecimiento: 'COMAS',
-    condicion_pago: 'CREDITO',
-    estado: 'PENDIENTE',
-    detalles: [
-      { id_detalle: 3, id_producto: 2, codigo_producto: 'PROD-502', nombre_producto: 'FRASCO PET 500 ML TRANSPARENTE', cantidad: 1000, cantidad_entregada: 0 }
-    ]
-  }
-];
-
+// Empty fallbacks - no dummy data injected
+const FALLBACK_CLIENTS = [];
+const FALLBACK_PRODUCTS = [];
+const FALLBACK_ORDERS = [];
 const FALLBACK_SHIPMENTS = [];
 
-function getLocalData(key, fallback) {
+function getLocalData(key, fallback = []) {
   try {
     const raw = localStorage.getItem('inplabel_' + key);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (key === 'guias' && Array.isArray(parsed) && parsed.some(g => g.nro_guia === 'G001-000458')) {
-        const cleaned = parsed.filter(g => g.nro_guia !== 'G001-000458');
-        localStorage.setItem('inplabel_guias', JSON.stringify(cleaned));
-        return cleaned;
+      if (Array.isArray(parsed)) {
+        // Clean out old hardcoded sample orders if present
+        if (key === 'pedidos') {
+          const cleaned = parsed.filter(p => p.nro_orden !== 'OC-2026-089' && p.nro_orden !== 'OC-2026-104');
+          return cleaned;
+        }
+        return parsed;
       }
-      return parsed;
     }
   } catch (e) {}
-  localStorage.setItem('inplabel_' + key, JSON.stringify(fallback));
   return fallback;
 }
 
@@ -115,10 +71,13 @@ export const api = {
 
   async getClientes() {
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/clientes`, { timeout: 1500 });
+      const res = await fetchWithTimeout(`${BASE_URL}/clientes`, { timeout: 2500 });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data)) return data;
+        if (Array.isArray(data)) {
+          setLocalData('clientes', data);
+          return data;
+        }
       }
     } catch (e) {}
     return getLocalData('clientes', FALLBACK_CLIENTS);
@@ -244,10 +203,13 @@ export const api = {
 
   async getProductos() {
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/productos`, { timeout: 1500 });
+      const res = await fetchWithTimeout(`${BASE_URL}/productos`, { timeout: 2500 });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data)) return data;
+        if (Array.isArray(data)) {
+          setLocalData('productos', data);
+          return data;
+        }
       }
     } catch (e) {}
     return getLocalData('productos', FALLBACK_PRODUCTS);
@@ -309,7 +271,10 @@ export const api = {
       const res = await fetchWithTimeout(`${BASE_URL}/pedidos`, { timeout: 1500 });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data)) return data;
+        if (Array.isArray(data)) {
+          setLocalData('pedidos', data);
+          return data;
+        }
       }
     } catch (e) {}
     return getLocalData('pedidos', FALLBACK_ORDERS);
@@ -468,5 +433,115 @@ export const api = {
       return g;
     }
     return null;
+  },
+
+  // -------------------------------------------------------------
+  // LETRAS DE CAMBIO API METHODS
+  // -------------------------------------------------------------
+  async getLetras(params = {}) {
+    const query = new URLSearchParams();
+    if (params.search) query.append('search', params.search);
+    if (params.dateFrom) query.append('dateFrom', params.dateFrom);
+    if (params.dateTo) query.append('dateTo', params.dateTo);
+    if (params.estado && params.estado !== 'ALL') query.append('estado', params.estado);
+
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/letras?${query.toString()}`, { timeout: 2500 });
+      if (res.ok) {
+        const data = await res.json();
+        setLocalData('letras', data);
+        return data;
+      }
+    } catch (e) {
+      console.warn("Backend offline or error in getLetras, using localStorage:", e);
+    }
+    return getLocalData('letras', []);
+  },
+
+  async getNextLetraCorrelativo() {
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/letras/next-correlativo`, { timeout: 2000 });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.warn("Backend offline, calculating local correlativo:", e);
+    }
+    const list = getLocalData('letras', []);
+    const anio = new Date().getFullYear();
+    const sameYear = list.filter(l => l.anio === anio || (l.nro_letra && l.nro_letra.endsWith(String(anio))));
+    const max = sameYear.reduce((acc, curr) => Math.max(acc, Number(curr.numero_correlativo) || 0), 0);
+    const next = max + 1;
+    return {
+      nextCorrelativo: next,
+      anio: anio,
+      suggestedNroLetra: `${String(next).padStart(3, '0')}-${anio}`
+    };
+  },
+
+  async createLetrasBatch(letrasArray, storageDir, useSubfolders) {
+    const savedPath = storageDir || localStorage.getItem('inplabel_letras_pdf_storage_path') || 'C:\\Inplabel\\Letras';
+    const sub = useSubfolders !== undefined ? useSubfolders : (localStorage.getItem('inplabel_pdf_subfolders') !== 'false');
+
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/letras/batch?storageDir=${encodeURIComponent(savedPath)}&useSubfolders=${sub}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ letras: letrasArray }),
+        timeout: 4000
+      });
+      if (res.ok) {
+        const result = await res.json();
+        const existing = getLocalData('letras', []);
+        const merged = [...(result.letras || letrasArray), ...existing];
+        setLocalData('letras', merged);
+        return result;
+      }
+    } catch (e) {
+      console.warn("Backend offline, saving letras batch locally:", e);
+    }
+
+    const existing = getLocalData('letras', []);
+    const idLote = 'LOTE-' + Date.now();
+    const created = letrasArray.map((l, idx) => ({
+      ...l,
+      id_letra: Date.now() + idx,
+      id_lote: idLote,
+      estado: 'PENDIENTE',
+      fecha_creacion: new Date().toISOString()
+    }));
+    setLocalData('letras', [...created, ...existing]);
+    return { success: true, id_lote: idLote, letras: created };
+  },
+
+  async anularLetra(idLetra) {
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/letras/${idLetra}/anular`, {
+        method: 'PUT',
+        timeout: 2000
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const list = getLocalData('letras', []);
+        const item = list.find(l => String(l.id_letra) === String(idLetra));
+        if (item) {
+          item.estado = 'ANULADA';
+          setLocalData('letras', list);
+        }
+        return data;
+      }
+    } catch (e) {
+      console.warn("Backend offline, updating letra locally:", e);
+    }
+
+    const list = getLocalData('letras', []);
+    const item = list.find(l => String(l.id_letra) === String(idLetra));
+    if (item) {
+      item.estado = 'ANULADA';
+      setLocalData('letras', list);
+      return { success: true, message: 'Letra anulada en almacenamiento local' };
+    }
+    return null;
   }
 };
+

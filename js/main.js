@@ -68,12 +68,16 @@ import {
 } from './modules/productos.module.js';
 import { renderConfigView, saveStorageConfig } from './modules/config.module.js';
 import { renderProduccionTable, openProductDetailModal, onSearchInput as onProduccionSearch } from './modules/produccion.module.js';
+import * as letrasModule from './modules/letras.module.js';
 
 // Early stub for instant global accessibility
 window.app = {
   navigateTo: (route) => { window.location.hash = '#' + route; },
   toggleTheme: () => { themeManager.toggleTheme(); }
 };
+
+window.letrasModule = letrasModule;
+
 
 // Attach modules globally for inline HTML event handlers
 window.nuevoPedidoModule = {
@@ -193,8 +197,36 @@ class ModularSpaApp {
       themeManager.initTheme();
     } catch (e) {}
 
+    // Auto-clean old sample/dummy data from localStorage if present
+    try {
+      const rawP = localStorage.getItem('inplabel_pedidos');
+      if (rawP) {
+        const arr = JSON.parse(rawP);
+        if (Array.isArray(arr)) {
+          const filtered = arr.filter(p => p.nro_orden !== 'OC-2026-089' && p.nro_orden !== 'OC-2026-104');
+          localStorage.setItem('inplabel_pedidos', JSON.stringify(filtered));
+        }
+      }
+      const rawL = localStorage.getItem('inplabel_letras');
+      if (rawL) {
+        const arr = JSON.parse(rawL);
+        if (Array.isArray(arr)) {
+          const filtered = arr.filter(l => l.nro_letra !== '261-2025' && l.nro_letra !== '262-2025');
+          localStorage.setItem('inplabel_letras', JSON.stringify(filtered));
+        }
+      }
+      const rawC = localStorage.getItem('inplabel_clientes');
+      if (rawC) {
+        const arr = JSON.parse(rawC);
+        if (Array.isArray(arr)) {
+          const filtered = arr.filter(c => c.nombre_cliente !== 'INVERSIONES PLASTICAS S.A.C.' && c.nro_documento !== '20601234567' && c.nro_documento !== '20509876543' && c.nro_documento !== '10458796321');
+          localStorage.setItem('inplabel_clientes', JSON.stringify(filtered));
+        }
+      }
+    } catch (e) {}
+
     const hash = window.location.hash.replace('#', '');
-    const validRoutes = ['dashboard', 'pedidos', 'nuevo-pedido', 'envios', 'nueva-guia', 'clientes', 'productos', 'produccion', 'config', 'bd'];
+    const validRoutes = ['dashboard', 'pedidos', 'nuevo-pedido', 'envios', 'nueva-guia', 'letras', 'clientes', 'productos', 'produccion', 'config', 'bd'];
     const initialRoute = (hash && validRoutes.includes(hash)) ? hash : 'dashboard';
 
     // Navigate to initial route immediately
@@ -449,6 +481,8 @@ class ModularSpaApp {
         renderNuevoPedidoPage(this.clients, this.products);
       } else if (route === 'envios') {
         renderEnviosTable(this.shipments, this.searchQuery);
+      } else if (route === 'letras') {
+        letrasModule.initLetrasView();
       } else if (route === 'nueva-guia') {
         initNuevaGuiaView();
       } else if (route === 'clientes') {

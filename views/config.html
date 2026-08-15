@@ -15,22 +15,31 @@
       
       <form onsubmit="event.preventDefault(); configModule.saveStorageConfig();">
         <div class="row g-3">
-          <div class="col-md-6">
-            <label for="guiasPdfFolderPathInput" class="form-label fw-semibold fs-7">Ruta de Guardado para Guías de Remisión (PDF) *</label>
+          <div class="col-md-4">
+            <label for="guiasPdfFolderPathInput" class="form-label fw-semibold fs-7">Ruta para Guías de Remisión (PDF) *</label>
             <div class="input-group input-group-sm">
               <span class="input-group-text"><i class="bi bi-truck"></i></span>
               <input type="text" id="guiasPdfFolderPathInput" class="form-control font-monospace" placeholder="Ej: C:\Inplabel\Guias" required>
             </div>
-            <div class="form-text fs-8">Directorio en el disco local de la PC donde se almacenarán las guías emitidas.</div>
+            <div class="form-text fs-8">Directorio para guardar Guías emitidas.</div>
           </div>
 
-          <div class="col-md-6">
-            <label for="pdfFolderPathInput" class="form-label fw-semibold fs-7">Ruta de Guardado para Pedidos / Cotizaciones (PDF) *</label>
+          <div class="col-md-4">
+            <label for="letrasPdfFolderPathInput" class="form-label fw-semibold fs-7">Ruta para Letras de Cambio (PDF) *</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="bi bi-file-earmark-ruled"></i></span>
+              <input type="text" id="letrasPdfFolderPathInput" class="form-control font-monospace" placeholder="Ej: C:\Inplabel\Letras" required>
+            </div>
+            <div class="form-text fs-8">Directorio para guardar Letras de Cambio emitidas.</div>
+          </div>
+
+          <div class="col-md-4">
+            <label for="pdfFolderPathInput" class="form-label fw-semibold fs-7">Ruta para Pedidos / Cotizaciones (PDF) *</label>
             <div class="input-group input-group-sm">
               <span class="input-group-text"><i class="bi bi-folder2-open"></i></span>
               <input type="text" id="pdfFolderPathInput" class="form-control font-monospace" placeholder="Ej: C:\Inplabel\Pedidos" required>
             </div>
-            <div class="form-text fs-8">Directorio en el disco local para exportaciones de órdenes y cotizaciones.</div>
+            <div class="form-text fs-8">Directorio para órdenes y cotizaciones.</div>
           </div>
 
           <div class="col-12">

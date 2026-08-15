@@ -1247,6 +1247,357 @@ const EMBEDDED_VIEWS = {
 </div>
 `,
 
+  letras: `
+<div class="content-card">
+  <!-- Cabecera de la Vista -->
+  <div class="card-header flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <h3 class="card-title mb-0">
+        <i class="bi bi-file-earmark-ruled text-primary me-1"></i> Control de Letras de Cambio
+      </h3>
+      <span id="letrasCountBadge" class="badge bg-secondary">0 letras</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-primary" onclick="letrasModule.openGenerarLetrasModal()">
+        <i class="bi bi-plus-lg me-1"></i> Generar Letras de Cambio
+      </button>
+    </div>
+  </div>
+
+  <div class="p-3">
+    <!-- Indicadores Rápidos / KPI Cards -->
+    <div class="metrics-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+      <div class="metric-card card-blue">
+        <div class="metric-info">
+          <h4>Total Emitidas</h4>
+          <div id="statLetrasTotalCount" class="metric-value">0</div>
+        </div>
+        <div class="metric-icon-box">
+          <i class="bi bi-file-earmark-text fs-3"></i>
+        </div>
+      </div>
+
+      <div class="metric-card card-emerald">
+        <div class="metric-info">
+          <h4>Monto Total</h4>
+          <div id="statLetrasTotalAmount" class="metric-value fs-5">S/ 0.00</div>
+        </div>
+        <div class="metric-icon-box">
+          <i class="bi bi-cash-stack fs-3"></i>
+        </div>
+      </div>
+
+      <div class="metric-card card-amber">
+        <div class="metric-info">
+          <h4>Pendientes</h4>
+          <div id="statLetrasPendientesCount" class="metric-value">0</div>
+        </div>
+        <div class="metric-icon-box">
+          <i class="bi bi-clock-history fs-3"></i>
+        </div>
+      </div>
+
+      <div class="metric-card card-cyan">
+        <div class="metric-info">
+          <h4>Clientes con Letras</h4>
+          <div id="statLetrasClientsCount" class="metric-value">0</div>
+        </div>
+        <div class="metric-icon-box">
+          <i class="bi bi-people fs-3"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de Búsqueda y Filtros -->
+    <div class="p-3 bg-body-tertiary border rounded mb-3">
+      <form id="formSearchLetras" onsubmit="event.preventDefault(); letrasModule.triggerSearch();">
+        <div class="row g-2 align-items-end">
+          <!-- Búsqueda General -->
+          <div class="col-md-4">
+            <label for="searchLetraInput" class="form-label small fw-bold mb-1">Buscar Letra, Ref. Girador o Cliente</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" id="searchLetraInput" class="form-control" placeholder="Buscar por número, referencia o cliente...">
+            </div>
+          </div>
+
+          <!-- Fecha Desde -->
+          <div class="col-md-2">
+            <label for="filterLetraDateFrom" class="form-label small fw-bold mb-1">F. Giro Desde</label>
+            <input type="date" id="filterLetraDateFrom" class="form-control form-control-sm">
+          </div>
+
+          <!-- Fecha Hasta -->
+          <div class="col-md-2">
+            <label for="filterLetraDateTo" class="form-label small fw-bold mb-1">F. Giro Hasta</label>
+            <input type="date" id="filterLetraDateTo" class="form-control form-control-sm">
+          </div>
+
+          <!-- Estado -->
+          <div class="col-md-3">
+            <label for="filterLetraStatus" class="form-label small fw-bold mb-1">Estado</label>
+            <select id="filterLetraStatus" class="form-select form-select-sm">
+              <option value="ALL" selected>Todos los estados</option>
+              <option value="PENDIENTE">PENDIENTE</option>
+              <option value="CANCELADA">CANCELADA / COBRADA</option>
+              <option value="ANULADA">ANULADA</option>
+            </select>
+          </div>
+
+          <!-- Botón Buscar -->
+          <div class="col-md-1">
+            <button type="submit" class="btn btn-primary btn-sm w-100">
+              <i class="bi bi-search me-1"></i> Buscar
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tabla de Letras de Cambio -->
+    <div class="table-responsive border rounded">
+      <table class="table custom-table mb-0 align-middle">
+        <thead>
+          <tr>
+            <th style="width: 120px;">N° Letra</th>
+            <th style="width: 130px;">Ref. Girador</th>
+            <th>Girado a (Cliente)</th>
+            <th style="width: 110px;">F. Giro</th>
+            <th style="width: 120px;">F. Vencimiento</th>
+            <th class="text-end" style="width: 120px;">Monto (S/)</th>
+            <th style="width: 110px;">Estado</th>
+            <th class="text-center" style="width: 80px;">DETALLES</th>
+            <th class="text-center" style="width: 70px;">PDF</th>
+            <th class="text-center" style="width: 70px;">PRINT</th>
+            <th class="text-center" style="width: 70px;">ANULAR</th>
+          </tr>
+        </thead>
+        <tbody id="letrasTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalGenerarLetras" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-secondary">
+      <div class="modal-header bg-primary text-white py-3">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-file-earmark-ruled-fill me-2"></i> Generación de Letras de Cambio (Multi-Letra)
+        </h5>
+        <button type="button" class="btn-close btn-close-white" onclick="letrasModule.attemptCloseGenerarModal()" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <form id="formGenerarLetras" onsubmit="event.preventDefault();">
+          
+          <div class="p-3 border rounded bg-body-tertiary mb-3">
+            <h6 class="fw-bold text-success mb-3">
+              <i class="bi bi-person-badge-fill me-1"></i> 1. Datos del Girado (Cliente)
+            </h6>
+
+            <div class="mb-3 position-relative">
+              <label for="searchClienteLetraInput" class="form-label fw-semibold fs-7 mb-1">Buscar Cliente (RUC o Razón Social)</label>
+              <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" id="searchClienteLetraInput" class="form-control" autocomplete="off" placeholder="Escriba RUC o Razón Social (ej: Chemifabrik, Viskosil)...">
+                <button class="btn btn-outline-secondary" type="button" onclick="letrasModule.clearSelectedClient()">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+              <ul id="clientSearchResultsLetraList" class="list-group position-absolute w-100 shadow-lg d-none" style="z-index: 1060; max-height: 220px; overflow-y: auto; top: 100%;"></ul>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mb-2" style="width: 100%;">
+              <div style="flex: 1 1 75%; min-width: 250px;">
+                <label class="form-label fw-semibold fs-7 mb-1">Razón Social *</label>
+                <input type="text" id="letraClienteNombre" class="form-control form-control-sm fw-bold" readonly required>
+              </div>
+              <div style="flex: 0 0 22%; min-width: 130px;">
+                <label class="form-label fw-semibold fs-7 mb-1">RUC *</label>
+                <input type="text" id="letraClienteDoc" class="form-control form-control-sm font-monospace text-center fw-bold" readonly required>
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-12">
+                <label class="form-label fw-semibold fs-7 mb-1">Dirección / Domicilio Fiscal *</label>
+                <input type="text" id="letraClienteDireccion" class="form-control form-control-sm" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 border rounded bg-body-tertiary mb-3">
+            <h6 class="fw-bold text-success mb-3">
+              <i class="bi bi-sliders me-1"></i> 2. Parámetros de Emisión & Desglose
+            </h6>
+            <div class="row g-3 align-items-end">
+              <div class="col-md-3">
+                <label for="letraRefGirador" class="form-label fw-semibold fs-7">Ref. del Girador (Factura/Orden) *</label>
+                <input type="text" id="letraRefGirador" class="form-control form-control-sm text-uppercase font-monospace" required>
+              </div>
+
+              <div class="col-md-2">
+                <label for="letraLugarGiro" class="form-label fw-semibold fs-7">Lugar de Giro</label>
+                <input type="text" id="letraLugarGiro" class="form-control form-control-sm" value="LIMA" required>
+              </div>
+
+              <div class="col-md-2">
+                <label for="letraFechaGiro" class="form-label fw-semibold fs-7">Fecha de Giro *</label>
+                <input type="date" id="letraFechaGiro" class="form-control form-control-sm" onchange="letrasModule.recalcInstallments()" required>
+              </div>
+
+              <div class="col-md-5">
+                <label class="form-label fw-semibold fs-7">N° de Letra Inicial (Correlativo - Año) *</label>
+                <div class="input-group input-group-sm">
+                  <input type="number" id="letraCorrelativoInput" class="form-control font-monospace text-center fw-bold" min="1" oninput="letrasModule.recalcInstallments()" required>
+                  <span class="input-group-text fw-bold">-</span>
+                  <input type="number" id="letraAnioInput" class="form-control font-monospace text-center fw-bold" min="2020" max="2099" oninput="letrasModule.recalcInstallments()" required>
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <label for="letraMontoTotal" class="form-label fw-semibold fs-7">Monto Total de la Operación (S/) *</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text fw-bold">S/</span>
+                  <input type="number" id="letraMontoTotal" class="form-control font-monospace fw-bold text-end" step="0.01" min="0.01" oninput="letrasModule.recalcInstallments()" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('letraCantidadCuotas').focus();}" required>
+                </div>
+              </div>
+
+              <div class="col-md-3">
+                <label for="letraCantidadCuotas" class="form-label fw-semibold fs-7">Cantidad de Letras *</label>
+                <input type="number" id="letraCantidadCuotas" class="form-control form-control-sm text-center fw-bold" value="1" min="1" max="36" oninput="letrasModule.recalcInstallments()" onkeydown="if(event.key==='Enter'){event.preventDefault();letrasModule.recalcInstallments();}" required>
+              </div>
+
+              <div class="col-md-5">
+                <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="letrasModule.recalcInstallments()">
+                  <i class="bi bi-arrow-clockwise me-1"></i> Desglosar / Actualizar Cuotas
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 border rounded bg-body-tertiary mb-3 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="fw-bold text-white mb-0" style="color: #60a5fa !important; font-size: 1rem;">
+                <i class="bi bi-table me-2 text-primary"></i> 3. Letras Generadas y Distribución de Montos
+              </h6>
+              <div id="letrasSumValidationBadge" class="badge bg-success fs-7">
+                Suma: S/ 0.00
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table custom-table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th style="width: 35px;" class="text-center">#</th>
+                    <th style="width: 115px;">N° Letra</th>
+                    <th style="width: 95px;" class="text-center">Días Crédito</th>
+                    <th style="width: 135px;">F. Vencimiento</th>
+                    <th style="width: 165px;" class="text-end">Monto (S/)</th>
+                    <th>Monto en Letras (Automático)</th>
+                  </tr>
+                </thead>
+                <tbody id="installmentRowsTbody"></tbody>
+              </table>
+            </div>
+            <div class="form-text fs-8 mt-2 text-muted">
+              <i class="bi bi-info-circle me-1"></i> Puedes escribir directamente los días de crédito de cada letra o editar fechas y montos individualmente. Si la división no es exacta, el centavo mayor queda al final.
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer bg-body-tertiary">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="letrasModule.attemptCloseGenerarModal()">Cancelar</button>
+        <button type="button" class="btn btn-primary btn-sm px-4" onclick="letrasModule.submitBatchLetras()">
+          <i class="bi bi-check-circle me-1"></i> Emitir y Guardar Letras de Cambio
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalConfirmDiscardLetra" tabindex="-1" aria-hidden="true" style="z-index: 1080;">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+    <div class="modal-content border-warning shadow-lg">
+      <div class="modal-header bg-warning text-dark py-2.5">
+        <h6 class="modal-title fw-bold mb-0">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i> ¿Descartar datos de la letra?
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3 text-center">
+        <p class="mb-0 fs-7">Has ingresado datos para la emisión de letras. Si sales ahora, se perderán los cambios.</p>
+      </div>
+      <div class="modal-footer bg-body-tertiary py-2 justify-content-center">
+        <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">Seguir Editando</button>
+        <button type="button" class="btn btn-danger btn-sm px-3" onclick="letrasModule.forceCloseGenerarModal()">Descartar y Salir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="letraDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white py-3">
+        <h5 class="modal-title fw-bold" id="letraDetailTitle">
+          <i class="bi bi-file-earmark-ruled me-2"></i> Detalle de Letra de Cambio
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4" id="letraDetailBody"></div>
+      <div class="modal-footer bg-body-tertiary">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-success btn-sm" id="btnDetailOpenPdf">
+          <i class="bi bi-file-earmark-pdf me-1"></i> Ver PDF Oficial
+        </button>
+        <button type="button" class="btn btn-dark btn-sm" id="btnDetailPrintDirect">
+          <i class="bi bi-printer me-1"></i> Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalAnularLetra" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white py-3">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i> Anular Letra de Cambio
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="alert alert-warning d-flex align-items-center mb-3 fs-7" role="alert">
+          <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+          <div>Esta acción registrará la letra como <strong>ANULADA</strong> en el sistema.</div>
+        </div>
+        <input type="hidden" id="anularLetraIdInput">
+        <div class="mb-3">
+          <label class="form-label fs-7 fw-semibold">N° de Letra:</label>
+          <div class="form-control-plaintext font-monospace fw-bold fs-6 text-primary" id="anularNroLetraLabel">-</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fs-7 fw-semibold">Cliente:</label>
+          <div class="form-control-plaintext fw-bold" id="anularLetraClienteLabel">-</div>
+        </div>
+      </div>
+      <div class="modal-footer bg-body-tertiary">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger btn-sm" onclick="letrasModule.confirmAnularLetra()">
+          <i class="bi bi-check-circle me-1"></i> Confirmar Anulación
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`,
+
   bd: `
 <div class="content-card p-4 mb-4">
   <div class="d-flex align-items-center justify-content-between mb-3">
@@ -1317,6 +1668,7 @@ export class Router {
       'nuevo-pedido': '<i class="bi bi-cart-plus text-primary"></i> Registrar Nuevo Pedido',
       envios: '<i class="bi bi-truck text-primary"></i> Listado de Guías de Remisión',
       'nueva-guia': '<i class="bi bi-file-earmark-plus text-primary"></i> Generar Nueva Guía de Remisión',
+      letras: '<i class="bi bi-file-earmark-ruled text-primary"></i> Control de Letras de Cambio',
       clientes: '<i class="bi bi-people text-primary"></i> Clientes',
       productos: '<i class="bi bi-box-seam text-primary"></i> Productos',
       produccion: '<i class="bi bi-gear-wide-connected text-primary"></i> Control de Producción',
