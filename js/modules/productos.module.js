@@ -22,7 +22,7 @@ export function filterProductos(queryStr = '') {
   );
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No se encontraron productos coincidentes.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No se encontraron productos coincidentes.</td></tr>`;
     return;
   }
 
@@ -34,15 +34,17 @@ export function filterProductos(queryStr = '') {
       <td class="fw-semibold">${escapeHtml(p.nombre_producto)}</td>
       <td><span class="badge bg-primary text-white px-2.5 py-1 fs-8 fw-bold">${escapeHtml(tipo)}</span></td>
       <td><span class="status-badge COMPLETADO">ACTIVO</span></td>
+      <!-- 1. Columna EDITAR -->
       <td class="text-center">
-        <div class="d-flex justify-content-center gap-1">
-          <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="height: 28px;" title="Editar producto" onclick="productosModule.openEditProductModal('${p.id_producto || p.id}')">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" style="height: 28px;" title="Eliminar producto" onclick="productosModule.deleteProduct('${p.id_producto || p.id}')">
-            <i class="bi bi-trash"></i>
-          </button>
-        </div>
+        <button type="button" class="btn-action-solid btn-edit" title="Editar producto" onclick="productosModule.openEditProductModal('${p.id_producto || p.id}')">
+          <i class="bi bi-pencil-fill text-dark"></i>
+        </button>
+      </td>
+      <!-- 2. Columna ELIMINAR -->
+      <td class="text-center">
+        <button type="button" class="btn-action-solid btn-delete" title="Eliminar producto" onclick="productosModule.deleteProduct('${p.id_producto || p.id}')">
+          <i class="bi bi-trash-fill"></i>
+        </button>
       </td>
     `;
     tbody.appendChild(tr);

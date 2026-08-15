@@ -59,7 +59,7 @@ export function renderPedidosTable(orders = [], searchQuery = '') {
   if (badge) badge.textContent = `${filtered.length} pedidos`;
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No se encontraron pedidos con los criterios de búsqueda.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">No se encontraron pedidos con los filtros aplicados.</td></tr>`;
     return;
   }
 
@@ -78,18 +78,23 @@ export function renderPedidosTable(orders = [], searchQuery = '') {
       <td>${formatDate(o.fecha_pedido)}</td>
       <td><span class="small text-muted">${estabText}</span></td>
       <td><span class="status-badge ${estadoClass}">${estadoClass}</span></td>
+      <!-- 1. Columna FINALIZAR -->
       <td class="text-center">
-        <div class="d-flex justify-content-center align-items-center gap-2">
-          <button class="btn btn-sm btn-outline-success px-2 py-1 rounded-2 shadow-sm fw-semibold" onclick="pedidosModule.openFinalizarOrdenModal('${o.id_pedido || o.id || o.nro_pedido}')" title="Finalizar Orden (Entregado / Cancelado)">
-            <i class="bi bi-flag-fill me-1"></i> Finalizar
-          </button>
-          <button class="btn btn-sm btn-outline-warning text-dark-emphasis px-2 py-1 rounded-2 shadow-sm fw-semibold" onclick="pedidosModule.openRegistrarEnvioModal('${o.id_pedido || o.id || o.nro_pedido}')" title="Registrar Envío de Productos">
-            <i class="bi bi-truck me-1"></i> Envío
-          </button>
-          <button class="btn btn-sm btn-outline-primary px-2 py-1 rounded-2 shadow-sm fw-semibold" onclick="pedidosModule.viewOrderDetail('${o.id_pedido || o.id || o.nro_pedido}')" title="Ver Detalles del Pedido">
-            <i class="bi bi-eye me-1"></i> Detalle
-          </button>
-        </div>
+        <button class="btn-action-solid btn-finish" onclick="pedidosModule.openFinalizarOrdenModal('${o.id_pedido || o.id || o.nro_pedido}')" title="Finalizar Orden (Entregado / Cancelado)">
+          <i class="bi bi-flag-fill"></i>
+        </button>
+      </td>
+      <!-- 2. Columna ENVÍO -->
+      <td class="text-center">
+        <button class="btn-action-solid btn-envio" onclick="pedidosModule.openRegistrarEnvioModal('${o.id_pedido || o.id || o.nro_pedido}')" title="Registrar Envío de Productos">
+          <i class="bi bi-truck text-white"></i>
+        </button>
+      </td>
+      <!-- 3. Columna DETALLE -->
+      <td class="text-center">
+        <button class="btn-action-solid btn-view" onclick="pedidosModule.viewOrderDetail('${o.id_pedido || o.id || o.nro_pedido}')" title="Ver Detalles del Pedido">
+          <i class="bi bi-eye-fill"></i>
+        </button>
       </td>
     `;
     tbody.appendChild(tr);

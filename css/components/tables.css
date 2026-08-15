@@ -153,3 +153,18 @@
   background: #ef4444 !important; /* Vibrant Red */
 }
 
+.btn-action-solid.btn-finish {
+  background: #10b981 !important; /* Vibrant Emerald Green */
+}
+
+.btn-action-solid.btn-envio {
+  background: #f59e0b !important; /* Vibrant Amber Orange */
+}
+
+.btn-action-solid.btn-edit {
+  background: #eab308 !important; /* Vibrant Yellow/Gold */
+  color: #1e293b !important;
+}
+
+
+

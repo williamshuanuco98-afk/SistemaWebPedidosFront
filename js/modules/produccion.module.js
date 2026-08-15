@@ -204,8 +204,8 @@ export function renderProduccionTable(orders = [], products = [], searchQuery = 
           </span>
         </td>
         <td class="text-center">
-          <button class="btn btn-sm btn-outline-primary px-2 py-1 shadow-sm fw-semibold fs-8" onclick="produccionModule.openProductDetailModal('${p.id_producto}')">
-            <i class="bi bi-eye me-1"></i> Ver Detalle
+          <button class="btn-action-solid btn-view" onclick="produccionModule.openProductDetailModal('${p.id_producto}')" title="Ver Detalle del Producto">
+            <i class="bi bi-eye-fill"></i>
           </button>
         </td>
       </tr>

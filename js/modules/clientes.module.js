@@ -24,7 +24,7 @@ export function filterClientes(queryStr = '') {
   );
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">No se encontraron clientes coincidentes.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No se encontraron clientes coincidentes.</td></tr>`;
     return;
   }
 
@@ -39,15 +39,17 @@ export function filterClientes(queryStr = '') {
       </td>
       <td class="fw-semibold text-white">${escapeHtml(c.nombre_cliente || '-')}</td>
       <td class="small text-white-50">${escapeHtml(c.direccion || 'No especificada')}</td>
+      <!-- 1. Columna EDITAR -->
       <td class="text-center">
-        <div class="d-flex justify-content-center gap-2">
-          <button type="button" class="btn btn-warning btn-sm p-0 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;" onclick="clientesModule.openEditClientModal(${idx})" title="Modificar Cliente" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":1000,"hide":100}'>
-            <i class="bi bi-pencil-square text-dark fs-6"></i>
-          </button>
-          <button type="button" class="btn btn-danger btn-sm p-0 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;" onclick="clientesModule.deleteClient(${clientId})" title="Eliminar Cliente" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":1000,"hide":100}'>
-            <i class="bi bi-trash fs-6"></i>
-          </button>
-        </div>
+        <button type="button" class="btn-action-solid btn-edit" onclick="clientesModule.openEditClientModal(${idx})" title="Modificar Cliente">
+          <i class="bi bi-pencil-square text-dark"></i>
+        </button>
+      </td>
+      <!-- 2. Columna ELIMINAR -->
+      <td class="text-center">
+        <button type="button" class="btn-action-solid btn-delete" onclick="clientesModule.deleteClient(${clientId})" title="Eliminar Cliente">
+          <i class="bi bi-trash-fill"></i>
+        </button>
       </td>
     `;
     tbody.appendChild(tr);

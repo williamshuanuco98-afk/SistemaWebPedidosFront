@@ -233,7 +233,9 @@ const EMBEDDED_VIEWS = {
           <th>Fecha Pedido</th>
           <th>Establecimiento</th>
           <th>Estado</th>
-          <th class="text-center">Acciones</th>
+          <th class="text-center" style="width: 85px;">FINALIZAR</th>
+          <th class="text-center" style="width: 75px;">ENVÍO</th>
+          <th class="text-center" style="width: 75px;">DETALLE</th>
         </tr>
       </thead>
       <tbody id="pedidosTableBody"></tbody>
@@ -873,7 +875,7 @@ const EMBEDDED_VIEWS = {
     </div>
   </div>
 
-  <!-- Tabla de Clientes con 4 Columnas Solicitadas -->
+  <!-- Tabla de Clientes con Columnas Separadas -->
   <div class="table-responsive">
     <table class="table custom-table mb-0 align-middle">
       <thead>
@@ -881,20 +883,8 @@ const EMBEDDED_VIEWS = {
           <th style="width: 200px;">Tipo y N° Documento</th>
           <th>Razón Social / Nombre</th>
           <th>Domicilio Fiscal</th>
-          <th style="width: 110px;" class="text-center">Modificaciones</th>
-        </tr>
-      </thead>
-      <tbody id="clientesTableBody"></tbody>
-    </table>
-  </div>
-</div>
-    <table class="table custom-table mb-0 align-middle">
-      <thead>
-        <tr>
-          <th style="width: 200px;">Tipo y N° Documento</th>
-          <th>Razón Social / Nombre</th>
-          <th>Domicilio Fiscal</th>
-          <th style="width: 140px;" class="text-center">Modificaciones</th>
+          <th style="width: 75px;" class="text-center">EDITAR</th>
+          <th style="width: 75px;" class="text-center">ELIMINAR</th>
         </tr>
       </thead>
       <tbody id="clientesTableBody"></tbody>
@@ -992,7 +982,8 @@ const EMBEDDED_VIEWS = {
           <th>Nombre del Producto / Insumo</th>
           <th>Tipo de Producto</th>
           <th style="width: 100px;">Estado</th>
-          <th style="width: 130px;" class="text-center">Acciones</th>
+          <th style="width: 75px;" class="text-center">EDITAR</th>
+          <th style="width: 75px;" class="text-center">ELIMINAR</th>
         </tr>
       </thead>
       <tbody id="productosTableBody"></tbody>
@@ -1145,7 +1136,7 @@ const EMBEDDED_VIEWS = {
             <th class="text-center" style="width: 130px;">Total Entregado</th>
             <th class="text-center" style="width: 130px;">Total Pendiente</th>
             <th class="text-center" style="width: 110px;">Clientes</th>
-            <th class="text-center" style="width: 120px;">Acciones</th>
+            <th class="text-center" style="width: 80px;">DETALLE</th>
           </tr>
         </thead>
         <tbody id="produccionTableBody"></tbody>
