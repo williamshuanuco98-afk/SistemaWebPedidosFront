@@ -403,9 +403,9 @@ function renderGuiaHalfHTML(guia, copiaNombre) {
 
       <!-- 7. Leyenda de Copia posicionada a 40px del final de la página (Remitente azul, Destinatario verde) -->
       <div style="position: absolute; bottom: 40px; left: 0; right: 0; text-align: center; font-size: 8.5px; font-weight: bold; color: #555; text-transform: uppercase;">
-        [ COPIA: ${copiaNombre.includes('DESTINATARIO') || copiaNombre.includes('CLIENTE') 
-          ? `<span style="color: #198754; font-weight: 800;">DESTINATARIO</span>` 
-          : `<span style="color: #0d6efd; font-weight: 800;">REMITENTE</span>`} ]
+        [ COPIA: ${copiaNombre.includes('DESTINATARIO') || copiaNombre.includes('CLIENTE')
+      ? `<span style="color: #198754; font-weight: 800;">DESTINATARIO</span>`
+      : `<span style="color: #0d6efd; font-weight: 800;">REMITENTE</span>`} ]
       </div>
     </div>
   `;
@@ -483,7 +483,7 @@ export function printGuiaPDF(guia) {
     setTimeout(() => {
       try {
         printWindow.print();
-      } catch (e) {}
+      } catch (e) { }
     }, 400);
   }
 }
