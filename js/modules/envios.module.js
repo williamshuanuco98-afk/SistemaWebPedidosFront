@@ -348,18 +348,16 @@ function renderGuiaHalfHTML(guia, copiaNombre) {
           </tr>
         </table>
 
-        <!-- 3. Cajas de Punto de Partida y Punto de Llegada (Líneas finas) -->
+        <!-- 3. Cajas de Punto de Partida y Punto de Llegada (Sin Ubigeo, Espaciado Limpio) -->
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; font-size: 7.5px;">
           <tr>
-            <td style="width: 50%; border: 1px solid #444; padding: 3px; vertical-align: top;">
-              <div style="text-align: center; font-weight: bold; font-size: 8px; margin-bottom: 2px;">Punto de partida</div>
+            <td style="width: 50%; border: 1px solid #444; padding: 4px; vertical-align: top; line-height: 1.35;">
+              <div style="text-align: center; font-weight: bold; font-size: 8px; margin-bottom: 3px;">Punto de partida</div>
               <div><strong>DIRECCIÓN:</strong> ${puntoPartida}</div>
-              <div>UBIGEO: - -</div>
             </td>
-            <td style="width: 50%; border: 1px solid #444; padding: 3px; vertical-align: top;">
-              <div style="text-align: center; font-weight: bold; font-size: 8px; margin-bottom: 2px;">Punto de Llegada</div>
+            <td style="width: 50%; border: 1px solid #444; padding: 4px; vertical-align: top; line-height: 1.35;">
+              <div style="text-align: center; font-weight: bold; font-size: 8px; margin-bottom: 3px;">Punto de Llegada</div>
               <div><strong>DIRECCIÓN:</strong> ${puntoLlegada}</div>
-              <div>UBIGEO: - -</div>
             </td>
           </tr>
         </table>
@@ -380,16 +378,35 @@ function renderGuiaHalfHTML(guia, copiaNombre) {
         </table>
 
         <!-- 5. Caja de Observaciones -->
-        <div style="border: 1px solid #444; padding: 4px; font-size: 7.5px; background: #fff; margin-bottom: 4px;">
+        <div style="border: 1px solid #444; padding: 4px; font-size: 7.5px; background: #fff; margin-bottom: 8px;">
           <div style="font-weight: bold; margin-bottom: 1px;">OBSERVACIONES:</div>
           ${observaciones && observaciones !== '-' ? `<div style="margin-bottom: 2px;">${observaciones}</div>` : ''}
           <div style="color: #333; font-size: 6.8px;">Este documento es de uso exclusivo para control interno y no tiene validez ante SUNAT.</div>
         </div>
       </div>
 
-      <!-- 6. Leyenda de Copia al pie de página -->
-      <div style="text-align: center; font-size: 8px; font-weight: bold; color: #444; padding-top: 10px; margin-top: auto; text-transform: uppercase;">
-        [ COPIA: ${copiaNombre} ]
+      <!-- 6. Dos Reglones para Firmas (posicionados a 70px del fondo, es decir 30px arriba de las leyendas) -->
+      <table style="position: absolute; bottom: 70px; left: 0; right: 0; width: 100%; border-collapse: collapse; font-size: 7.5px;">
+        <tr>
+          <td style="width: 42%; text-align: center; vertical-align: top;">
+            <div style="border-bottom: 1px solid #333; width: 85%; margin: 0 auto 3px auto; height: 18px;"></div>
+            <div style="font-weight: bold; font-size: 7.5px;">EMISOR</div>
+            <div style="color: #555; font-size: 6.8px;">FIRMA</div>
+          </td>
+          <td style="width: 16%;"></td>
+          <td style="width: 42%; text-align: center; vertical-align: top;">
+            <div style="border-bottom: 1px solid #333; width: 85%; margin: 0 auto 3px auto; height: 18px;"></div>
+            <div style="font-weight: bold; font-size: 7.5px;">DESTINATARIO</div>
+            <div style="color: #555; font-size: 6.8px;">FIRMA Y DNI</div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- 7. Leyenda de Copia posicionada a 40px del final de la página (Remitente azul, Destinatario verde) -->
+      <div style="position: absolute; bottom: 40px; left: 0; right: 0; text-align: center; font-size: 8.5px; font-weight: bold; color: #555; text-transform: uppercase;">
+        [ COPIA: ${copiaNombre.includes('DESTINATARIO') || copiaNombre.includes('CLIENTE') 
+          ? `<span style="color: #198754; font-weight: 800;">DESTINATARIO</span>` 
+          : `<span style="color: #0d6efd; font-weight: 800;">REMITENTE</span>`} ]
       </div>
     </div>
   `;
@@ -397,10 +414,10 @@ function renderGuiaHalfHTML(guia, copiaNombre) {
 
 export function generateGuiaInnerSheetHTML(guia) {
   return `
-    <div style="display: flex; justify-content: space-between; width: 100%; box-sizing: border-box; background: #ffffff; padding: 4px; color: #000;">
+    <div style="display: flex; justify-content: space-between; width: 100%; box-sizing: border-box; background: #ffffff; padding: 10px 14px; color: #000; min-height: 520px; position: relative;">
       ${renderGuiaHalfHTML(guia, 'REMITENTE')}
-      <div style="width: 1px; border-left: 1px dashed #888; min-height: 480px; margin: 0 6px;"></div>
-      ${renderGuiaHalfHTML(guia, 'CLIENTE')}
+      <div style="width: 1px; border-left: 1px dashed #888; min-height: 500px; margin: 0 10px;"></div>
+      ${renderGuiaHalfHTML(guia, 'DESTINATARIO')}
     </div>
   `;
 }
@@ -415,14 +432,14 @@ export function generateGuiaHTML(guia) {
   <style>
     @page {
       size: A4 landscape;
-      margin: 6mm;
+      margin: 8mm;
     }
     * {
       box-sizing: border-box;
     }
     body {
       margin: 0;
-      padding: 8px;
+      padding: 10px;
       background: #ffffff;
       font-family: Arial, Helvetica, sans-serif;
       color: #111;
