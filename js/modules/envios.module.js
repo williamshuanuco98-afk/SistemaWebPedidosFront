@@ -287,18 +287,18 @@ function renderGuiaHalfHTML(guia, copiaNombre) {
 
   const rowsHTML = detalles.map((item, idx) => `
     <tr>
-      <td style="text-align: center; font-weight: bold; border: 1px solid #444; padding: 3px;">${idx + 1}</td>
-      <td style="border: 1px solid #444; padding: 3px; font-weight: 500;">
-        ${item.codigo_producto ? `<span style="font-family: monospace; font-weight: bold;">[${escapeHtml(item.codigo_producto)}]</span> ` : ''}${escapeHtml(item.nombre_producto || 'Producto')}
+      <td style="text-align: center; font-weight: bold; border: 1px solid #444; padding: 5px 3px;">${idx + 1}</td>
+      <td style="border: 1px solid #444; padding: 5px 4px; font-weight: 500;">
+        ${escapeHtml(item.nombre_producto || 'Producto')}
       </td>
-      <td style="text-align: center; border: 1px solid #444; padding: 3px;">UND</td>
-      <td style="text-align: center; font-weight: bold; border: 1px solid #444; padding: 3px;">${item.cantidad || 1}</td>
+      <td style="text-align: center; border: 1px solid #444; padding: 5px 3px;">UND</td>
+      <td style="text-align: center; font-weight: bold; border: 1px solid #444; padding: 5px 3px;">${item.cantidad || 1}</td>
     </tr>
   `).join('');
 
   const emptyStateHTML = `
     <tr>
-      <td colspan="4" style="text-align: center; border: 1px solid #444; padding: 6px; color: #666;">Sin productos especificados</td>
+      <td colspan="4" style="text-align: center; border: 1px solid #444; padding: 8px; color: #666;">Sin productos especificados</td>
     </tr>
   `;
 
@@ -308,7 +308,7 @@ function renderGuiaHalfHTML(guia, copiaNombre) {
 
       <div>
         <!-- 1. Cabecera (Logo + Datos Empresa + Caja RUC) -->
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 7px;">
           <tr>
             <td style="width: 22%; vertical-align: middle;">
               <img src="img/inplabel-logo.png" alt="Inplabel" style="max-width: 88px; max-height: 44px; object-fit: contain;">
@@ -332,7 +332,7 @@ function renderGuiaHalfHTML(guia, copiaNombre) {
         </table>
 
         <!-- 2. Datos del Destinatario, RUC y Fecha -->
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; font-size: 8px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 7px; font-size: 8px;">
           <tr>
             <td colspan="2" style="padding: 2px 0;">
               <strong>DESTINATARIO:</strong> <span style="font-weight: 500;">${clienteNombre}</span>
@@ -349,7 +349,7 @@ function renderGuiaHalfHTML(guia, copiaNombre) {
         </table>
 
         <!-- 3. Cajas de Punto de Partida y Punto de Llegada (Sin Ubigeo, Espaciado Limpio) -->
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; font-size: 7.5px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 7.5px;">
           <tr>
             <td style="width: 50%; border: 1px solid #444; padding: 4px; vertical-align: top; line-height: 1.35;">
               <div style="text-align: center; font-weight: bold; font-size: 8px; margin-bottom: 3px;">Punto de partida</div>
@@ -362,14 +362,14 @@ function renderGuiaHalfHTML(guia, copiaNombre) {
           </tr>
         </table>
 
-        <!-- 4. Tabla de Productos con Cabecera Verde (Sin Peso) -->
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid #444; margin-bottom: 5px; font-size: 7.5px;">
+        <!-- 4. Tabla de Productos con Cabecera Verde (Sin Peso, Filas más altas) -->
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #444; margin-bottom: 8px; font-size: 7.5px;">
           <thead>
             <tr style="background-color: #d1e7dd; color: #000;">
-              <th style="border: 1px solid #444; padding: 3px; width: 8%; text-align: center;">ITEM</th>
-              <th style="border: 1px solid #444; padding: 3px; width: 68%; text-align: center;">DESCRIPCION</th>
-              <th style="border: 1px solid #444; padding: 3px; width: 10%; text-align: center;">U.M.</th>
-              <th style="border: 1px solid #444; padding: 3px; width: 14%; text-align: center;">CANTIDAD</th>
+              <th style="border: 1px solid #444; padding: 4px 3px; width: 8%; text-align: center;">ITEM</th>
+              <th style="border: 1px solid #444; padding: 4px; width: 68%; text-align: center;">DESCRIPCION</th>
+              <th style="border: 1px solid #444; padding: 4px 3px; width: 10%; text-align: center;">U.M.</th>
+              <th style="border: 1px solid #444; padding: 4px 3px; width: 14%; text-align: center;">CANTIDAD</th>
             </tr>
           </thead>
           <tbody>
@@ -377,11 +377,10 @@ function renderGuiaHalfHTML(guia, copiaNombre) {
           </tbody>
         </table>
 
-        <!-- 5. Caja de Observaciones -->
-        <div style="border: 1px solid #444; padding: 4px; font-size: 7.5px; background: #fff; margin-bottom: 8px;">
+        <!-- 5. Caja de Observaciones (Sin texto SUNAT) -->
+        <div style="border: 1px solid #444; padding: 4px 5px; font-size: 7.5px; background: #fff; margin-bottom: 6px;">
           <div style="font-weight: bold; margin-bottom: 1px;">OBSERVACIONES:</div>
-          ${observaciones && observaciones !== '-' ? `<div style="margin-bottom: 2px;">${observaciones}</div>` : ''}
-          <div style="color: #333; font-size: 6.8px;">Este documento es de uso exclusivo para control interno y no tiene validez ante SUNAT.</div>
+          <div>${observaciones && observaciones !== '-' ? observaciones : '-'}</div>
         </div>
       </div>
 
