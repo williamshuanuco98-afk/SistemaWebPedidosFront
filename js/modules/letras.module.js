@@ -1,7 +1,8 @@
 import { escapeHtml, filterAndRankItems } from '../helpers.js';
 import { api } from '../api.js';
 
-let currentLetras = [];
+let rawLetrasList = [];
+let groupedLetras = [];
 let allClients = [];
 let selectedClient = null;
 let generatedInstallments = [];
@@ -133,99 +134,135 @@ export function numeroALetras(monto) {
 }
 
 // =========================================================================
-// 2. INICIALIZACIÓN Y RENDERIZADO DE LA VISTA
+// 2. INICIALIZACIÓN, AGRUPACIÓN Y RENDERIZADO DE LA VISTA
 // =========================================================================
 export async function initLetrasView() {
   try {
     const [letras, clients] = await Promise.all([
       api.getLetras(),
-      api.getLocalClientes()
+      api.getClientes()
     ]);
-    currentLetras = letras || [];
+    rawLetrasList = letras || [];
     allClients = clients || [];
 
-    renderLetrasTable(currentLetras);
-    updateMetrics(currentLetras);
+    groupedLetras = groupLetrasByBatch(rawLetrasList);
+    renderLetrasTable(groupedLetras);
+    updateMetrics(rawLetrasList, groupedLetras);
   } catch (err) {
     console.error('Error al inicializar vista de Letras:', err);
   }
 }
 
-export function renderLetrasTable(list = []) {
+export function groupLetrasByBatch(list = []) {
+  const groupsMap = new Map();
+
+  list.forEach(letra => {
+    // Agrupar por id_lote o combinación Ref. Girador + Cliente + Fecha Giro
+    const key = letra.id_lote ? letra.id_lote : `${letra.ref_girador || 'S-R'}_${letra.nombre_cliente || ''}_${letra.fecha_giro || ''}`;
+    
+    if (!groupsMap.has(key)) {
+      groupsMap.set(key, {
+        id_lote: letra.id_lote || key,
+        ref_girador: letra.ref_girador || 'S/R',
+        nombre_cliente: letra.nombre_cliente || 'SIN CLIENTE',
+        nro_documento: letra.nro_documento || '',
+        direccion_cliente: letra.direccion_cliente || '',
+        lugar_giro: letra.lugar_giro || 'LIMA',
+        fecha_giro: letra.fecha_giro || '',
+        letras: []
+      });
+    }
+
+    groupsMap.get(key).letras.push(letra);
+  });
+
+  const grouped = Array.from(groupsMap.values()).map(group => {
+    // Ordenar letras del lote por correlativo o fecha
+    group.letras.sort((a, b) => (a.numero_correlativo || 0) - (b.numero_correlativo || 0) || (a.id_letra || 0) - (b.id_letra || 0));
+    
+    const totalCuotas = group.letras.length;
+    const montoTotal = group.letras.reduce((sum, l) => sum + (parseFloat(l.monto) || 0), 0);
+    
+    // Estado general
+    const allAnuladas = group.letras.every(l => l.estado === 'ANULADA');
+    const allCanceladas = group.letras.every(l => l.estado === 'CANCELADA' || l.estado === 'COBRADA');
+    let estadoGeneral = 'PENDIENTE';
+    if (allAnuladas) estadoGeneral = 'ANULADA';
+    else if (allCanceladas) estadoGeneral = 'CANCELADA';
+
+    const firstLetra = group.letras[0]?.nro_letra || '';
+    const lastLetra = group.letras[group.letras.length - 1]?.nro_letra || '';
+    const rangoLetras = totalCuotas > 1 ? `${firstLetra} al ${lastLetra}` : firstLetra;
+
+    return {
+      ...group,
+      total_cuotas: totalCuotas,
+      monto_total: montoTotal,
+      estado: estadoGeneral,
+      rango_letras: rangoLetras
+    };
+  });
+
+  return grouped;
+}
+
+export function renderLetrasTable(groupedList = []) {
   const tbody = document.getElementById('letrasTableBody');
   const countBadge = document.getElementById('letrasCountBadge');
   if (!tbody) return;
 
   tbody.innerHTML = '';
-  if (countBadge) countBadge.textContent = `${list.length} ${list.length === 1 ? 'letra' : 'letras'}`;
+  if (countBadge) countBadge.textContent = `${groupedList.length} ${groupedList.length === 1 ? 'operación' : 'operaciones'}`;
 
-  if (list.length === 0) {
+  if (groupedList.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="11" class="text-center py-5 text-muted">
+        <td colspan="8" class="text-center py-5 text-muted">
           <i class="bi bi-file-earmark-x fs-1 d-block mb-2 text-secondary opacity-50"></i>
-          No se encontraron Letras de Cambio registradas.
+          No se encontraron Operaciones de Letras de Cambio registradas.
         </td>
       </tr>
     `;
     return;
   }
 
-  list.forEach(letra => {
+  groupedList.forEach(lote => {
     const tr = document.createElement('tr');
-    const isAnulada = letra.estado === 'ANULADA';
-    const isCancelada = letra.estado === 'CANCELADA' || letra.estado === 'COBRADA';
-    
-    let badgeClass = 'bg-warning text-dark';
-    if (isAnulada) badgeClass = 'bg-danger text-white';
-    else if (isCancelada) badgeClass = 'bg-success text-white';
+    const isAnulada = lote.estado === 'ANULADA';
 
-    const montoFormatted = (parseFloat(letra.monto) || 0).toLocaleString('es-PE', {
+    const montoFormatted = (parseFloat(lote.monto_total) || 0).toLocaleString('es-PE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
 
     tr.innerHTML = `
-      <td class="font-monospace fw-bold text-primary">${escapeHtml(letra.nro_letra || '-')}</td>
-      <td class="font-monospace fw-semibold">${escapeHtml(letra.ref_girador || '-')}</td>
+      <td class="font-monospace fw-bold text-primary fs-7">${escapeHtml(lote.ref_girador || '-')}</td>
       <td>
-        <div class="fw-bold">${escapeHtml(letra.nombre_cliente || '-')}</div>
-        <small class="text-muted font-monospace">${escapeHtml(letra.nro_documento || '')}</small>
+        <div class="fw-bold text-white">${escapeHtml(lote.nombre_cliente || '-')}</div>
+        <small class="text-muted font-monospace">${escapeHtml(lote.nro_documento || '')}</small>
       </td>
-      <td class="small">${escapeHtml(letra.fecha_giro || '-')}</td>
-      <td class="small fw-semibold text-danger">${escapeHtml(letra.fecha_vencimiento || '-')}</td>
-      <td class="text-end fw-bold font-monospace">S/ ${montoFormatted}</td>
-      <td><span class="badge ${badgeClass} fs-8">${escapeHtml(letra.estado || 'PENDIENTE')}</span></td>
+      <td class="small">${escapeHtml(lote.fecha_giro || '-')}</td>
+      <td class="text-center">
+        <span class="badge bg-primary fs-8 px-2 py-1">${lote.total_cuotas} ${lote.total_cuotas === 1 ? 'Letra' : 'Letras'}</span>
+      </td>
+      <td class="font-monospace fw-semibold text-info small">${escapeHtml(lote.rango_letras || '-')}</td>
+      <td class="text-end fw-bold font-monospace text-white">S/ ${montoFormatted}</td>
       
       <!-- 1. Columna DETALLES -->
       <td class="text-center">
-        <button class="btn-action-solid btn-view" title="Ver Detalle" onclick="letrasModule.openDetailModal(${letra.id_letra})">
+        <button class="btn-action-solid btn-view" title="Ver Detalle de Letras" onclick="letrasModule.openLoteDetailModal('${escapeHtml(lote.id_lote)}')">
           <i class="bi bi-eye-fill"></i>
         </button>
       </td>
 
-      <!-- 2. Columna PDF -->
-      <td class="text-center">
-        <button class="btn-action-solid btn-pdf" title="Descargar PDF Oficial" onclick="letrasModule.downloadPdf(${letra.id_letra})">
-          <i class="bi bi-file-earmark-pdf-fill"></i>
-        </button>
-      </td>
-
-      <!-- 3. Columna PRINT -->
-      <td class="text-center">
-        <button class="btn-action-solid btn-print" title="Imprimir Directamente" onclick="letrasModule.printLetraDirect(${letra.id_letra})">
-          <i class="bi bi-printer-fill"></i>
-        </button>
-      </td>
-
-      <!-- 4. Columna ANULAR -->
+      <!-- 2. Columna ANULAR -->
       <td class="text-center">
         ${isAnulada ? `
-          <button class="btn-action-solid btn-cancel" style="opacity: 0.35; cursor: not-allowed;" title="Ya anulada" disabled>
+          <button class="btn-action-solid btn-cancel" style="opacity: 0.35; cursor: not-allowed;" title="Ya anulado" disabled>
             <i class="bi bi-slash-circle"></i>
           </button>
         ` : `
-          <button class="btn-action-solid btn-cancel" title="Anular Letra" onclick="letrasModule.openAnularModal(${letra.id_letra}, '${escapeHtml(letra.nro_letra)}', '${escapeHtml(letra.nombre_cliente)}')">
+          <button class="btn-action-solid btn-cancel" title="Anular Operación" onclick="letrasModule.openAnularLoteModal('${escapeHtml(lote.id_lote)}', '${escapeHtml(lote.ref_girador)}', '${escapeHtml(lote.nombre_cliente)}')">
             <i class="bi bi-x-lg"></i>
           </button>
         `}
@@ -235,23 +272,24 @@ export function renderLetrasTable(list = []) {
   });
 }
 
-export function updateMetrics(list = []) {
+export function updateMetrics(rawList = [], groupedList = []) {
   const totalCountEl = document.getElementById('statLetrasTotalCount');
   const totalAmountEl = document.getElementById('statLetrasTotalAmount');
-  const pendientesEl = document.getElementById('statLetrasPendientesCount');
+  const totalLetrasEl = document.getElementById('statLetrasTotalLetrasCount');
   const clientsEl = document.getElementById('statLetrasClientsCount');
 
-  const total = list.length;
-  const pendientes = list.filter(l => l.estado === 'PENDIENTE').length;
-  const sumAmount = list.reduce((acc, curr) => curr.estado !== 'ANULADA' ? acc + (parseFloat(curr.monto) || 0) : acc, 0);
+  const totalOperaciones = groupedList.length;
+  const totalLetras = rawList.length;
+  const sumAmount = rawList.reduce((acc, curr) => curr.estado !== 'ANULADA' ? acc + (parseFloat(curr.monto) || 0) : acc, 0);
   
-  const clientSet = new Set(list.map(l => l.nro_documento || l.nombre_cliente).filter(Boolean));
+  const clientSet = new Set(rawList.map(l => l.nro_documento || l.nombre_cliente).filter(Boolean));
 
-  if (totalCountEl) totalCountEl.textContent = total;
+  if (totalCountEl) totalCountEl.textContent = totalOperaciones;
   if (totalAmountEl) totalAmountEl.textContent = `S/ ${sumAmount.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  if (pendientesEl) pendientesEl.textContent = pendientes;
+  if (totalLetrasEl) totalLetrasEl.textContent = totalLetras;
   if (clientsEl) clientsEl.textContent = clientSet.size;
 
+  const pendientes = rawList.filter(l => l.estado === 'PENDIENTE').length;
   const sidebarBadge = document.getElementById('badgeLetras');
   if (sidebarBadge) {
     if (pendientes > 0) {
@@ -270,11 +308,15 @@ export async function triggerSearch() {
   const estado = document.getElementById('filterLetraStatus')?.value || 'ALL';
 
   const results = await api.getLetras({ search, dateFrom, dateTo, estado });
-  currentLetras = results || [];
-  renderLetrasTable(currentLetras);
-  updateMetrics(currentLetras);
+  rawLetrasList = results || [];
+  groupedLetras = groupLetrasByBatch(rawLetrasList);
+  renderLetrasTable(groupedLetras);
+  updateMetrics(rawLetrasList, groupedLetras);
 }
 
+// =========================================================================
+// 3. GENERACIÓN DE MULTI-LETRAS (BUSCADOR RUC, MODAL & CÁLCULOS)
+// =========================================================================
 export async function openGenerarLetrasModal() {
   const modalEl = document.getElementById('modalGenerarLetras');
   if (!modalEl) return;
@@ -491,9 +533,7 @@ export function recalcInstallments() {
     return;
   }
 
-  // Preserve any custom days entered previously if count matches
   const previousDays = generatedInstallments.map(g => g.dias_credito);
-
   generatedInstallments = [];
 
   // REGLA DE DIVISIÓN: Asignar centavos restantes al final
@@ -511,8 +551,6 @@ export function recalcInstallments() {
 
     const cuotaCorr = correlativoBase + i;
     const nroLetra = `${String(cuotaCorr).padStart(3, '0')}-${anio}`;
-    
-    // Default days: 30, 60, 90... or previous custom days entered
     const diasCredito = previousDays[i] !== undefined ? previousDays[i] : (i + 1) * 30;
     
     const vencDate = new Date(fechaGiroDate);
@@ -601,7 +639,6 @@ export function onInstallmentDaysChange(idx, daysVal) {
     generatedInstallments[idx].dias_credito = days;
     generatedInstallments[idx].fecha_vencimiento = date.toISOString().split('T')[0];
     
-    // Update due date input directly without destroying focus
     const tr = document.getElementById('installmentRowsTbody')?.children[idx];
     if (tr) {
       const dateInput = tr.querySelector('input[type="date"]');
@@ -698,7 +735,7 @@ export async function submitBatchLetras() {
   try {
     const res = await api.createLetrasBatch(payloadArray);
     if (res && res.success) {
-      alert(`¡Se emitieron ${res.total_generadas || payloadArray.length} Letras de Cambio exitosamente!`);
+      alert(`¡Se emitieron ${res.total_generadas || payloadArray.length} Letras de Cambio exitosamente para la referencia ${refGirador.toUpperCase()}!`);
       forceCloseGenerarModal();
       await initLetrasView();
     } else {
@@ -711,67 +748,121 @@ export async function submitBatchLetras() {
 }
 
 // =========================================================================
-// 4. DETALLE, PDF E IMPRESIÓN DIRECTA
+// 4. DETALLES DE OPERACIÓN / TODAS LAS LETRAS POR REFERENCIA
 // =========================================================================
-export function openDetailModal(idLetra) {
-  const letra = currentLetras.find(l => String(l.id_letra) === String(idLetra));
-  if (!letra) return;
+export function openLoteDetailModal(idLote) {
+  const lote = groupedLetras.find(g => String(g.id_lote) === String(idLote));
+  if (!lote) return;
 
   const modalEl = document.getElementById('letraDetailModal');
   const bodyEl = document.getElementById('letraDetailBody');
   const titleEl = document.getElementById('letraDetailTitle');
   if (!modalEl || !bodyEl) return;
 
-  if (titleEl) titleEl.innerHTML = `<i class="bi bi-file-earmark-ruled me-2"></i> Letra de Cambio N° ${escapeHtml(letra.nro_letra)}`;
+  if (titleEl) {
+    titleEl.innerHTML = `<i class="bi bi-collection-fill me-2"></i> Operación: ${escapeHtml(lote.ref_girador)} - ${escapeHtml(lote.nombre_cliente)}`;
+  }
 
-  const montoFormatted = (parseFloat(letra.monto) || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const montoFormatted = (parseFloat(lote.monto_total) || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   bodyEl.innerHTML = `
-    <div class="row g-3">
-      <div class="col-md-6">
-        <label class="small text-muted d-block font-monospace">N° DE LETRA</label>
-        <span class="fs-5 fw-bold text-primary">${escapeHtml(letra.nro_letra)}</span>
-      </div>
-      <div class="col-md-6">
-        <label class="small text-muted d-block font-monospace">REF. DEL GIRADOR</label>
-        <span class="fs-5 fw-bold font-monospace">${escapeHtml(letra.ref_girador)}</span>
-      </div>
-
-      <div class="col-md-6">
-        <label class="small text-muted d-block font-monospace">GIRADO A (CLIENTE)</label>
-        <div class="fw-bold text-white">${escapeHtml(letra.nombre_cliente)}</div>
-        <small class="text-warning font-monospace">RUC: ${escapeHtml(letra.nro_documento || '-')}</small>
-      </div>
-      <div class="col-md-6">
-        <label class="small text-muted d-block font-monospace">DIRECCIÓN FISCAL</label>
-        <div class="small">${escapeHtml(letra.direccion_cliente || '-')}</div>
-      </div>
-
-      <div class="col-md-4">
-        <label class="small text-muted d-block font-monospace">LUGAR DE GIRO</label>
-        <div class="fw-semibold">${escapeHtml(letra.lugar_giro || 'LIMA')}</div>
-      </div>
-      <div class="col-md-4">
-        <label class="small text-muted d-block font-monospace">FECHA DE GIRO</label>
-        <div class="fw-semibold">${escapeHtml(letra.fecha_giro)}</div>
-      </div>
-      <div class="col-md-4">
-        <label class="small text-muted d-block font-monospace">FECHA DE VENCIMIENTO</label>
-        <div class="fw-bold text-danger">${escapeHtml(letra.fecha_vencimiento)} (${letra.dias_credito} días)</div>
-      </div>
-
-      <div class="col-12 p-3 bg-body-tertiary rounded border">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <label class="small text-muted font-monospace mb-0">MONEDA E IMPORTE</label>
-          <span class="badge bg-success fs-6 font-monospace">S/ ${montoFormatted}</span>
+    <!-- Ficha Resumen de la Operación -->
+    <div class="p-3 bg-body-tertiary rounded border mb-4">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="small text-muted d-block font-monospace">REF. DEL GIRADOR</label>
+          <span class="fs-5 fw-bold text-primary font-monospace">${escapeHtml(lote.ref_girador)}</span>
         </div>
-        <div class="fw-bold font-monospace mt-1" style="color: #60a5fa !important;">${escapeHtml(letra.monto_letras || '')}</div>
+        <div class="col-md-5">
+          <label class="small text-muted d-block font-monospace">GIRADO A (CLIENTE)</label>
+          <div class="fw-bold text-white fs-6">${escapeHtml(lote.nombre_cliente)}</div>
+          <small class="text-warning font-monospace">RUC: ${escapeHtml(lote.nro_documento || '-')}</small>
+        </div>
+        <div class="col-md-3 text-end">
+          <label class="small text-muted d-block font-monospace">MONTO TOTAL OPERACIÓN</label>
+          <span class="badge bg-success fs-5 font-monospace">S/ ${montoFormatted}</span>
+        </div>
+
+        <div class="col-md-4">
+          <label class="small text-muted d-block font-monospace">LUGAR Y FECHA DE GIRO</label>
+          <div class="fw-semibold">${escapeHtml(lote.lugar_giro || 'LIMA')} - ${escapeHtml(lote.fecha_giro || '-')}</div>
+        </div>
+        <div class="col-md-5">
+          <label class="small text-muted d-block font-monospace">DIRECCIÓN FISCAL</label>
+          <div class="small">${escapeHtml(lote.direccion_cliente || '-')}</div>
+        </div>
+        <div class="col-md-3 text-end">
+          <label class="small text-muted d-block font-monospace">TOTAL LETRAS</label>
+          <span class="badge bg-primary fs-6">${lote.total_cuotas} ${lote.total_cuotas === 1 ? 'Letra' : 'Letras'}</span>
+        </div>
       </div>
     </div>
-  `;
 
-  document.getElementById('btnDetailOpenPdf').onclick = () => downloadPdf(letra.id_letra);
-  document.getElementById('btnDetailPrintDirect').onclick = () => printLetraDirect(letra.id_letra);
+    <!-- Tabla con Todas las Letras Desglosadas de la Referencia -->
+    <h6 class="fw-bold text-white mb-2" style="color: #60a5fa !important;">
+      <i class="bi bi-file-earmark-ruled me-1"></i> Letras de Cambio Emitidas para esta Referencia (${lote.total_cuotas})
+    </h6>
+    <div class="table-responsive border rounded mb-2">
+      <table class="table custom-table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th style="width: 35px;" class="text-center">#</th>
+            <th style="width: 120px;">N° Letra</th>
+            <th style="width: 100px;" class="text-center">Días Crédito</th>
+            <th style="width: 120px;">F. Vencimiento</th>
+            <th class="text-end" style="width: 130px;">Monto (S/)</th>
+            <th>Monto en Letras</th>
+            <th style="width: 90px;" class="text-center">Estado</th>
+            <th class="text-center" style="width: 70px;">PDF</th>
+            <th class="text-center" style="width: 70px;">PRINT</th>
+            <th class="text-center" style="width: 70px;">ANULAR</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lote.letras.map((l, idx) => {
+            const isAnulada = l.estado === 'ANULADA';
+            const mForm = (parseFloat(l.monto) || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            let badgeCls = 'bg-warning text-dark';
+            if (isAnulada) badgeCls = 'bg-danger text-white';
+            else if (l.estado === 'CANCELADA') badgeCls = 'bg-success text-white';
+
+            return `
+              <tr>
+                <td class="text-center fw-bold text-muted">${idx + 1}</td>
+                <td class="font-monospace fw-bold text-primary">${escapeHtml(l.nro_letra)}</td>
+                <td class="text-center font-monospace fw-bold text-warning">${l.dias_credito || '-'} d</td>
+                <td class="small fw-semibold text-danger">${escapeHtml(l.fecha_vencimiento || '-')}</td>
+                <td class="text-end fw-bold font-monospace">S/ ${mForm}</td>
+                <td><small class="font-monospace text-muted d-block text-truncate" style="max-width: 260px;" title="${escapeHtml(l.monto_letras || '')}">${escapeHtml(l.monto_letras || '-')}</small></td>
+                <td class="text-center"><span class="badge ${badgeCls} fs-8">${escapeHtml(l.estado || 'PENDIENTE')}</span></td>
+                <td class="text-center">
+                  <button class="btn-action-solid btn-pdf" title="Descargar PDF Oficial" onclick="letrasModule.downloadPdf(${l.id_letra})">
+                    <i class="bi bi-file-earmark-pdf-fill"></i>
+                  </button>
+                </td>
+                <td class="text-center">
+                  <button class="btn-action-solid btn-print" title="Imprimir Directamente" onclick="letrasModule.printLetraDirect(${l.id_letra})">
+                    <i class="bi bi-printer-fill"></i>
+                  </button>
+                </td>
+                <td class="text-center">
+                  ${isAnulada ? `
+                    <button class="btn-action-solid btn-cancel" style="opacity: 0.35; cursor: not-allowed;" title="Ya anulada" disabled>
+                      <i class="bi bi-slash-circle"></i>
+                    </button>
+                  ` : `
+                    <button class="btn-action-solid btn-cancel" title="Anular Letra Individual" onclick="letrasModule.openAnularLetraModal(${l.id_letra}, '${escapeHtml(l.nro_letra)}')">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  `}
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
 
   const modal = new bootstrap.Modal(modalEl);
   modal.show();
@@ -785,7 +876,7 @@ export function downloadPdf(idLetra) {
 }
 
 export function printLetraDirect(idLetra) {
-  const letra = currentLetras.find(l => String(l.id_letra) === String(idLetra));
+  const letra = rawLetrasList.find(l => String(l.id_letra) === String(idLetra));
   if (!letra) return;
 
   const htmlContent = generateLetraPrintHTML(letra);
@@ -841,36 +932,36 @@ export function generateLetraPrintHTML(letra) {
       <meta charset="UTF-8">
       <title>Letra de Cambio - ${nroLetra}</title>
       <style>
-        @page { size: landscape; margin: 8mm; }
+        @page { size: portrait; margin: 8mm; }
         body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; color: #000; font-size: 11px; }
-        .letra-box { width: 100%; max-width: 980px; margin: 0 auto; box-sizing: border-box; }
+        .letra-box { width: 100%; max-width: 720px; margin: 0 auto; box-sizing: border-box; }
         .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .company-info { text-align: right; font-size: 10px; line-height: 1.3; }
         .main-container { display: flex; border: 1.5px solid #000; }
-        .left-clauses { width: 15%; padding: 4px; border-right: 1.5px solid #000; font-size: 7px; line-height: 1.15; box-sizing: border-box; }
-        .right-content { width: 85%; padding: 6px; box-sizing: border-box; }
+        .left-clauses { width: 28px; min-width: 28px; padding: 4px 2px; border-right: 1.5px solid #000; font-size: 6.2px; line-height: 1.15; box-sizing: border-box; writing-mode: vertical-rl; transform: rotate(180deg); text-align: left; }
+        .right-content { flex: 1; padding: 6px; box-sizing: border-box; }
         .grid-header { width: 100%; border-collapse: collapse; text-align: center; margin-bottom: 6px; }
         .grid-header th, .grid-header td { border: 1px solid #000; padding: 4px; }
-        .grid-header th { font-size: 9px; font-weight: bold; background: #f0f0f0; }
-        .grid-header td { font-size: 12px; font-weight: bold; }
+        .grid-header th { font-size: 8.5px; font-weight: bold; background: #f0f0f0; }
+        .grid-header td { font-size: 11px; font-weight: bold; }
         .date-cell-table { width: 100%; border-collapse: collapse; }
-        .date-cell-table td { border: none; padding: 2px; font-size: 11px; }
+        .date-cell-table td { border: none; padding: 2px; font-size: 10px; }
         .date-cell-table tr.date-val td { border-top: 1px solid #000; font-weight: bold; }
-        .banner-text { font-size: 11px; margin: 6px 0; }
-        .amount-box { border: 1px solid #000; padding: 6px; font-weight: bold; font-size: 12px; margin-bottom: 6px; background: #fafafa; }
+        .banner-text { font-size: 10.5px; margin: 5px 0; }
+        .amount-box { border: 1px solid #000; padding: 5px; font-weight: bold; font-size: 11px; margin-bottom: 5px; background: #fafafa; }
         .lower-grid { display: flex; border-top: 1px solid #000; }
-        .lower-left { width: 55%; padding: 6px; border-right: 1px solid #000; font-size: 10px; line-height: 1.4; }
-        .lower-right { width: 45%; padding: 6px; font-size: 10px; text-align: center; }
-        .bank-table { width: 100%; border-collapse: collapse; margin: 4px 0; font-size: 9px; }
-        .bank-table th, .bank-table td { border: 1px solid #000; padding: 2px; height: 16px; }
-        .signature-line { margin-top: 24px; border-bottom: 1px dotted #000; width: 80%; margin-left: auto; margin-right: auto; }
-        .footer-note { font-size: 9px; margin-top: 6px; }
+        .lower-left { width: 55%; padding: 5px; border-right: 1px solid #000; font-size: 9.5px; line-height: 1.35; }
+        .lower-right { width: 45%; padding: 5px; font-size: 9.5px; text-align: center; }
+        .bank-table { width: 100%; border-collapse: collapse; margin: 4px 0; font-size: 8.5px; }
+        .bank-table th, .bank-table td { border: 1px solid #000; padding: 2px; height: 15px; }
+        .signature-line { margin-top: 20px; border-bottom: 1px dotted #000; width: 80%; margin-left: auto; margin-right: auto; }
+        .footer-note { font-size: 8.5px; margin-top: 5px; }
       </style>
     </head>
     <body>
       <div class="letra-box">
         <div class="top-header">
-          <img src="img/inplabel-logo.png" alt="Inplabel" style="height: 48px;" onerror="this.style.display='none'">
+          <img src="img/inplabel-logo.png" alt="Inplabel" style="height: 44px;" onerror="this.style.display='none'">
           <div class="company-info">
             <div><strong>Av. María Parado de Bellido Lte. 5</strong></div>
             <div>Lotización Chacra Cerro - Comas - Lima - Lima</div>
@@ -880,11 +971,7 @@ export function generateLetraPrintHTML(letra) {
 
         <div class="main-container">
           <div class="left-clauses">
-            <strong>CLÁUSULAS ESPECIALES:</strong><br>
-            (1) En caso de mora, esta letra de cambio generará las tasas de interés compensatorio y moratorio más altas que la ley permita a su último Tenedor.<br>
-            (2) El plazo de su vencimiento podrá ser prorrogado por el tenedor, por el plazo que este señale, sin que sea necesaria la intervención del obligado principal ni de los solidarios.<br>
-            (3) Las partes acuerdan consignar la cláusula "sin protesto" y por tanto no se requerirá de esta diligencia para el ejercicio de las acciones cambiarias.<br>
-            (4) Las partes se someten a la competencia de los jueces del Distrito Judicial de Lima.
+            <strong>CLÁUSULAS ESPECIALES:</strong> (1) En caso de mora, esta letra de cambio generará las tasas de interés compensatorio y moratorio más altas que la ley permita a su último Tenedor. (2) El plazo de su vencimiento podrá ser prorrogado por el tenedor, por el plazo que este señale, sin que sea necesaria la intervención del obligado principal ni de los solidarios. (3) Las partes acuerdan consignar la cláusula "sin protesto" y por tanto no se requerirá de esta diligencia para el ejercicio de las acciones cambiarias. (4) Las partes se someten a la competencia de los jueces del Distrito Judicial de Lima.
           </div>
 
           <div class="right-content">
@@ -964,11 +1051,11 @@ export function generateLetraPrintHTML(letra) {
 }
 
 // =========================================================================
-// 5. ANULACIÓN DE LETRA
+// 5. ANULACIÓN DE LETRAS (INDIVIDUAL Y POR LOTE)
 // =========================================================================
-export function openAnularModal(idLetra, nroLetra, cliente) {
-  document.getElementById('anularLetraIdInput').value = idLetra;
-  document.getElementById('anularNroLetraLabel').textContent = nroLetra;
+export function openAnularLoteModal(idLote, refGirador, cliente) {
+  document.getElementById('anularLoteIdInput').value = idLote;
+  document.getElementById('anularNroLetraLabel').textContent = refGirador;
   document.getElementById('anularLetraClienteLabel').textContent = cliente;
 
   const modalEl = document.getElementById('modalAnularLetra');
@@ -978,12 +1065,12 @@ export function openAnularModal(idLetra, nroLetra, cliente) {
   }
 }
 
-export async function confirmAnularLetra() {
-  const idLetra = document.getElementById('anularLetraIdInput')?.value;
-  if (!idLetra) return;
+export async function confirmAnularLote() {
+  const idLote = document.getElementById('anularLoteIdInput')?.value;
+  if (!idLote) return;
 
   try {
-    const res = await api.anularLetra(idLetra);
+    const res = await api.anularLoteLetras(idLote);
     if (res && res.success) {
       const modalEl = document.getElementById('modalAnularLetra');
       if (modalEl) {
@@ -992,7 +1079,30 @@ export async function confirmAnularLetra() {
       }
       await initLetrasView();
     } else {
-      alert('Error al anular la letra');
+      alert('Error al anular la operación: ' + (res?.error || ''));
+    }
+  } catch (err) {
+    console.error('Error anulando lote:', err);
+  }
+}
+
+export async function openAnularLetraModal(idLetra, nroLetra) {
+  if (!confirm(`¿Está seguro de anular la Letra de Cambio individual N° ${nroLetra}?`)) {
+    return;
+  }
+
+  try {
+    const res = await api.anularLetra(idLetra);
+    if (res && res.success) {
+      // Refresh current lote details and main view
+      const detailModalEl = document.getElementById('letraDetailModal');
+      if (detailModalEl) {
+        const dModal = bootstrap.Modal.getInstance(detailModalEl);
+        if (dModal) dModal.hide();
+      }
+      await initLetrasView();
+    } else {
+      alert('Error al anular la letra individual');
     }
   } catch (err) {
     console.error('Error anulando letra:', err);

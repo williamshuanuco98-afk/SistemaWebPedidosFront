@@ -8,7 +8,7 @@
 
 .custom-table th, .table th {
   background: #f1f5f9 !important;
-  padding: 8px !important;
+  padding: 8px 12px !important;
   font-size: 14.4px !important;
   font-weight: 800 !important;
   text-transform: uppercase;
@@ -16,6 +16,7 @@
   color: #1e293b !important;
   border-bottom: 2px solid #cbd5e1 !important;
   text-align: left;
+  white-space: nowrap !important;
 }
 
 .custom-table td, .table td {

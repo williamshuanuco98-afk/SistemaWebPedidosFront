@@ -1255,7 +1255,7 @@ const EMBEDDED_VIEWS = {
       <h3 class="card-title mb-0">
         <i class="bi bi-file-earmark-ruled text-primary me-1"></i> Control de Letras de Cambio
       </h3>
-      <span id="letrasCountBadge" class="badge bg-secondary">0 letras</span>
+      <span id="letrasCountBadge" class="badge bg-secondary">0 operaciones</span>
     </div>
     <div class="d-flex align-items-center gap-2">
       <button class="btn btn-primary" onclick="letrasModule.openGenerarLetrasModal()">
@@ -1269,11 +1269,11 @@ const EMBEDDED_VIEWS = {
     <div class="metrics-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
       <div class="metric-card card-blue">
         <div class="metric-info">
-          <h4>Total Emitidas</h4>
+          <h4>Total Operaciones</h4>
           <div id="statLetrasTotalCount" class="metric-value">0</div>
         </div>
         <div class="metric-icon-box">
-          <i class="bi bi-file-earmark-text fs-3"></i>
+          <i class="bi bi-collection fs-3"></i>
         </div>
       </div>
 
@@ -1289,11 +1289,11 @@ const EMBEDDED_VIEWS = {
 
       <div class="metric-card card-amber">
         <div class="metric-info">
-          <h4>Pendientes</h4>
-          <div id="statLetrasPendientesCount" class="metric-value">0</div>
+          <h4>Total Letras Emitidas</h4>
+          <div id="statLetrasTotalLetrasCount" class="metric-value">0</div>
         </div>
         <div class="metric-icon-box">
-          <i class="bi bi-clock-history fs-3"></i>
+          <i class="bi bi-file-earmark-text fs-3"></i>
         </div>
       </div>
 
@@ -1314,10 +1314,10 @@ const EMBEDDED_VIEWS = {
         <div class="row g-2 align-items-end">
           <!-- Búsqueda General -->
           <div class="col-md-4">
-            <label for="searchLetraInput" class="form-label small fw-bold mb-1">Buscar Letra, Ref. Girador o Cliente</label>
+            <label for="searchLetraInput" class="form-label small fw-bold mb-1">Buscar por Ref. Girador, Cliente o RUC</label>
             <div class="input-group input-group-sm">
               <span class="input-group-text"><i class="bi bi-search"></i></span>
-              <input type="text" id="searchLetraInput" class="form-control" placeholder="Buscar por número, referencia o cliente...">
+              <input type="text" id="searchLetraInput" class="form-control" placeholder="Buscar por referencia, cliente o RUC...">
             </div>
           </div>
 
@@ -1354,22 +1354,19 @@ const EMBEDDED_VIEWS = {
       </form>
     </div>
 
-    <!-- Tabla de Letras de Cambio -->
+    <!-- Tabla Principal de Letras (Agrupada por Referencia del Girador + Cliente) -->
     <div class="table-responsive border rounded">
       <table class="table custom-table mb-0 align-middle">
         <thead>
           <tr>
-            <th style="width: 120px;">N° Letra</th>
-            <th style="width: 130px;">Ref. Girador</th>
-            <th>Girado a (Cliente)</th>
-            <th style="width: 110px;">F. Giro</th>
-            <th style="width: 120px;">F. Vencimiento</th>
-            <th class="text-end" style="width: 120px;">Monto (S/)</th>
-            <th style="width: 110px;">Estado</th>
-            <th class="text-center" style="width: 80px;">DETALLES</th>
-            <th class="text-center" style="width: 70px;">PDF</th>
-            <th class="text-center" style="width: 70px;">PRINT</th>
-            <th class="text-center" style="width: 70px;">ANULAR</th>
+            <th style="white-space: nowrap; width: 140px;">Ref. Girador</th>
+            <th style="white-space: nowrap;">Girado a (Cliente)</th>
+            <th style="white-space: nowrap; width: 115px;">F. Giro</th>
+            <th style="white-space: nowrap; width: 130px;" class="text-center">Cant. Letras</th>
+            <th style="white-space: nowrap; width: 180px;">Rango N° Letras</th>
+            <th style="white-space: nowrap; width: 160px;" class="text-end">Monto Total (S/)</th>
+            <th style="white-space: nowrap; width: 85px;" class="text-center">DETALLES</th>
+            <th style="white-space: nowrap; width: 85px;" class="text-center">ANULAR</th>
           </tr>
         </thead>
         <tbody id="letrasTableBody"></tbody>
@@ -1405,7 +1402,7 @@ const EMBEDDED_VIEWS = {
                   <i class="bi bi-x-lg"></i>
                 </button>
               </div>
-              <ul id="clientSearchResultsLetraList" class="list-group position-absolute w-100 shadow-lg d-none" style="z-index: 1060; max-height: 220px; overflow-y: auto; top: 100%;"></ul>
+              <ul id="clientSearchResultsLetraList" class="list-group position-absolute w-100 shadow-lg d-none" style="z-index: 1060; max-height: 280px; overflow-y: auto; top: 100%;"></ul>
             </div>
 
             <div class="d-flex flex-wrap gap-2 mb-2" style="width: 100%;">
@@ -1541,23 +1538,17 @@ const EMBEDDED_VIEWS = {
 </div>
 
 <div class="modal fade" id="letraDetailModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-secondary shadow-lg">
       <div class="modal-header bg-primary text-white py-3">
         <h5 class="modal-title fw-bold" id="letraDetailTitle">
-          <i class="bi bi-file-earmark-ruled me-2"></i> Detalle de Letra de Cambio
+          <i class="bi bi-collection me-2"></i> Detalle de Letras de Cambio por Referencia
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-4" id="letraDetailBody"></div>
       <div class="modal-footer bg-body-tertiary">
-        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-success btn-sm" id="btnDetailOpenPdf">
-          <i class="bi bi-file-earmark-pdf me-1"></i> Ver PDF Oficial
-        </button>
-        <button type="button" class="btn btn-dark btn-sm" id="btnDetailPrintDirect">
-          <i class="bi bi-printer me-1"></i> Imprimir
-        </button>
+        <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
@@ -1565,21 +1556,21 @@ const EMBEDDED_VIEWS = {
 
 <div class="modal fade" id="modalAnularLetra" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
+    <div class="modal-content border-danger">
       <div class="modal-header bg-danger text-white py-3">
         <h5 class="modal-title fw-bold">
-          <i class="bi bi-exclamation-triangle-fill me-2"></i> Anular Letra de Cambio
+          <i class="bi bi-exclamation-triangle-fill me-2"></i> Anular Operación de Letras
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-4">
         <div class="alert alert-warning d-flex align-items-center mb-3 fs-7" role="alert">
           <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
-          <div>Esta acción registrará la letra como <strong>ANULADA</strong> en el sistema.</div>
+          <div>Esta acción marcará como <strong>ANULADAS</strong> todas las letras de cambio asociadas a esta operación.</div>
         </div>
-        <input type="hidden" id="anularLetraIdInput">
+        <input type="hidden" id="anularLoteIdInput">
         <div class="mb-3">
-          <label class="form-label fs-7 fw-semibold">N° de Letra:</label>
+          <label class="form-label fs-7 fw-semibold">Ref. del Girador:</label>
           <div class="form-control-plaintext font-monospace fw-bold fs-6 text-primary" id="anularNroLetraLabel">-</div>
         </div>
         <div class="mb-3">
@@ -1589,7 +1580,7 @@ const EMBEDDED_VIEWS = {
       </div>
       <div class="modal-footer bg-body-tertiary">
         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger btn-sm" onclick="letrasModule.confirmAnularLetra()">
+        <button type="button" class="btn btn-danger btn-sm px-3" onclick="letrasModule.confirmAnularLote()">
           <i class="bi bi-check-circle me-1"></i> Confirmar Anulación
         </button>
       </div>

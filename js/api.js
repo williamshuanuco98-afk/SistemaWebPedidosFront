@@ -542,6 +542,33 @@ export const api = {
       return { success: true, message: 'Letra anulada en almacenamiento local' };
     }
     return null;
+  },
+
+  async anularLoteLetras(idLote) {
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/letras/lote/${idLote}/anular`, {
+        method: 'PUT',
+        timeout: 2500
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const list = getLocalData('letras', []);
+        list.forEach(l => {
+          if (l.id_lote === idLote) l.estado = 'ANULADA';
+        });
+        setLocalData('letras', list);
+        return data;
+      }
+    } catch (e) {
+      console.warn("Backend offline, updating lote locally:", e);
+    }
+
+    const list = getLocalData('letras', []);
+    list.forEach(l => {
+      if (l.id_lote === idLote) l.estado = 'ANULADA';
+    });
+    setLocalData('letras', list);
+    return { success: true, message: 'Lote de letras anulado en almacenamiento local' };
   }
 };
 
