@@ -932,36 +932,95 @@ export function generateLetraPrintHTML(letra) {
       <meta charset="UTF-8">
       <title>Letra de Cambio - ${nroLetra}</title>
       <style>
-        @page { size: portrait; margin: 8mm; }
-        body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; color: #000; font-size: 11px; }
-        .letra-box { width: 100%; max-width: 720px; margin: 0 auto; box-sizing: border-box; }
-        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .company-info { text-align: right; font-size: 10px; line-height: 1.3; }
-        .main-container { display: flex; border: 1.5px solid #000; }
-        .left-clauses { width: 28px; min-width: 28px; padding: 4px 2px; border-right: 1.5px solid #000; font-size: 6.2px; line-height: 1.15; box-sizing: border-box; writing-mode: vertical-rl; transform: rotate(180deg); text-align: left; }
-        .right-content { flex: 1; padding: 6px; box-sizing: border-box; }
-        .grid-header { width: 100%; border-collapse: collapse; text-align: center; margin-bottom: 6px; }
+        @page { size: portrait; margin: 10mm 8mm; }
+        body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; color: #000; font-size: 11px; background: #fff; }
+        .letra-box { width: 100%; max-width: 760px; margin: 0 auto; box-sizing: border-box; }
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .company-info { text-align: right; font-size: 11px; line-height: 1.3; }
+        .main-container { display: flex; border: 1.5px solid #000; box-sizing: border-box; }
+        
+        .left-clauses {
+          width: 32px;
+          min-width: 32px;
+          padding: 4px 2px;
+          border-right: 1.5px solid #000;
+          font-size: 6.5px;
+          line-height: 1.15;
+          box-sizing: border-box;
+          writing-mode: vertical-rl;
+          transform: rotate(180deg);
+          text-align: left;
+        }
+
+        .right-content { flex: 1; display: flex; flex-direction: column; }
+        
+        .upper-wrapper { display: flex; }
+        .aceptante-tag {
+          width: 20px;
+          min-width: 20px;
+          border-right: 1px solid #000;
+          border-bottom: 1px solid #000;
+          writing-mode: vertical-rl;
+          transform: rotate(180deg);
+          text-align: center;
+          font-size: 8px;
+          padding: 4px 0;
+          box-sizing: border-box;
+        }
+        .upper-main { flex: 1; display: flex; flex-direction: column; }
+
+        .grid-header { width: 100%; border-collapse: collapse; text-align: center; }
         .grid-header th, .grid-header td { border: 1px solid #000; padding: 4px; }
-        .grid-header th { font-size: 8.5px; font-weight: bold; background: #f0f0f0; }
-        .grid-header td { font-size: 11px; font-weight: bold; }
+        .grid-header th { font-size: 9.5px; font-weight: bold; background: #e2ebd8; }
+        .grid-header td { font-size: 12px; font-weight: bold; height: 22px; }
+        
         .date-cell-table { width: 100%; border-collapse: collapse; }
         .date-cell-table td { border: none; padding: 2px; font-size: 10px; }
-        .date-cell-table tr.date-val td { border-top: 1px solid #000; font-weight: bold; }
-        .banner-text { font-size: 10.5px; margin: 5px 0; }
-        .amount-box { border: 1px solid #000; padding: 5px; font-weight: bold; font-size: 11px; margin-bottom: 5px; background: #fafafa; }
+        .date-cell-table tr.date-val td { border-top: 1px solid #000; font-weight: bold; font-size: 12px; }
+
+        .banner-text { font-size: 11.5px; padding: 4px 6px; border-left: 1px solid #000; border-right: 1px solid #000; }
+        .amount-box { border: 1px solid #000; padding: 6px; font-weight: bold; font-size: 12px; background: #fff; min-height: 20px; }
+        .sub-text { font-size: 11px; padding: 4px 6px; border-left: 1px solid #000; border-right: 1px solid #000; border-bottom: 1px solid #000; }
+
         .lower-grid { display: flex; border-top: 1px solid #000; }
-        .lower-left { width: 55%; padding: 5px; border-right: 1px solid #000; font-size: 9.5px; line-height: 1.35; }
-        .lower-right { width: 45%; padding: 5px; font-size: 9.5px; text-align: center; }
-        .bank-table { width: 100%; border-collapse: collapse; margin: 4px 0; font-size: 8.5px; }
-        .bank-table th, .bank-table td { border: 1px solid #000; padding: 2px; height: 15px; }
-        .signature-line { margin-top: 20px; border-bottom: 1px dotted #000; width: 80%; margin-left: auto; margin-right: auto; }
-        .footer-note { font-size: 8.5px; margin-top: 5px; }
+        .lower-left { width: 55%; display: flex; flex-direction: column; border-right: 1px solid #000; }
+        
+        .girado-info { padding: 5px 6px; font-size: 10.5px; line-height: 1.4; }
+        
+        .aval-wrapper { display: flex; border-top: 1px solid #000; flex: 1; }
+        .por-aval-tag {
+          width: 20px;
+          min-width: 20px;
+          border-right: 1px solid #000;
+          writing-mode: vertical-rl;
+          transform: rotate(180deg);
+          text-align: center;
+          font-size: 8px;
+          padding: 4px 0;
+          box-sizing: border-box;
+        }
+        .aval-info { flex: 1; padding: 5px 6px; font-size: 10.5px; line-height: 1.4; }
+
+        .lower-right { width: 45%; padding: 5px 6px; font-size: 10.5px; text-align: center; display: flex; flex-direction: column; }
+        .bank-debit-line { font-size: 10px; text-align: left; margin-bottom: 3px; }
+        .bank-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 9px; }
+        .bank-table th, .bank-table td { border: 1px solid #000; padding: 2px; }
+        .bank-table th { background: #e2ebd8; font-weight: bold; }
+        .bank-table td { height: 16px; }
+
+        .company-name { font-weight: bold; font-style: italic; color: #16a34a; font-size: 13px; margin-top: 2px; }
+        .company-ruc { font-weight: bold; font-size: 12px; margin-bottom: 4px; }
+        .signature-line { margin-top: 22px; border-bottom: 1px dotted #000; width: 80%; margin-left: auto; margin-right: auto; }
+        .signature-label { font-size: 10px; font-weight: bold; margin-top: 2px; }
+        .signature-sub { font-size: 9px; color: #444; text-align: left; margin-top: 1px; }
+
+        .footer-note { font-size: 9.5px; margin-top: 4px; text-align: left; }
       </style>
     </head>
     <body>
       <div class="letra-box">
         <div class="top-header">
-          <img src="img/inplabel-logo.png" alt="Inplabel" style="height: 44px;" onerror="this.style.display='none'">
+          <img src="img/inplabel-logo.png" alt="Inplabel" style="height: 52px;" onerror="this.style.display='none'">
           <div class="company-info">
             <div><strong>Av. María Parado de Bellido Lte. 5</strong></div>
             <div>Lotización Chacra Cerro - Comas - Lima - Lima</div>
@@ -971,79 +1030,96 @@ export function generateLetraPrintHTML(letra) {
 
         <div class="main-container">
           <div class="left-clauses">
-            <strong>CLÁUSULAS ESPECIALES:</strong> (1) En caso de mora, esta letra de cambio generará las tasas de interés compensatorio y moratorio más altas que la ley permita a su último Tenedor. (2) El plazo de su vencimiento podrá ser prorrogado por el tenedor, por el plazo que este señale, sin que sea necesaria la intervención del obligado principal ni de los solidarios. (3) Las partes acuerdan consignar la cláusula "sin protesto" y por tanto no se requerirá de esta diligencia para el ejercicio de las acciones cambiarias. (4) Las partes se someten a la competencia de los jueces del Distrito Judicial de Lima.
+            <strong>CLÁUSULAS ESPECIALES:</strong> (1) En caso de mora , esta letra de cambio generará las tasas de interés compensatorio y moratorio más altas que la ley permita a su último Tenedor. (2) El plazo de su vencimiento podrá ser prorrogado por el tenedor, por el plazo que este señale, sin que sea necesaria la intervención del obligado principal ni de los solidarios. (3) Las partes acuerdan consignar la cláusula "sin protesto" y por tanto no se requerirá de esta diligencia para el ejercicio de las acciones cambiarias. (4) Las partes se someten a la competencia de los jueces del Distrito Judicial de Lima.
           </div>
 
           <div class="right-content">
-            <table class="grid-header">
-              <tr>
-                <th style="width: 17%;">NUMERO DE LETRA</th>
-                <th style="width: 17%;">REF. DEL GIRADOR</th>
-                <th style="width: 14%;">LUGAR DE GIRO</th>
-                <th style="width: 18%;">FECHA DE GIRO</th>
-                <th style="width: 18%;">FECHA DE VENCIMIENTO</th>
-                <th style="width: 16%;">MONEDA E IMPORTE</th>
-              </tr>
-              <tr>
-                <td>${nroLetra}</td>
-                <td>${refGirador}</td>
-                <td>${lugarGiro}</td>
-                <td style="padding:0;">
-                  <table class="date-cell-table">
-                    <tr><td>DIA</td><td>MES</td><td>AÑO</td></tr>
-                    <tr class="date-val"><td>${fgDia}</td><td>${fgMes}</td><td>${fgAnio}</td></tr>
-                  </table>
-                </td>
-                <td style="padding:0;">
-                  <table class="date-cell-table">
-                    <tr><td>DIA</td><td>MES</td><td>AÑO</td></tr>
-                    <tr class="date-val"><td>${fvDia}</td><td>${fvMes}</td><td>${fvAnio}</td></tr>
-                  </table>
-                </td>
-                <td>S/ ${montoFormatted}</td>
-              </tr>
-            </table>
+            <div class="upper-wrapper">
+              <div class="aceptante-tag">Aceptante(s)</div>
+              <div class="upper-main">
+                <table class="grid-header">
+                  <tr>
+                    <th style="width: 17%;">NUMERO DE LETRA</th>
+                    <th style="width: 17%;">REF. DEL GIRADOR</th>
+                    <th style="width: 14%;">LUGAR DE GIRO</th>
+                    <th style="width: 18%;">FECHA DE GIRO</th>
+                    <th style="width: 18%;">FECHA DE VENCIMIENTO</th>
+                    <th style="width: 16%;">MONEDA E IMPORTE</th>
+                  </tr>
+                  <tr>
+                    <td>${nroLetra}</td>
+                    <td>${refGirador}</td>
+                    <td>${lugarGiro}</td>
+                    <td style="padding:0;">
+                      <table class="date-cell-table">
+                        <tr><td>DIA</td><td>MES</td><td>AÑO</td></tr>
+                        <tr class="date-val"><td>${fgDia}</td><td>${fgMes}</td><td>${fgAnio}</td></tr>
+                      </table>
+                    </td>
+                    <td style="padding:0;">
+                      <table class="date-cell-table">
+                        <tr><td>DIA</td><td>MES</td><td>AÑO</td></tr>
+                        <tr class="date-val"><td>${fvDia}</td><td>${fvMes}</td><td>${fvAnio}</td></tr>
+                      </table>
+                    </td>
+                    <td>S/ ${montoFormatted}</td>
+                  </tr>
+                </table>
 
-            <div class="banner-text">
-              Por esta <strong>LETRA DE CAMBIO</strong>, se servirá(n) pagar a la orden de <strong style="color: #059669;">INDUSTRIAS PLASTICOS BELSA S.A.C.</strong> la cantidad de:
-            </div>
+                <div class="banner-text">
+                  Por esta <strong>LETRA DE CAMBIO</strong>, se servirá(n) pagar a la orden de <strong style="color: #16a34a; font-style: italic;">INDUSTRIAS PLASTICOS BELSA S.A.C.</strong> la cantidad de:
+                </div>
 
-            <div class="amount-box">
-              ${montoLetras}
-            </div>
+                <div class="amount-box">
+                  ${montoLetras}
+                </div>
 
-            <div class="banner-text" style="font-size: 10px;">
-              Valor que sentará(n) en cuenta según aviso de sus Ss. Ss. en el siguiente lugar de pago:
+                <div class="sub-text">
+                  Valor que sentará(n) en cuenta según aviso de sus Ss. Ss. en el siguiente lugar de pago:
+                </div>
+              </div>
             </div>
 
             <div class="lower-grid">
               <div class="lower-left">
-                <div><strong>GIRADO A:</strong> ${escapeHtml(letra.nombre_cliente || '')}</div>
-                <div><strong>RUC:</strong> ${escapeHtml(letra.nro_documento || '')}</div>
-                <div><strong>DIRECCION:</strong> ${escapeHtml(letra.direccion_cliente || '')}</div>
-                <hr style="border: 0; border-top: 1px dotted #ccc; margin: 4px 0;">
-                <div><strong>AVALISTA:</strong> .....................................................................................</div>
-                <div><strong>D.I/R.U.C:</strong> ................................ <strong>TELEFONO:</strong> ..........................</div>
-                <div><strong>DIRECCION:</strong> ....................................................................................</div>
+                <div class="girado-info">
+                  <div><strong>GIRADO A:</strong> ${escapeHtml(letra.nombre_cliente || '')}</div>
+                  <div style="margin-top: 8px;"><strong>RUC:</strong> ${escapeHtml(letra.nro_documento || '')}</div>
+                  <div style="margin-top: 4px;"><strong>DIRECCION:</strong> ${escapeHtml(letra.direccion_cliente || '')}</div>
+                </div>
+                
+                <div class="aval-wrapper">
+                  <div class="por-aval-tag">Por Aval</div>
+                  <div class="aval-info">
+                    <div><strong>AVALISTA:</strong> .....................................................................................</div>
+                    <div style="margin-top: 8px;">
+                      <span><strong>D.I/R.U.C:</strong> ................................</span>
+                      <span style="margin-left: 20px;"><strong>TELEFONO:</strong> ..........................</span>
+                    </div>
+                    <div style="margin-top: 8px;"><strong>DIRECCION:</strong> ....................................................................................</div>
+                  </div>
+                </div>
               </div>
 
               <div class="lower-right">
-                <div style="font-size: 9px; text-align: left;">Importe a debitar en cuenta del Aceptante del Banco:..................</div>
+                <div class="bank-debit-line">Importe a debitar en cuenta del Aceptante del Banco:....................................</div>
                 <table class="bank-table">
                   <tr><th>BANCO</th><th>OFICINA</th><th>NUMERO DE CUENTA</th><th>D.C.</th></tr>
-                  <tr><td></td><td></td><td></td><td></td></tr>
+                  <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
                 </table>
-                <div style="font-weight: bold; color: #059669; margin-top: 4px;">INDUSTRIAS PLASTICOS BELSA S.A.C.</div>
-                <div style="font-weight: bold;">RUC: 20544368827</div>
+
+                <div class="company-name">INDUSTRIAS PLASTICOS BELSA S.A.C.</div>
+                <div class="company-ruc">RUC: 20544368827</div>
                 <div class="signature-line"></div>
-                <div style="font-size: 9px; font-weight: bold; margin-top: 2px;">FIRMA</div>
-                <div style="font-size: 8px; color: #555;">Nombre del representante(S) / D.O.I</div>
+                <div class="signature-label">FIRMA</div>
+                <div class="signature-sub">Nombre del representante(S)</div>
+                <div class="signature-sub">D.O.I</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="footer-note">No escribir ni firmar debajo de esta línea</div>
+        <div class="footer-note">|No escribir ni firmar debajo de esta línea</div>
       </div>
     </body>
     </html>
