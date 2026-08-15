@@ -4,28 +4,77 @@ import { escapeHtml, formatDate, showBootstrapModal, hideBootstrapModal } from '
 let currentShipments = [];
 let currentSearchQuery = '';
 
+export function setupDefaultDateFiltersEnvios() {
+  const dateFromElem = document.getElementById('filterGuiaDateFrom');
+  const dateToElem = document.getElementById('filterGuiaDateTo');
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+
+  const firstDay = `${year}-${month}-01`;
+  const today = `${year}-${month}-${day}`;
+
+  if (dateFromElem && !dateFromElem.value) {
+    dateFromElem.value = firstDay;
+  }
+  if (dateToElem && !dateToElem.value) {
+    dateToElem.value = today;
+  }
+}
+
 export function renderEnviosTable(shipments = [], searchQuery = '') {
   currentShipments = shipments || [];
   if (searchQuery !== undefined) currentSearchQuery = searchQuery;
 
-  const countBadge = document.getElementById('guiasCountBadge');
-  if (countBadge) countBadge.textContent = `${currentShipments.length} guías`;
+  setupDefaultDateFiltersEnvios();
 
-  const tbody = document.getElementById('guiasTableBody');
+  const countBadge = document.getElementById('shipmentsCountBadge') || document.getElementById('guiasCountBadge');
+  const tbody = document.getElementById('enviosTableBody') || document.getElementById('guiasTableBody');
   if (!tbody) return;
 
-  const query = (currentSearchQuery || '').toLowerCase().trim();
+  const searchInput = document.getElementById('searchGuiaInput');
+  const query = (searchInput?.value || currentSearchQuery || '').toLowerCase().trim();
+
+  const dateFrom = document.getElementById('filterGuiaDateFrom')?.value;
+  const dateTo = document.getElementById('filterGuiaDateTo')?.value;
+  const establishment = document.getElementById('filterGuiaEstablishment')?.value || 'ALL';
+
   const filtered = currentShipments.filter(s => {
-    if (!query) return true;
-    const nro = (s.nro_guia || '').toLowerCase();
-    const cliente = (s.nombre_cliente || '').toLowerCase();
-    const docRef = (s.doc_referencia || '').toLowerCase();
-    const ruc = (s.nro_documento || '').toLowerCase();
-    return nro.includes(query) || cliente.includes(query) || docRef.includes(query) || ruc.includes(query);
+    // 1. Text Search Filter
+    let matchQuery = true;
+    if (query) {
+      const nro = (s.nro_guia || '').toLowerCase();
+      const cliente = (s.nombre_cliente || '').toLowerCase();
+      const docRef = (s.doc_referencia || '').toLowerCase();
+      const ruc = (s.nro_documento || '').toLowerCase();
+      matchQuery = nro.includes(query) || cliente.includes(query) || docRef.includes(query) || ruc.includes(query);
+    }
+
+    // 2. Date Filter
+    let matchDate = true;
+    const fDate = s.fecha_guia || s.fecha_emision;
+    if (fDate) {
+      const dateStr = String(fDate).substring(0, 10);
+      if (dateFrom && dateStr < dateFrom) matchDate = false;
+      if (dateTo && dateStr > dateTo) matchDate = false;
+    }
+
+    // 3. Establishment / Local Filter
+    let matchEstab = true;
+    if (establishment && establishment !== 'ALL') {
+      const sEstab = (s.establecimiento || (s.nro_guia && s.nro_guia.startsWith('GR002') ? 'COMAS' : 'CARABAYLLO')).toUpperCase();
+      matchEstab = sEstab.includes(establishment.toUpperCase());
+    }
+
+    return matchQuery && matchDate && matchEstab;
   });
 
+  if (countBadge) countBadge.textContent = `${filtered.length} guías`;
+
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No se encontraron guías de remisión registradas.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No se encontraron guías de remisión registradas para los filtros aplicados.</td></tr>`;
     return;
   }
 
@@ -36,17 +85,13 @@ export function renderEnviosTable(shipments = [], searchQuery = '') {
 
     return `
       <tr>
-        <td class="fw-bold font-monospace text-primary">${escapeHtml(s.nro_guia || ('GR-' + s.id_guia))}</td>
-        <td>
-          <div class="fw-bold text-body">${escapeHtml(s.nombre_cliente || 'Cliente General')}</div>
-          ${s.nro_documento ? `<span class="small text-muted">RUC: ${escapeHtml(s.nro_documento)}</span>` : ''}
-        </td>
+        <td class="fw-bold font-monospace text-primary">${escapeHtml(s.nro_guia || ('GR001-' + String(s.id_guia).padStart(4, '0')))}</td>
         <td>${formatDate(s.fecha_guia || s.fecha_emision)}</td>
         <td>
-          <span class="badge bg-secondary-subtle text-body border">${escapeHtml(s.punto_partida ? (s.punto_partida.includes('COMAS') ? 'Comas' : 'Carabayllo') : 'Carabayllo')}</span>
+          <div class="fw-bold text-body">${escapeHtml(s.nombre_cliente || 'Cliente General')}</div>
         </td>
         <td>
-          <span class="small text-muted">${escapeHtml(s.doc_referencia || '-')}</span>
+          <span class="font-monospace">${escapeHtml(s.nro_documento || '-')}</span>
         </td>
         <td>
           <span class="status-badge ${badgeClass}">${statusText}</span>
@@ -63,7 +108,7 @@ export function renderEnviosTable(shipments = [], searchQuery = '') {
               <i class="bi bi-printer"></i>
             </button>
             ${!isAnulada ? `
-              <button class="btn btn-outline-danger" title="Anular Guía" onclick="enviosModule.anularGuia('${s.id_guia}')">
+              <button class="btn btn-outline-danger" title="Dar de Baja / Anular" onclick="enviosModule.openAnularModal('${s.id_guia}', '${escapeHtml(s.nro_guia || '')}')">
                 <i class="bi bi-x-circle"></i>
               </button>
             ` : ''}
@@ -76,6 +121,44 @@ export function renderEnviosTable(shipments = [], searchQuery = '') {
 
 export function onSearchInput(val) {
   renderEnviosTable(currentShipments, val);
+}
+
+export function openAnularModal(idGuia, nroGuia) {
+  const modalEl = document.getElementById('modalAnularGuia');
+  if (!modalEl) {
+    anularGuia(idGuia);
+    return;
+  }
+  const idInput = document.getElementById('anularGuiaIdInput');
+  const label = document.getElementById('anularNroGuiaLabel');
+  const motivo = document.getElementById('motivoAnulacionInput');
+  if (idInput) idInput.value = idGuia;
+  if (label) label.textContent = nroGuia || ('ID #' + idGuia);
+  if (motivo) motivo.value = '';
+  showBootstrapModal('modalAnularGuia');
+}
+
+export async function confirmAnularGuia() {
+  const idInput = document.getElementById('anularGuiaIdInput');
+  const motivoInput = document.getElementById('motivoAnulacionInput');
+  const idGuia = idInput?.value;
+  const motivo = motivoInput?.value.trim() || 'Anulada por el usuario';
+
+  if (!idGuia) return;
+
+  try {
+    await api.anularGuia(idGuia, motivo);
+    const idx = currentShipments.findIndex(s => String(s.id_guia) === String(idGuia));
+    if (idx !== -1) {
+      currentShipments[idx].estado = 'ANULADA';
+      currentShipments[idx].motivo_anulacion = motivo;
+    }
+    hideBootstrapModal('modalAnularGuia');
+    renderEnviosTable(currentShipments, currentSearchQuery);
+  } catch (err) {
+    console.error("Error al anular guía:", err);
+    alert('Error al anular la guía: ' + (err.message || 'Error de servidor'));
+  }
 }
 
 export function viewGuiaDetail(idGuia) {
@@ -159,21 +242,17 @@ export function viewGuiaDetail(idGuia) {
 }
 
 export function openPDF(idGuia) {
-  const guia = currentShipments.find(s => String(s.id_guia) === String(idGuia));
-  if (guia) {
-    openGuiaPDFInNewTab(guia);
-  } else {
-    alert('No se encontró la información de la guía seleccionada.');
-  }
+  const savedPath = localStorage.getItem('inplabel_guias_pdf_storage_path') || 'C:\\Inplabel\\Guias';
+  const savedSubfolders = localStorage.getItem('inplabel_pdf_subfolders') !== 'false';
+  const pdfUrl = `http://localhost:8080/api/guias/${idGuia}/pdf?storageDir=${encodeURIComponent(savedPath)}&useSubfolders=${savedSubfolders}`;
+  window.open(pdfUrl, '_blank');
 }
 
 export function printPDF(idGuia) {
-  const guia = currentShipments.find(s => String(s.id_guia) === String(idGuia));
-  if (guia) {
-    printGuiaPDF(guia);
-  } else {
-    alert('No se encontró la información de la guía seleccionada.');
-  }
+  const savedPath = localStorage.getItem('inplabel_guias_pdf_storage_path') || 'C:\\Inplabel\\Guias';
+  const savedSubfolders = localStorage.getItem('inplabel_pdf_subfolders') !== 'false';
+  const pdfUrl = `http://localhost:8080/api/guias/${idGuia}/pdf?storageDir=${encodeURIComponent(savedPath)}&useSubfolders=${savedSubfolders}`;
+  window.open(pdfUrl, '_blank');
 }
 
 export async function anularGuia(idGuia) {
@@ -198,111 +277,119 @@ export async function anularGuia(idGuia) {
 function renderGuiaHalfHTML(guia, copiaNombre) {
   const detalles = guia.detalles || [];
   const nroGuia = guia.nro_guia || 'GR001-0001';
-  const fechaStr = formatDate(guia.fecha_guia);
+  const fechaStr = formatDate(guia.fecha_guia || guia.fecha_emision);
   const clienteNombre = escapeHtml(guia.nombre_cliente || 'Cliente General');
   const clienteRuc = escapeHtml(guia.nro_documento || '-');
-  const docRef = escapeHtml(guia.doc_referencia || '-');
-  const puntoPartida = escapeHtml(guia.punto_partida || 'Planta Inplabel');
-  const puntoLlegada = escapeHtml(guia.punto_llegada || guia.direccion_destino || 'Dirección del cliente');
-  const observaciones = escapeHtml(guia.observaciones || '-');
+  const puntoPartida = escapeHtml(guia.punto_partida || 'C.P. Las Piedritas Av. Las Piedritas Mz D Lt 9 - CARABAYLLO - LIMA - LIMA');
+  const puntoLlegada = escapeHtml(guia.punto_llegada || guia.direccion_destino || 'Dirección del cliente - LIMA - LIMA');
+  const observaciones = escapeHtml(guia.observaciones || '');
   const isAnulada = (guia.estado === 'ANULADA');
 
   const rowsHTML = detalles.map((item, idx) => `
     <tr>
-      <td style="text-align: center; font-weight: bold; border: 1px solid #222; padding: 4px;">${idx + 1}</td>
-      <td style="text-align: center; border: 1px solid #222; padding: 4px; font-family: monospace;">${escapeHtml(item.codigo_producto || '#' + item.id_producto)}</td>
-      <td style="border: 1px solid #222; padding: 4px; font-weight: 600;">${escapeHtml(item.nombre_producto || 'Producto')}</td>
-      <td style="text-align: center; font-weight: bold; border: 1px solid #222; padding: 4px;">${item.cantidad || 1}</td>
-      <td style="text-align: center; border: 1px solid #222; padding: 4px;">UND</td>
+      <td style="text-align: center; font-weight: bold; border: 1px solid #444; padding: 3px;">${idx + 1}</td>
+      <td style="border: 1px solid #444; padding: 3px; font-weight: 500;">
+        ${item.codigo_producto ? `<span style="font-family: monospace; font-weight: bold;">[${escapeHtml(item.codigo_producto)}]</span> ` : ''}${escapeHtml(item.nombre_producto || 'Producto')}
+      </td>
+      <td style="text-align: center; border: 1px solid #444; padding: 3px;">UND</td>
+      <td style="text-align: center; font-weight: bold; border: 1px solid #444; padding: 3px;">${item.cantidad || 1}</td>
     </tr>
   `).join('');
 
   const emptyStateHTML = `
     <tr>
-      <td colspan="5" style="text-align: center; border: 1px solid #222; padding: 8px; color: #666;">Sin productos especificados</td>
+      <td colspan="4" style="text-align: center; border: 1px solid #444; padding: 6px; color: #666;">Sin productos especificados</td>
     </tr>
   `;
 
   return `
-    <div style="width: 48.5%; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #111; position: relative;">
-      ${isAnulada ? `<div style="position: absolute; top: 40%; left: 15%; transform: rotate(-30deg); font-size: 38px; font-weight: bold; color: rgba(220, 53, 69, 0.35); border: 4px solid rgba(220, 53, 69, 0.35); padding: 10px 20px; border-radius: 8px; z-index: 100;">GUÍA ANULADA</div>` : ''}
+    <div style="width: 48.5%; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; font-size: 8.5px; color: #000; position: relative; display: flex; flex-direction: column; justify-content: space-between; min-height: 480px;">
+      ${isAnulada ? `<div style="position: absolute; top: 40%; left: 15%; transform: rotate(-30deg); font-size: 36px; font-weight: bold; color: rgba(220, 53, 69, 0.4); border: 3px solid rgba(220, 53, 69, 0.4); padding: 8px 16px; border-radius: 8px; z-index: 100;">GUÍA ANULADA</div>` : ''}
 
-      <!-- Encabezado con Membrete y Recuadro RUC -->
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
-        <tr>
-          <td style="width: 20%; vertical-align: middle;">
-            <div style="font-weight: 900; font-size: 16px; color: #10b981; font-family: sans-serif; letter-spacing: -0.5px;">INPLABEL</div>
-            <div style="font-size: 7px; color: #666;">Envases Plásticos</div>
-          </td>
-          <td style="width: 55%; vertical-align: middle; padding-left: 6px; font-size: 8px; line-height: 1.25;">
-            <strong style="font-size: 10.5px; color: #004085; display: block; margin-bottom: 1px;">INDUSTRIAS PLASTICOS BELSA S.A.C</strong>
-            <div style="font-weight: bold; color: #333; font-size: 7px; margin-bottom: 2px;">DISEÑO, FABRICACIÓN Y COMERCIALIZACIÓN DE ENVASES PLÁSTICOS</div>
-            <div>Contacto: 983 518 504 - 975 564 460 | ventas@inplabel.com.pe</div>
-            <div style="font-size: 7px; color: #444; margin-top: 2px;">
-              <strong>Principal:</strong> Av. Maria Parado de Bellido Lt. 5 Lotizacion Chacra Cerro - Comas<br>
-              <strong>Sucursal:</strong> C.P. Las Piedritas Av. Las Piedritas Mz D Lt 9 - Carabayllo
-            </div>
-          </td>
-          <td style="width: 25%; text-align: center; vertical-align: middle;">
-            <div style="border: 1.5px solid #000; border-radius: 4px; padding: 4px; background: #fff;">
-              <div style="font-size: 8.5px; font-weight: bold;">RUC: 20544368827</div>
-              <div style="font-size: 9px; font-weight: bold; margin: 2px 0;">GUÍA DE REMISIÓN</div>
-              <div style="font-size: 10.5px; font-weight: bold; color: #c00;">${nroGuia}</div>
-            </div>
-            <div style="font-size: 7px; font-weight: bold; margin-top: 2px; text-transform: uppercase;">[ ${copiaNombre} ]</div>
-          </td>
-        </tr>
-      </table>
-
-      <!-- Datos del Cliente y Traslado -->
-      <table style="width: 100%; border-collapse: collapse; border: 1px solid #222; margin-bottom: 8px; font-size: 8.5px;">
-        <tr>
-          <td style="border: 1px solid #222; padding: 3px 5px; width: 55%; background: #f4f4f4;">
-            <strong>Señor(es):</strong> ${clienteNombre}
-          </td>
-          <td style="border: 1px solid #222; padding: 3px 5px; width: 45%; background: #f4f4f4;">
-            <strong>RUC / DNI:</strong> ${clienteRuc}
-          </td>
-        </tr>
-        <tr>
-          <td style="border: 1px solid #222; padding: 3px 5px;">
-            <strong>Fecha Emisión:</strong> ${fechaStr}
-          </td>
-          <td style="border: 1px solid #222; padding: 3px 5px;">
-            <strong>Doc. Referencia:</strong> ${docRef}
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2" style="border: 1px solid #222; padding: 3px 5px;">
-            <strong>Punto de Partida:</strong> ${puntoPartida}
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2" style="border: 1px solid #222; padding: 3px 5px;">
-            <strong>Punto de Llegada:</strong> ${puntoLlegada}
-          </td>
-        </tr>
-      </table>
-
-      <!-- Tabla de Productos enviada -->
-      <table style="width: 100%; border-collapse: collapse; border: 1px solid #222; margin-bottom: 6px; font-size: 8px;">
-        <thead>
-          <tr style="background: #e9ecef;">
-            <th style="border: 1px solid #222; padding: 3px; width: 6%;">N°</th>
-            <th style="border: 1px solid #222; padding: 3px; width: 18%;">Código</th>
-            <th style="border: 1px solid #222; padding: 3px; width: 52%;">Descripción del Producto</th>
-            <th style="border: 1px solid #222; padding: 3px; width: 14%;">Cantidad</th>
-            <th style="border: 1px solid #222; padding: 3px; width: 10%;">U.M.</th>
+      <div>
+        <!-- 1. Cabecera (Logo + Datos Empresa + Caja RUC) -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px;">
+          <tr>
+            <td style="width: 22%; vertical-align: middle;">
+              <img src="img/inplabel-logo.png" alt="Inplabel" style="max-width: 88px; max-height: 44px; object-fit: contain;">
+            </td>
+            <td style="width: 46%; vertical-align: middle; padding: 0 4px; font-size: 7.2px; line-height: 1.25;">
+              <strong style="font-size: 9.5px; color: #000; display: block; margin-bottom: 1px;">INDUSTRIAS PLASTICOS BELSA S.A.C</strong>
+              <div style="font-weight: bold; color: #222; font-size: 6.8px; margin-bottom: 1px;">DISEÑO, FABRICACIÓN Y COMERCIALIZACIÓN DE ENVASES PLÁSTICOS</div>
+              <div>Contacto: 983 518 504 - 975 564 460</div>
+              <div>www.inplabel.com.pe - ventas@inplabel.com.pe - inplabelsac@gmail.com</div>
+              <div><strong>Principal:</strong> Av. Maria Parado de Bellido Lt. 5 Lotizacion Chacra Cerro - Comas - Lima - Lima</div>
+              <div><strong>Sucursal:</strong> C.P. Las Piedritas Av. Las Piedritas Mz D Lt 9 - Carabayllo - Lima - Lima</div>
+            </td>
+            <td style="width: 32%; text-align: center; vertical-align: middle;">
+              <div style="border: 1px solid #000; padding: 5px 2px; background: #fff;">
+                <div style="font-size: 9px; font-weight: bold; color: #000;">RUC: 20544368827</div>
+                <div style="font-size: 8.5px; font-weight: bold; color: #000; margin: 2px 0;">GUIA DE REMISION DE CONTROL INTERNO</div>
+                <div style="font-size: 11px; font-weight: bold; color: #000; margin-top: 1px;">${nroGuia}</div>
+              </div>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          ${detalles.length > 0 ? rowsHTML : emptyStateHTML}
-        </tbody>
-      </table>
+        </table>
 
-      <!-- Cuadro Inferior de Observaciones -->
-      <div style="border: 1px solid #222; padding: 4px; font-size: 7.5px; background: #fff; min-height: 24px;">
-        <strong>Observaciones:</strong> ${observaciones}
+        <!-- 2. Datos del Destinatario, RUC y Fecha -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; font-size: 8px;">
+          <tr>
+            <td colspan="2" style="padding: 2px 0;">
+              <strong>DESTINATARIO:</strong> <span style="font-weight: 500;">${clienteNombre}</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 2px 0; width: 55%;">
+              <strong>RUC:</strong> <span style="font-weight: 500;">${clienteRuc}</span>
+            </td>
+            <td style="padding: 2px 0; width: 45%;">
+              <strong>FECHA:</strong> <span style="font-weight: 500;">${fechaStr}</span>
+            </td>
+          </tr>
+        </table>
+
+        <!-- 3. Cajas de Punto de Partida y Punto de Llegada (Líneas finas) -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; font-size: 7.5px;">
+          <tr>
+            <td style="width: 50%; border: 1px solid #444; padding: 3px; vertical-align: top;">
+              <div style="text-align: center; font-weight: bold; font-size: 8px; margin-bottom: 2px;">Punto de partida</div>
+              <div><strong>DIRECCIÓN:</strong> ${puntoPartida}</div>
+              <div>UBIGEO: - -</div>
+            </td>
+            <td style="width: 50%; border: 1px solid #444; padding: 3px; vertical-align: top;">
+              <div style="text-align: center; font-weight: bold; font-size: 8px; margin-bottom: 2px;">Punto de Llegada</div>
+              <div><strong>DIRECCIÓN:</strong> ${puntoLlegada}</div>
+              <div>UBIGEO: - -</div>
+            </td>
+          </tr>
+        </table>
+
+        <!-- 4. Tabla de Productos con Cabecera Verde (Sin Peso) -->
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #444; margin-bottom: 5px; font-size: 7.5px;">
+          <thead>
+            <tr style="background-color: #d1e7dd; color: #000;">
+              <th style="border: 1px solid #444; padding: 3px; width: 8%; text-align: center;">ITEM</th>
+              <th style="border: 1px solid #444; padding: 3px; width: 68%; text-align: center;">DESCRIPCION</th>
+              <th style="border: 1px solid #444; padding: 3px; width: 10%; text-align: center;">U.M.</th>
+              <th style="border: 1px solid #444; padding: 3px; width: 14%; text-align: center;">CANTIDAD</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${detalles.length > 0 ? rowsHTML : emptyStateHTML}
+          </tbody>
+        </table>
+
+        <!-- 5. Caja de Observaciones -->
+        <div style="border: 1px solid #444; padding: 4px; font-size: 7.5px; background: #fff; margin-bottom: 4px;">
+          <div style="font-weight: bold; margin-bottom: 1px;">OBSERVACIONES:</div>
+          ${observaciones && observaciones !== '-' ? `<div style="margin-bottom: 2px;">${observaciones}</div>` : ''}
+          <div style="color: #333; font-size: 6.8px;">Este documento es de uso exclusivo para control interno y no tiene validez ante SUNAT.</div>
+        </div>
+      </div>
+
+      <!-- 6. Leyenda de Copia al pie de página -->
+      <div style="text-align: center; font-size: 8px; font-weight: bold; color: #444; padding-top: 10px; margin-top: auto; text-transform: uppercase;">
+        [ COPIA: ${copiaNombre} ]
       </div>
     </div>
   `;
@@ -310,51 +397,70 @@ function renderGuiaHalfHTML(guia, copiaNombre) {
 
 export function generateGuiaInnerSheetHTML(guia) {
   return `
-    <div style="display: flex; justify-content: space-between; width: 100%; box-sizing: border-box; background: #ffffff; padding: 6px; color: #111;">
-      ${renderGuiaHalfHTML(guia, 'COPIA REMITENTE')}
-      <div style="width: 1px; border-left: 1px dashed #777; min-height: 380px; margin: 0 4px;"></div>
-      ${renderGuiaHalfHTML(guia, 'COPIA CLIENTE')}
+    <div style="display: flex; justify-content: space-between; width: 100%; box-sizing: border-box; background: #ffffff; padding: 4px; color: #000;">
+      ${renderGuiaHalfHTML(guia, 'REMITENTE')}
+      <div style="width: 1px; border-left: 1px dashed #888; min-height: 480px; margin: 0 6px;"></div>
+      ${renderGuiaHalfHTML(guia, 'CLIENTE')}
     </div>
   `;
 }
 
 export function generateGuiaHTML(guia) {
   const nroGuia = guia.nro_guia || 'GR001-0001';
-  return `
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-      <meta charset="UTF-8">
-      <title>Guía de Remisión ${nroGuia}</title>
-      <style>
-        @page {
-          size: A4 landscape;
-          margin: 6mm;
-        }
-        body {
-          margin: 0;
-          padding: 0;
-          background: #fff;
-          font-family: Arial, sans-serif;
-        }
-    <body>
-      ${generateGuiaInnerSheetHTML(guia)}
-    </body>
-    </html>
-  `;
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Guía de Remisión ${nroGuia}</title>
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 6mm;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 8px;
+      background: #ffffff;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #111;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  </style>
+</head>
+<body>
+  ${generateGuiaInnerSheetHTML(guia)}
+</body>
+</html>`;
 }
 
 export function openGuiaPDFInNewTab(guia) {
+  if (guia && (guia.id_guia || guia.id)) {
+    openPDF(guia.id_guia || guia.id);
+    return;
+  }
   const htmlContent = generateGuiaHTML(guia);
-  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-  const blobUrl = URL.createObjectURL(blob);
-  window.open(blobUrl, '_blank');
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.open();
+    win.document.write(htmlContent);
+    win.document.close();
+    win.focus();
+  }
 }
 
 export function printGuiaPDF(guia) {
+  if (guia && (guia.id_guia || guia.id)) {
+    printPDF(guia.id_guia || guia.id);
+    return;
+  }
   const htmlContent = generateGuiaHTML(guia);
   const printWindow = window.open('', '_blank');
   if (printWindow) {
+    printWindow.document.open();
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     printWindow.focus();

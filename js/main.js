@@ -34,7 +34,11 @@ import {
 import { 
   renderEnviosTable, 
   openPDF as openGuiaPDF, 
-  printPDF as printGuiaPDF 
+  printPDF as printGuiaPDF,
+  viewGuiaDetail,
+  anularGuia,
+  openAnularModal,
+  confirmAnularGuia
 } from './modules/envios.module.js';
 import { 
   initNuevaGuiaView, 
@@ -96,7 +100,11 @@ window.nuevaGuiaModule = {
 window.enviosModule = {
   renderEnviosTable,
   openPDF: openGuiaPDF,
-  printPDF: printGuiaPDF
+  printPDF: printGuiaPDF,
+  viewGuiaDetail,
+  anularGuia,
+  openAnularModal,
+  confirmAnularGuia
 };
 
 window.clientesModule = {

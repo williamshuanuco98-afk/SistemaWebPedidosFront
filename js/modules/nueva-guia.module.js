@@ -345,7 +345,8 @@ export async function submitNuevaGuia() {
   const puntoPartida = document.getElementById('puntoPartidaInput')?.value.trim() || (state.selectedLocal === 'COMAS' ? DIRECCION_COMAS : DIRECCION_CARABAYLLO);
   const puntoLlegada = document.getElementById('puntoLlegadaGuiaInput')?.value.trim() || state.selectedClient.direccion || '';
   const observaciones = document.getElementById('observacionesGuiaInput')?.value.trim() || '';
-  const storagePath = localStorage.getItem('inplabel_guias_pdf_storage_path') || 'C:\\Users\\User\\OneDrive\\Escritorio\\GuiasI';
+  const storagePath = localStorage.getItem('inplabel_guias_pdf_storage_path') || 'C:\\Inplabel\\Guias';
+  const useSubfolders = localStorage.getItem('inplabel_pdf_subfolders') !== 'false';
 
   const btnGuardar = document.getElementById('btnGuardarGuia');
   if (btnGuardar) {
@@ -365,6 +366,7 @@ export async function submitNuevaGuia() {
     punto_llegada: puntoLlegada,
     observaciones: observaciones,
     storage_path: storagePath,
+    use_subfolders: useSubfolders,
     estado: 'EMITIDA',
     detalles: state.guiaItems.map(item => ({
       id_producto: item.id_producto,
@@ -419,14 +421,14 @@ function showGuiaSuccessModal(guia) {
           <div class="modal-body text-center p-4">
             <i class="bi bi-file-earmark-check text-success display-1 d-block mb-3"></i>
             <h4 class="fw-bold mb-1" id="successModalNroGuia">GR001-0001</h4>
-            <p class="text-muted fs-7 mb-4">La guía de remisión ha sido procesada y registrada exitosamente en el sistema.</p>
+            <p class="text-muted fs-7 mb-4">La guía de remisión ha sido procesada, registrada y su archivo PDF generado en la ruta configurada.</p>
             
             <div class="d-flex justify-content-center gap-3">
               <button type="button" id="btnSuccessPrintGuia" class="btn btn-outline-primary px-3 py-2">
                 <i class="bi bi-printer me-1"></i> Imprimir
               </button>
               <button type="button" id="btnSuccessPdfGuia" class="btn btn-primary px-3 py-2">
-                <i class="bi bi-file-earmark-pdf me-1"></i> Visualizar en PDF
+                <i class="bi bi-file-earmark-pdf me-1"></i> Abrir Archivo PDF
               </button>
             </div>
           </div>
