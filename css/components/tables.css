@@ -98,3 +98,58 @@
   color: #f8fafc !important;
   border-top: 2px solid #334155 !important;
 }
+
+/* Action Buttons for Tables */
+.table-actions-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.btn-action-solid {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-action-solid:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  filter: brightness(1.1);
+  color: #ffffff !important;
+}
+
+.btn-action-solid:active {
+  transform: translateY(0);
+}
+
+.btn-action-solid.btn-view {
+  background: #0284c7 !important; /* Vibrant Sky Blue */
+}
+
+.btn-action-solid.btn-pdf {
+  background: #10b981 !important; /* Vibrant Emerald Green */
+}
+
+.btn-action-solid.btn-print {
+  background: #64748b !important; /* Slate Gray */
+}
+
+.btn-action-solid.btn-delete,
+.btn-action-solid.btn-cancel {
+  background: #ef4444 !important; /* Vibrant Red */
+}
+

@@ -648,11 +648,37 @@ const EMBEDDED_VIEWS = {
           <th>Cliente</th>
           <th>N° Doc (RUC/DNI)</th>
           <th>Estado</th>
-          <th class="text-center" style="width: 220px;">Acciones</th>
+          <th class="text-center" style="width: 80px;">DETALLES</th>
+          <th class="text-center" style="width: 70px;">PDF</th>
+          <th class="text-center" style="width: 70px;">PRINT</th>
+          <th class="text-center" style="width: 70px;">ANULAR</th>
         </tr>
       </thead>
       <tbody id="enviosTableBody"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- Modal Detalle de Guía -->
+<div class="modal fade" id="guiaDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white py-3">
+        <h5 class="modal-title fw-bold" id="guiaDetailTitle">
+          <i class="bi bi-truck text-white me-2"></i> Detalle de Guía de Remisión
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4" id="guiaDetailBody">
+        <!-- Dynamic content filled by viewGuiaDetail -->
+      </div>
+      <div class="modal-footer bg-body-tertiary">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-success btn-sm" id="btnPrintGuiaModal">
+          <i class="bi bi-printer me-1"></i> Imprimir Guía
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -669,22 +695,22 @@ const EMBEDDED_VIEWS = {
       <div class="modal-body p-4">
         <div class="alert alert-warning d-flex align-items-center mb-3 fs-7" role="alert">
           <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
-          <div>
-            <strong>¡Advertencia!</strong> Está a punto de dar de baja la guía <span id="anularNroGuiaLabel" class="fw-bold text-dark"></span>. Esta acción no se puede deshacer.
-          </div>
+          <div>Esta acción registrará la guía como <strong>ANULADA</strong> en el sistema.</div>
         </div>
-        
         <input type="hidden" id="anularGuiaIdInput">
-        
         <div class="mb-3">
-          <label for="motivoAnulacionInput" class="form-label fw-bold small">Motivo de Anulación / Baja <span class="text-danger">*</span></label>
-          <textarea id="motivoAnulacionInput" class="form-control form-control-sm" rows="3" placeholder="Escriba detalladamente el motivo de la anulación..."></textarea>
+          <label class="form-label fs-7 fw-semibold">N° de Guía:</label>
+          <div class="form-control-plaintext font-monospace fw-bold fs-6 text-primary" id="anularNroGuiaLabel">-</div>
+        </div>
+        <div class="mb-3">
+          <label for="motivoAnulacionInput" class="form-label fs-7 fw-semibold">Motivo de Anulación / Baja:</label>
+          <textarea class="form-control" id="motivoAnulacionInput" rows="3" placeholder="Ej: Error en datos del cliente o productos despachados..."></textarea>
         </div>
       </div>
       <div class="modal-footer bg-body-tertiary">
-        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-sm btn-danger px-3" onclick="enviosModule.confirmAnularGuia()">
-          <i class="bi bi-x-circle me-1"></i> Confirmar Anulación
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger btn-sm" onclick="enviosModule.confirmAnularGuia()">
+          <i class="bi bi-check-circle me-1"></i> Confirmar Anulación
         </button>
       </div>
     </div>

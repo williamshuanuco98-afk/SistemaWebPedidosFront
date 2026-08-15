@@ -74,7 +74,7 @@ export function renderEnviosTable(shipments = [], searchQuery = '') {
   if (countBadge) countBadge.textContent = `${filtered.length} guías`;
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No se encontraron guías de remisión registradas para los filtros aplicados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">No se encontraron guías de remisión registradas para los filtros aplicados.</td></tr>`;
     return;
   }
 
@@ -96,23 +96,31 @@ export function renderEnviosTable(shipments = [], searchQuery = '') {
         <td>
           <span class="status-badge ${badgeClass}">${statusText}</span>
         </td>
+        <!-- 1. Columna DETALLES -->
         <td class="text-center">
-          <div class="btn-group btn-group-sm" role="group">
-            <button class="btn btn-outline-primary" title="Ver Detalle" onclick="enviosModule.viewGuiaDetail('${s.id_guia}')">
-              <i class="bi bi-eye"></i>
+          <button class="btn-action-solid btn-view" title="Ver Detalles" onclick="enviosModule.viewGuiaDetail('${s.id_guia}')">
+            <i class="bi bi-eye-fill"></i>
+          </button>
+        </td>
+        <!-- 2. Columna PDF -->
+        <td class="text-center">
+          <button class="btn-action-solid btn-pdf" title="Ver PDF" onclick="enviosModule.openPDF('${s.id_guia}')">
+            <i class="bi bi-file-earmark-pdf-fill"></i>
+          </button>
+        </td>
+        <!-- 3. Columna PRINT -->
+        <td class="text-center">
+          <button class="btn-action-solid btn-print" title="Imprimir" onclick="enviosModule.printPDF('${s.id_guia}')">
+            <i class="bi bi-printer-fill"></i>
+          </button>
+        </td>
+        <!-- 4. Columna ANULAR -->
+        <td class="text-center">
+          ${!isAnulada ? `
+            <button class="btn-action-solid btn-cancel" title="Anular Guía" onclick="enviosModule.openAnularModal('${s.id_guia}', '${escapeHtml(s.nro_guia || '')}')">
+              <i class="bi bi-x-circle-fill"></i>
             </button>
-            <button class="btn btn-outline-success" title="Ver PDF" onclick="enviosModule.openPDF('${s.id_guia}')">
-              <i class="bi bi-file-earmark-pdf"></i>
-            </button>
-            <button class="btn btn-outline-secondary" title="Imprimir Guía" onclick="enviosModule.printPDF('${s.id_guia}')">
-              <i class="bi bi-printer"></i>
-            </button>
-            ${!isAnulada ? `
-              <button class="btn btn-outline-danger" title="Dar de Baja / Anular" onclick="enviosModule.openAnularModal('${s.id_guia}', '${escapeHtml(s.nro_guia || '')}')">
-                <i class="bi bi-x-circle"></i>
-              </button>
-            ` : ''}
-          </div>
+          ` : `<span class="text-muted small">-</span>`}
         </td>
       </tr>
     `;
@@ -248,11 +256,46 @@ export function openPDF(idGuia) {
   window.open(pdfUrl, '_blank');
 }
 
-export function printPDF(idGuia) {
+export async function printPDF(idGuia) {
+  let guia = currentShipments.find(s => String(s.id_guia) === String(idGuia));
+  if (!guia) {
+    try {
+      guia = await api.getGuiaById(idGuia);
+    } catch (e) {
+      console.warn("No se pudo obtener la guía por API:", e);
+    }
+  }
+
+  if (guia) {
+    printGuiaDirectWithoutNewTab(guia);
+    return;
+  }
+
+  // Fallback: If not in memory, print PDF stream directly via invisible iframe
   const savedPath = localStorage.getItem('inplabel_guias_pdf_storage_path') || 'C:\\Inplabel\\Guias';
   const savedSubfolders = localStorage.getItem('inplabel_pdf_subfolders') !== 'false';
   const pdfUrl = `http://localhost:8080/api/guias/${idGuia}/pdf?storageDir=${encodeURIComponent(savedPath)}&useSubfolders=${savedSubfolders}`;
-  window.open(pdfUrl, '_blank');
+
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.src = pdfUrl;
+  document.body.appendChild(iframe);
+  iframe.onload = () => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (e) {
+      console.error("Error al imprimir iframe:", e);
+    }
+    setTimeout(() => {
+      try { document.body.removeChild(iframe); } catch (e) { }
+    }, 3000);
+  };
 }
 
 export async function anularGuia(idGuia) {
@@ -449,6 +492,14 @@ export function generateGuiaHTML(guia) {
 </head>
 <body>
   ${generateGuiaInnerSheetHTML(guia)}
+  <script>
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        window.focus();
+        window.print();
+      }, 300);
+    });
+  </script>
 </body>
 </html>`;
 }
@@ -468,22 +519,40 @@ export function openGuiaPDFInNewTab(guia) {
   }
 }
 
+export function printGuiaDirectWithoutNewTab(guia) {
+  const htmlContent = generateGuiaHTML(guia);
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(htmlContent);
+  doc.close();
+
+  setTimeout(() => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (e) {
+      console.error("Error al disparar impresión nativa:", e);
+    }
+    setTimeout(() => {
+      try { document.body.removeChild(iframe); } catch (e) { }
+    }, 3000);
+  }, 350);
+}
+
 export function printGuiaPDF(guia) {
   if (guia && (guia.id_guia || guia.id)) {
     printPDF(guia.id_guia || guia.id);
     return;
   }
-  const htmlContent = generateGuiaHTML(guia);
-  const printWindow = window.open('', '_blank');
-  if (printWindow) {
-    printWindow.document.open();
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      try {
-        printWindow.print();
-      } catch (e) { }
-    }, 400);
-  }
+  printGuiaDirectWithoutNewTab(guia);
 }
+
