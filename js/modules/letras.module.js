@@ -924,233 +924,408 @@ export function generateLetraPrintHTML(letra) {
 
   const montoFormatted = (parseFloat(letra.monto) || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const montoLetras = escapeHtml((letra.monto_letras || 'UN MIL SESENTA Y DOS CON 00 / 100 SOLES').toUpperCase());
+  const cliente = escapeHtml(letra.nombre_cliente || 'INDUSTRIAS VISKOSIL S.A.C.');
+  const ruc = escapeHtml(letra.nro_documento || '20600902971');
+  const direccion = escapeHtml(letra.direccion_cliente || 'MZ. I LT. 03 LAS VEGAS 1RA ETAPA - LIMA - LIMA - PUENTE PIEDRA');
 
   return `
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-      <meta charset="UTF-8">
-      <title>Letra de Cambio - ${nroLetra}</title>
-      <style>
-        @page { size: portrait; margin: 10mm 10mm; }
-        * { box-sizing: border-box; }
-        body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; color: #141414; font-size: 11px; background: #fff; }
-        .letra-box { width: 100%; max-width: 740px; margin: 0 auto; }
-        
-        .top-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
-        .logo-block { display: flex; align-items: center; }
-        .company-info { text-align: right; font-size: 9.5px; line-height: 1.35; color: #141414; }
-        .company-info-line { border-top: 1.5px solid #3c3c3c; width: 260px; margin-bottom: 4px; margin-left: auto; }
-        
-        .main-container { display: flex; border: 1.5px solid #141414; }
-        
-        .left-clauses {
-          width: 28px;
-          min-width: 28px;
-          padding: 6px 2px;
-          border-right: 1.5px solid #141414;
-          font-size: 6.8px;
-          line-height: 1.2;
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
-          text-align: left;
-        }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Letra de Cambio - ${nroLetra}</title>
+<style>
+  :root{
+    --green:#008c5a;
+    --black:#141414;
+    --lightgreen:#deebde;
+    --border:#141414;
+  }
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    padding:0;
+    background:#fff;
+    font-family:"DejaVu Sans","Segoe UI",Arial,sans-serif;
+    color:var(--black);
+    display:flex;
+    justify-content:center;
+  }
+  .sheet{
+    background:#fff;
+    width:100%;
+    max-width:820px;
+    padding:10px 15px;
+    position:relative;
+  }
 
-        .right-content { flex: 1; display: flex; flex-direction: column; }
-        
-        .upper-wrapper { display: flex; }
-        .aceptante-tag {
-          width: 22px;
-          min-width: 22px;
-          border-right: 1.5px solid #141414;
-          border-bottom: 1.5px solid #141414;
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
-          text-align: center;
-          font-size: 8.5px;
-          font-weight: bold;
-          padding: 4px 0;
-        }
-        .upper-main { flex: 1; display: flex; flex-direction: column; }
+  /* ---------- Encabezado ---------- */
+  .header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom:14px;
+  }
+  .logo-block{
+    display:flex;
+    align-items:center;
+  }
+  .logo-img{
+    height:50px;
+    object-fit:contain;
+  }
+  .company-address{
+    text-align:right;
+    font-size:11px;
+    line-height:1.45;
+    padding-top:4px;
+    border-top:2px solid #444;
+    min-width:340px;
+  }
 
-        .grid-header { width: 100%; border-collapse: collapse; text-align: center; }
-        .grid-header th, .grid-header td { border: 1.5px solid #141414; padding: 3px 2px; }
-        .grid-header th { font-size: 9px; font-weight: bold; background: #e2ebd8; }
-        .grid-header td { font-size: 11.5px; font-weight: bold; height: 26px; }
-        
-        .date-cell-table { width: 100%; border-collapse: collapse; }
-        .date-cell-table td { border: none; padding: 1px; font-size: 8.5px; background: #e2ebd8; }
-        .date-cell-table tr.date-val td { border-top: 1.5px solid #141414; font-weight: bold; font-size: 11.5px; background: #fff; height: 26px; }
+  /* ---------- Tabla superior ---------- */
+  .doc-body{
+    display:flex;
+  }
+  .side-label-wrap{
+    position:relative;
+    width:24px;
+    flex-shrink:0;
+    border:2px solid var(--border);
+    border-right:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#fafafa;
+  }
+  .side-label-wrap .txt{
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space:nowrap;
+    font-size:9.5px;
+    font-weight:700;
+    text-align:center;
+  }
+  .clauses-outer{
+    position:relative;
+    width:38px;
+    flex-shrink:0;
+    border:2px solid var(--border);
+    border-right:none;
+    padding:6px 2px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .clauses-inner{
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size:7.2px;
+    line-height:1.15;
+    color:#111;
+    text-align:left;
+  }
+  .clauses-inner b{ font-size:7.5px; }
 
-        .banner-text { font-size: 10.5px; padding: 4px 6px; }
-        .amount-box { border: 1.5px solid #141414; padding: 5px 8px; font-weight: bold; font-size: 11px; margin: 0 4px 4px 4px; }
-        .sub-text { font-size: 10px; padding: 2px 6px 4px 6px; border-bottom: 1.5px solid #141414; }
+  .main-col{ flex:1; min-width:0; }
 
-        .lower-grid { display: flex; }
-        .lower-left { width: 56%; display: flex; flex-direction: column; border-right: 1.5px solid #141414; }
-        
-        .girado-info { padding: 6px 8px; font-size: 10.5px; line-height: 1.5; }
-        
-        .aval-wrapper { display: flex; border-top: 1.5px solid #141414; flex: 1; }
-        .por-aval-tag {
-          width: 22px;
-          min-width: 22px;
-          border-right: 1.5px solid #141414;
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
-          text-align: center;
-          font-size: 8.5px;
-          font-weight: bold;
-          padding: 4px 0;
-        }
-        .aval-info { flex: 1; padding: 6px 8px; font-size: 10px; line-height: 1.5; }
+  table.topinfo{
+    border-collapse:collapse;
+    width:100%;
+    table-layout:fixed;
+  }
+  table.topinfo th, table.topinfo td{
+    border:2px solid var(--border);
+    text-align:center;
+    padding:4px 2px;
+  }
+  table.topinfo th{
+    font-size:10px;
+    font-weight:700;
+    background:#f0f5ee;
+  }
+  table.topinfo td.value{
+    font-size:13.5px;
+    font-weight:700;
+    padding:8px 2px;
+  }
+  table.topinfo td.value.amount{
+    font-size:15px;
+  }
+  table.topinfo .subhead{
+    font-size:9px;
+    font-weight:700;
+    background:#f0f5ee;
+    padding:2px 1px;
+  }
 
-        .lower-right { width: 44%; padding: 5px 6px; font-size: 10px; text-align: center; display: flex; flex-direction: column; }
-        .bank-debit-line { font-size: 9.5px; text-align: left; margin-bottom: 3px; }
-        .bank-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 8.5px; }
-        .bank-table th, .bank-table td { border: 1.5px solid #141414; padding: 2px; }
-        .bank-table th { background: #e2ebd8; font-weight: bold; }
-        .bank-table td { height: 18px; }
+  /* ---------- Frase orden de pago ---------- */
+  .pay-phrase{
+    margin:10px 0 6px 0;
+    font-size:12px;
+    padding-left:4px;
+  }
+  .pay-phrase b{ font-weight:700; }
+  .pay-phrase .beneficiary{
+    color:var(--green);
+    font-weight:700;
+    font-style:italic;
+  }
 
-        .company-name { font-weight: bold; font-style: italic; color: #008c5a; font-size: 12px; margin-top: 4px; }
-        .company-ruc { font-weight: bold; font-size: 11px; margin-bottom: 6px; }
-        .signature-line { margin-top: 24px; border-bottom: 1.5px dotted #141414; width: 75%; margin-left: auto; margin-right: auto; }
-        .signature-label { font-size: 9.5px; font-weight: bold; margin-top: 2px; }
-        .signature-sub { font-size: 8.5px; color: #333; text-align: center; margin-top: 1px; }
-        .doi-label { font-size: 9px; font-weight: bold; text-align: left; margin-top: 3px; padding-left: 4px; }
+  .amount-words{
+    border:2px solid var(--border);
+    padding:8px 10px;
+    font-size:12.5px;
+    font-weight:700;
+    margin-bottom:8px;
+    background:#fff;
+  }
 
-        .footer-line { border-top: 1.5px solid #141414; margin-top: 4px; }
-        .footer-note { font-size: 9.5px; margin-top: 3px; text-align: left; }
-      </style>
-    </head>
-    <body>
-      <div class="letra-box">
-        <div class="top-header">
-          <div class="logo-block">
-            <svg width="46" height="46" viewBox="0 0 60 60" style="margin-right: 8px;">
-              <circle cx="30" cy="30" r="17" fill="none" stroke="#008c5a" stroke-width="4"/>
-              <line x1="30" y1="9" x2="30" y2="4" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
-              <line x1="30" y1="51" x2="30" y2="56" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
-              <line x1="9" y1="30" x2="4" y2="30" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
-              <line x1="51" y1="30" x2="56" y2="30" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
-              <line x1="15" y1="15" x2="11" y2="11" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
-              <line x1="45" y1="45" x2="49" y2="49" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
-              <line x1="15" y1="45" x2="11" y2="49" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
-              <line x1="45" y1="15" x2="49" y2="11" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
-              <rect x="21" y="24" width="5" height="12" rx="1.5" fill="#008c5a"/>
-              <rect x="28" y="21" width="5" height="15" rx="1.5" fill="#008c5a"/>
-              <rect x="34" y="26" width="4" height="10" rx="1.5" fill="#008c5a"/>
-            </svg>
-            <div>
-              <div style="font-size: 24px; font-weight: bold; line-height: 1; color: #1e1e1e;">Inplabel</div>
-              <div style="font-size: 9.5px; font-weight: bold; color: #008c5a; margin-top: 2px;">Industrias plasticos belsa S.A.C.</div>
-            </div>
-          </div>
+  .payplace-note{
+    font-size:11px;
+    margin-bottom:8px;
+    padding-left:4px;
+  }
 
-          <div class="company-info">
-            <div class="company-info-line"></div>
-            <div><strong>Av. María Parado de Bellido Lte. 5</strong></div>
-            <div>Lotización Chacra Cerro - Comas - Lima - Lima</div>
-            <div>Telf.: (01)557-1526 Claro: 975 564 460 / 983 518 504</div>
-          </div>
-        </div>
+  /* ---------- Tabla inferior ---------- */
+  .bottom-table{
+    display:grid;
+    grid-template-columns: 1fr 310px;
+    border:2px solid var(--border);
+  }
+  .bt-left{
+    border-right:2px solid var(--border);
+    padding:10px 12px;
+    position:relative;
+  }
+  .bt-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:8px;
+    font-size:11px;
+  }
+  .bt-row .lbl{
+    font-weight:700;
+    min-width:75px;
+    flex-shrink:0;
+  }
+  .bt-divider{
+    border-top:1px solid #333;
+    margin:8px 0 10px 0;
+  }
+  .dots{
+    border-bottom:1px dotted #333;
+    flex:1;
+    display:inline-block;
+    min-width:40px;
+    margin-left:4px;
+    height:13px;
+  }
+  .bt-row.inline{ align-items:flex-end; }
+  .bt-row.avalista .dots{ margin-left:8px; }
 
-        <div class="main-container">
-          <div class="left-clauses">
-            <strong>CLÁUSULAS ESPECIALES:</strong> (1) En caso de mora, esta letra de cambio generará las tasas de interés compensatorio y moratorio más altas que la ley permita a su último Tenedor. (2) El plazo de su vencimiento podrá ser prorrogado por el tenedor, por el plazo que este señale, sin que sea necesario la intervención del obligado principal ni de los solidarios. (3) Las partes acuerdan consignar la cláusula "sin protesto" y por tanto no se requerirá de esta diligencia para el ejercicio de las acciones cambiarias. (4) Las partes se someten a la competencia de los jueces del Distrito Judicial de Lima.
-          </div>
+  .bt-right{
+    padding:8px 10px;
+    display:flex;
+    flex-direction:column;
+  }
+  .debit-note{
+    font-size:9.5px;
+    margin-bottom:6px;
+  }
+  table.banktable{
+    border-collapse:collapse;
+    width:100%;
+    margin-bottom:6px;
+  }
+  table.banktable th, table.banktable td{
+    border:1.5px solid var(--border);
+    font-size:9px;
+    text-align:center;
+    padding:3px 1px;
+    font-weight:700;
+  }
+  table.banktable th{ background:#f0f5ee; }
+  table.banktable td.blank{ height:20px; }
 
-          <div class="right-content">
-            <div class="upper-wrapper">
-              <div class="aceptante-tag">Aceptante(s)</div>
-              <div class="upper-main">
-                <table class="grid-header">
-                  <tr>
-                    <th style="width: 17%;">NUMERO DE LETRA</th>
-                    <th style="width: 17%;">REF. DEL GIRADOR</th>
-                    <th style="width: 14%;">LUGAR DE GIRO</th>
-                    <th style="width: 18%;">FECHA DE GIRO</th>
-                    <th style="width: 18%;">FECHA DE VENCIMIENTO</th>
-                    <th style="width: 16%;">MONEDA E IMPORTE</th>
-                  </tr>
-                  <tr>
-                    <td>${nroLetra}</td>
-                    <td>${refGirador}</td>
-                    <td>${lugarGiro}</td>
-                    <td style="padding:0;">
-                      <table class="date-cell-table">
-                        <tr><td>DIA</td><td>MES</td><td>AÑO</td></tr>
-                        <tr class="date-val"><td>${fgDia}</td><td>${fgMes}</td><td>${fgAnio}</td></tr>
-                      </table>
-                    </td>
-                    <td style="padding:0;">
-                      <table class="date-cell-table">
-                        <tr><td>DIA</td><td>MES</td><td>AÑO</td></tr>
-                        <tr class="date-val"><td>${fvDia}</td><td>${fvMes}</td><td>${fvAnio}</td></tr>
-                      </table>
-                    </td>
-                    <td>S/ ${montoFormatted}</td>
-                  </tr>
-                </table>
+  .beneficiary-name{
+    color:var(--green);
+    font-weight:700;
+    font-style:italic;
+    text-align:center;
+    font-size:12px;
+    margin-top:6px;
+  }
+  .beneficiary-ruc{
+    text-align:center;
+    font-weight:700;
+    font-size:11px;
+    margin-bottom:14px;
+  }
+  .firma{
+    text-align:center;
+    margin-top:auto;
+  }
+  .firma .line{
+    border-bottom:1px dotted #333;
+    width:80%;
+    margin:0 auto 3px auto;
+  }
+  .firma .caption{
+    font-weight:700;
+    font-size:10.5px;
+  }
+  .firma .rep{
+    font-size:9.5px;
+    margin-top:1px;
+  }
+  .doi{
+    font-weight:700;
+    font-size:10px;
+    margin-top:4px;
+    text-align:left;
+  }
 
-                <div class="banner-text">
-                  Por esta <strong>LETRA DE CAMBIO</strong>, se servirá(n) pagar a la orden de <strong style="color: #008c5a; font-style: italic;">INDUSTRIAS PLASTICOS BELSA S.A.C.</strong> la cantidad de:
-                </div>
+  .footer-line{
+    border-top:1.5px solid var(--border);
+    margin-top:12px;
+    padding-top:4px;
+    font-size:10.5px;
+  }
+</style>
+</head>
+<body>
 
-                <div class="amount-box">
-                  ${montoLetras}
-                </div>
+<div class="sheet">
 
-                <div class="sub-text">
-                  Valor que sentará(n) en cuenta según aviso de sus Ss. Ss. en el siguiente lugar de pago:
-                </div>
-              </div>
-            </div>
+  <!-- ENCABEZADO -->
+  <div class="header">
+    <div class="logo-block">
+      <img src="img/inplabel-logo.png" alt="Inplabel" class="logo-img" onerror="this.style.display='none'">
+    </div>
+    <div class="company-address">
+      <b>Av. María Parado de Bellido Lte. 5</b><br>
+      Lotización Chacra Cerro - Comas - Lima - Lima<br>
+      Telf.: (01)557-1526 Claro: 975 564 460 / 983 518 504
+    </div>
+  </div>
 
-            <div class="lower-grid">
-              <div class="lower-left">
-                <div class="girado-info">
-                  <div><strong>GIRADO A:</strong> <strong>${escapeHtml(letra.nombre_cliente || '')}</strong></div>
-                  <div style="margin-top: 6px;"><strong>RUC:</strong> ${escapeHtml(letra.nro_documento || '')}</div>
-                  <div style="margin-top: 4px;"><strong>DIRECCION:</strong> ${escapeHtml(letra.direccion_cliente || '')}</div>
-                </div>
-                
-                <div class="aval-wrapper">
-                  <div class="por-aval-tag">Por Aval</div>
-                  <div class="aval-info">
-                    <div><strong>AVALISTA:</strong> .....................................................................................</div>
-                    <div style="margin-top: 6px;">
-                      <span><strong>D.I/R.U.C:</strong> ................................</span>
-                      <span style="margin-left: 15px;"><strong>TELEFONO:</strong> ..........................</span>
-                    </div>
-                    <div style="margin-top: 6px;"><strong>DIRECCION:</strong> ....................................................................................</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="lower-right">
-                <div class="bank-debit-line">Importe a debitar en cuenta del Aceptante del Banco:....................................</div>
-                <table class="bank-table">
-                  <tr><th>BANCO</th><th>OFICINA</th><th>NUMERO DE CUENTA</th><th>D.C.</th></tr>
-                  <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-                </table>
-
-                <div class="company-name">INDUSTRIAS PLASTICOS BELSA S.A.C.</div>
-                <div class="company-ruc">RUC: 20544368827</div>
-                <div class="signature-line"></div>
-                <div class="signature-label">FIRMA</div>
-                <div class="signature-sub">Nombre del representante(S)</div>
-                <div class="doi-label">D.O.I</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="footer-line"></div>
-        <div class="footer-note">No escribir ni firmar debajo de esta linea</div>
+  <div class="doc-body">
+    <!-- CLAUSULAS ESPECIALES (vertical, extremo izquierdo) -->
+    <div class="clauses-outer">
+      <div class="clauses-inner">
+        <b>CLÁUSULAS ESPECIALES:</b>
+        (1) En caso de mora, esta letra de cambio generará las tasas de interés compensatorio y moratorio más altas que la ley permita a su último Tenedor.
+        (2) El plazo de su vencimiento podrá ser prorrogado por el tenedor, por el plazo que este señale, sin que sea necesario la intervención del obligado principal ni de los solidarios.
+        (3) Las partes acuerdan consignar la cláusula "sin protesto" y por tanto no se requerirá de esta diligencia para el ejercicio de las acciones cambiarias.
+        (4) Las partes se someten a la competencia de los jueces del Distrito Judicial de Lima.
       </div>
-    </body>
-    </html>
+    </div>
+
+    <div class="main-col">
+
+      <div style="display:flex;">
+        <!-- Aceptante(s) vertical -->
+        <div class="side-label-wrap"><span class="txt">Aceptante(s)</span></div>
+
+        <!-- TABLA SUPERIOR -->
+        <table class="topinfo">
+          <colgroup>
+            <col style="width:17%">
+            <col style="width:16%">
+            <col style="width:13%">
+            <col style="width:7.5%"><col style="width:7.5%"><col style="width:7.5%">
+            <col style="width:7.5%"><col style="width:7.5%"><col style="width:7.5%">
+            <col style="width:16.5%">
+          </colgroup>
+          <tr>
+            <th rowspan="2">NUMERO DE LETRA</th>
+            <th rowspan="2">REF. DEL GIRADOR</th>
+            <th rowspan="2">LUGAR DE GIRO</th>
+            <th colspan="3">FECHA DE GIRO</th>
+            <th colspan="3">FECHA DE VENCIMIENTO</th>
+            <th rowspan="2">MONEDA E IMPORTE</th>
+          </tr>
+          <tr>
+            <th class="subhead">DIA</th><th class="subhead">MES</th><th class="subhead">AÑO</th>
+            <th class="subhead">DIA</th><th class="subhead">MES</th><th class="subhead">AÑO</th>
+          </tr>
+          <tr>
+            <td class="value">${nroLetra}</td>
+            <td class="value">${refGirador}</td>
+            <td class="value">${lugarGiro}</td>
+            <td class="value">${fgDia}</td><td class="value">${fgMes}</td><td class="value">${fgAnio}</td>
+            <td class="value">${fvDia}</td><td class="value">${fvMes}</td><td class="value">${fvAnio}</td>
+            <td class="value amount">S/ ${montoFormatted}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- FRASE DE PAGO -->
+      <div class="pay-phrase">
+        Por esta <b>LETRA DE CAMBIO</b>, se servirá(n) pagar a la orden de
+        <span class="beneficiary">INDUSTRIAS PLASTICOS BELSA S.A.C.</span> la cantidad de:
+      </div>
+
+      <div class="amount-words">${montoLetras}</div>
+
+      <div class="payplace-note">
+        Valor que sentará(n) en cuenta según aviso de sus Ss. Ss. en el siguiente lugar de pago:
+      </div>
+
+      <div style="display:flex;">
+        <!-- Por Aval vertical -->
+        <div class="side-label-wrap"><span class="txt">Por Aval</span></div>
+
+        <!-- TABLA INFERIOR -->
+        <div class="bottom-table" style="flex:1;">
+          <div class="bt-left">
+            <div class="bt-row"><span class="lbl">GIRADO A:</span><span><b>${cliente}</b></span></div>
+            <div class="bt-row"><span class="lbl">RUC:</span><span>${ruc}</span></div>
+            <div class="bt-row"><span class="lbl">DIRECCION:</span><span>${direccion}</span></div>
+
+            <div class="bt-divider"></div>
+
+            <div class="bt-row inline avalista"><span class="lbl">AVALISTA:</span><span class="dots"></span></div>
+            <div class="bt-row inline avalista">
+              <span class="lbl" style="min-width:60px;">D.I/R.U.C:</span><span class="dots" style="max-width:110px;"></span>
+              <span class="lbl" style="min-width:65px; margin-left:10px;">TELEFONO:</span><span class="dots"></span>
+            </div>
+            <div class="bt-row inline avalista"><span class="lbl">DIRECCION:</span><span class="dots"></span></div>
+          </div>
+
+          <div class="bt-right">
+            <div class="debit-note">Importe a debitar en cuenta del Aceptante del Banco: ..............................</div>
+            <table class="banktable">
+              <tr><th>BANCO</th><th>OFICINA</th><th>NUMERO DE CUENTA</th><th>D.C.</th></tr>
+              <tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+            </table>
+            <div class="beneficiary-name">INDUSTRIAS PLASTICOS BELSA S.A.C.</div>
+            <div class="beneficiary-ruc">RUC: 20544368827</div>
+
+            <div class="firma">
+              <div class="line"></div>
+              <div class="caption">FIRMA</div>
+              <div class="rep">Nombre del representante(S)</div>
+            </div>
+            <div class="doi">D.O.I</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-line">No escribir ni firmar debajo de esta linea</div>
+
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
   `;
 }
 
