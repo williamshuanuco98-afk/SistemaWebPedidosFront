@@ -908,22 +908,22 @@ export function printLetraDirect(idLetra) {
 }
 
 export function generateLetraPrintHTML(letra) {
-  const nroLetra = escapeHtml(letra.nro_letra || '261-2026');
+  const nroLetra = escapeHtml(letra.nro_letra || '261 - 2025');
   const refGirador = escapeHtml(letra.ref_girador || 'FF02 - 630');
   const lugarGiro = escapeHtml(letra.lugar_giro || 'LIMA');
 
-  const fechaGiroParts = (letra.fecha_giro || '2026-08-15').split('-');
-  const fgDia = fechaGiroParts[2] || '15';
+  const fechaGiroParts = (letra.fecha_giro || '2025-08-12').split('-');
+  const fgDia = fechaGiroParts[2] || '12';
   const fgMes = fechaGiroParts[1] || '08';
-  const fgAnio = (fechaGiroParts[0] || '2026').slice(2);
+  const fgAnio = (fechaGiroParts[0] || '2025').slice(2);
 
-  const fechaVencParts = (letra.fecha_vencimiento || '2026-09-15').split('-');
-  const fvDia = fechaVencParts[2] || '15';
+  const fechaVencParts = (letra.fecha_vencimiento || '2025-09-21').split('-');
+  const fvDia = fechaVencParts[2] || '21';
   const fvMes = fechaVencParts[1] || '09';
-  const fvAnio = (fechaVencParts[0] || '2026').slice(2);
+  const fvAnio = (fechaVencParts[0] || '2025').slice(2);
 
   const montoFormatted = (parseFloat(letra.monto) || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const montoLetras = escapeHtml((letra.monto_letras || '').toUpperCase());
+  const montoLetras = escapeHtml((letra.monto_letras || 'UN MIL SESENTA Y DOS CON 00 / 100 SOLES').toUpperCase());
 
   return `
     <!DOCTYPE html>
@@ -932,21 +932,25 @@ export function generateLetraPrintHTML(letra) {
       <meta charset="UTF-8">
       <title>Letra de Cambio - ${nroLetra}</title>
       <style>
-        @page { size: portrait; margin: 10mm 8mm; }
-        body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; color: #000; font-size: 11px; background: #fff; }
-        .letra-box { width: 100%; max-width: 760px; margin: 0 auto; box-sizing: border-box; }
-        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .company-info { text-align: right; font-size: 11px; line-height: 1.3; }
-        .main-container { display: flex; border: 1.5px solid #000; box-sizing: border-box; }
+        @page { size: portrait; margin: 10mm 10mm; }
+        * { box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; color: #141414; font-size: 11px; background: #fff; }
+        .letra-box { width: 100%; max-width: 740px; margin: 0 auto; }
+        
+        .top-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
+        .logo-block { display: flex; align-items: center; }
+        .company-info { text-align: right; font-size: 9.5px; line-height: 1.35; color: #141414; }
+        .company-info-line { border-top: 1.5px solid #3c3c3c; width: 260px; margin-bottom: 4px; margin-left: auto; }
+        
+        .main-container { display: flex; border: 1.5px solid #141414; }
         
         .left-clauses {
-          width: 32px;
-          min-width: 32px;
-          padding: 4px 2px;
-          border-right: 1.5px solid #000;
-          font-size: 6.5px;
-          line-height: 1.15;
-          box-sizing: border-box;
+          width: 28px;
+          min-width: 28px;
+          padding: 6px 2px;
+          border-right: 1.5px solid #141414;
+          font-size: 6.8px;
+          line-height: 1.2;
           writing-mode: vertical-rl;
           transform: rotate(180deg);
           text-align: left;
@@ -956,72 +960,95 @@ export function generateLetraPrintHTML(letra) {
         
         .upper-wrapper { display: flex; }
         .aceptante-tag {
-          width: 20px;
-          min-width: 20px;
-          border-right: 1px solid #000;
-          border-bottom: 1px solid #000;
+          width: 22px;
+          min-width: 22px;
+          border-right: 1.5px solid #141414;
+          border-bottom: 1.5px solid #141414;
           writing-mode: vertical-rl;
           transform: rotate(180deg);
           text-align: center;
-          font-size: 8px;
+          font-size: 8.5px;
+          font-weight: bold;
           padding: 4px 0;
-          box-sizing: border-box;
         }
         .upper-main { flex: 1; display: flex; flex-direction: column; }
 
         .grid-header { width: 100%; border-collapse: collapse; text-align: center; }
-        .grid-header th, .grid-header td { border: 1px solid #000; padding: 4px; }
-        .grid-header th { font-size: 9.5px; font-weight: bold; background: #e2ebd8; }
-        .grid-header td { font-size: 12px; font-weight: bold; height: 22px; }
+        .grid-header th, .grid-header td { border: 1.5px solid #141414; padding: 3px 2px; }
+        .grid-header th { font-size: 9px; font-weight: bold; background: #e2ebd8; }
+        .grid-header td { font-size: 11.5px; font-weight: bold; height: 26px; }
         
         .date-cell-table { width: 100%; border-collapse: collapse; }
-        .date-cell-table td { border: none; padding: 2px; font-size: 10px; }
-        .date-cell-table tr.date-val td { border-top: 1px solid #000; font-weight: bold; font-size: 12px; }
+        .date-cell-table td { border: none; padding: 1px; font-size: 8.5px; background: #e2ebd8; }
+        .date-cell-table tr.date-val td { border-top: 1.5px solid #141414; font-weight: bold; font-size: 11.5px; background: #fff; height: 26px; }
 
-        .banner-text { font-size: 11.5px; padding: 4px 6px; border-left: 1px solid #000; border-right: 1px solid #000; }
-        .amount-box { border: 1px solid #000; padding: 6px; font-weight: bold; font-size: 12px; background: #fff; min-height: 20px; }
-        .sub-text { font-size: 11px; padding: 4px 6px; border-left: 1px solid #000; border-right: 1px solid #000; border-bottom: 1px solid #000; }
+        .banner-text { font-size: 10.5px; padding: 4px 6px; }
+        .amount-box { border: 1.5px solid #141414; padding: 5px 8px; font-weight: bold; font-size: 11px; margin: 0 4px 4px 4px; }
+        .sub-text { font-size: 10px; padding: 2px 6px 4px 6px; border-bottom: 1.5px solid #141414; }
 
-        .lower-grid { display: flex; border-top: 1px solid #000; }
-        .lower-left { width: 55%; display: flex; flex-direction: column; border-right: 1px solid #000; }
+        .lower-grid { display: flex; }
+        .lower-left { width: 56%; display: flex; flex-direction: column; border-right: 1.5px solid #141414; }
         
-        .girado-info { padding: 5px 6px; font-size: 10.5px; line-height: 1.4; }
+        .girado-info { padding: 6px 8px; font-size: 10.5px; line-height: 1.5; }
         
-        .aval-wrapper { display: flex; border-top: 1px solid #000; flex: 1; }
+        .aval-wrapper { display: flex; border-top: 1.5px solid #141414; flex: 1; }
         .por-aval-tag {
-          width: 20px;
-          min-width: 20px;
-          border-right: 1px solid #000;
+          width: 22px;
+          min-width: 22px;
+          border-right: 1.5px solid #141414;
           writing-mode: vertical-rl;
           transform: rotate(180deg);
           text-align: center;
-          font-size: 8px;
+          font-size: 8.5px;
+          font-weight: bold;
           padding: 4px 0;
-          box-sizing: border-box;
         }
-        .aval-info { flex: 1; padding: 5px 6px; font-size: 10.5px; line-height: 1.4; }
+        .aval-info { flex: 1; padding: 6px 8px; font-size: 10px; line-height: 1.5; }
 
-        .lower-right { width: 45%; padding: 5px 6px; font-size: 10.5px; text-align: center; display: flex; flex-direction: column; }
-        .bank-debit-line { font-size: 10px; text-align: left; margin-bottom: 3px; }
-        .bank-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 9px; }
-        .bank-table th, .bank-table td { border: 1px solid #000; padding: 2px; }
+        .lower-right { width: 44%; padding: 5px 6px; font-size: 10px; text-align: center; display: flex; flex-direction: column; }
+        .bank-debit-line { font-size: 9.5px; text-align: left; margin-bottom: 3px; }
+        .bank-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 8.5px; }
+        .bank-table th, .bank-table td { border: 1.5px solid #141414; padding: 2px; }
         .bank-table th { background: #e2ebd8; font-weight: bold; }
-        .bank-table td { height: 16px; }
+        .bank-table td { height: 18px; }
 
-        .company-name { font-weight: bold; font-style: italic; color: #16a34a; font-size: 13px; margin-top: 2px; }
-        .company-ruc { font-weight: bold; font-size: 12px; margin-bottom: 4px; }
-        .signature-line { margin-top: 22px; border-bottom: 1px dotted #000; width: 80%; margin-left: auto; margin-right: auto; }
-        .signature-label { font-size: 10px; font-weight: bold; margin-top: 2px; }
-        .signature-sub { font-size: 9px; color: #444; text-align: left; margin-top: 1px; }
+        .company-name { font-weight: bold; font-style: italic; color: #008c5a; font-size: 12px; margin-top: 4px; }
+        .company-ruc { font-weight: bold; font-size: 11px; margin-bottom: 6px; }
+        .signature-line { margin-top: 24px; border-bottom: 1.5px dotted #141414; width: 75%; margin-left: auto; margin-right: auto; }
+        .signature-label { font-size: 9.5px; font-weight: bold; margin-top: 2px; }
+        .signature-sub { font-size: 8.5px; color: #333; text-align: center; margin-top: 1px; }
+        .doi-label { font-size: 9px; font-weight: bold; text-align: left; margin-top: 3px; padding-left: 4px; }
 
-        .footer-note { font-size: 9.5px; margin-top: 4px; text-align: left; }
+        .footer-line { border-top: 1.5px solid #141414; margin-top: 4px; }
+        .footer-note { font-size: 9.5px; margin-top: 3px; text-align: left; }
       </style>
     </head>
     <body>
       <div class="letra-box">
         <div class="top-header">
-          <img src="img/inplabel-logo.png" alt="Inplabel" style="height: 52px;" onerror="this.style.display='none'">
+          <div class="logo-block">
+            <svg width="46" height="46" viewBox="0 0 60 60" style="margin-right: 8px;">
+              <circle cx="30" cy="30" r="17" fill="none" stroke="#008c5a" stroke-width="4"/>
+              <line x1="30" y1="9" x2="30" y2="4" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
+              <line x1="30" y1="51" x2="30" y2="56" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
+              <line x1="9" y1="30" x2="4" y2="30" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
+              <line x1="51" y1="30" x2="56" y2="30" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
+              <line x1="15" y1="15" x2="11" y2="11" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
+              <line x1="45" y1="45" x2="49" y2="49" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
+              <line x1="15" y1="45" x2="11" y2="49" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
+              <line x1="45" y1="15" x2="49" y2="11" stroke="#008c5a" stroke-width="4" stroke-linecap="round"/>
+              <rect x="21" y="24" width="5" height="12" rx="1.5" fill="#008c5a"/>
+              <rect x="28" y="21" width="5" height="15" rx="1.5" fill="#008c5a"/>
+              <rect x="34" y="26" width="4" height="10" rx="1.5" fill="#008c5a"/>
+            </svg>
+            <div>
+              <div style="font-size: 24px; font-weight: bold; line-height: 1; color: #1e1e1e;">Inplabel</div>
+              <div style="font-size: 9.5px; font-weight: bold; color: #008c5a; margin-top: 2px;">Industrias plasticos belsa S.A.C.</div>
+            </div>
+          </div>
+
           <div class="company-info">
+            <div class="company-info-line"></div>
             <div><strong>Av. María Parado de Bellido Lte. 5</strong></div>
             <div>Lotización Chacra Cerro - Comas - Lima - Lima</div>
             <div>Telf.: (01)557-1526 Claro: 975 564 460 / 983 518 504</div>
@@ -1030,7 +1057,7 @@ export function generateLetraPrintHTML(letra) {
 
         <div class="main-container">
           <div class="left-clauses">
-            <strong>CLÁUSULAS ESPECIALES:</strong> (1) En caso de mora , esta letra de cambio generará las tasas de interés compensatorio y moratorio más altas que la ley permita a su último Tenedor. (2) El plazo de su vencimiento podrá ser prorrogado por el tenedor, por el plazo que este señale, sin que sea necesaria la intervención del obligado principal ni de los solidarios. (3) Las partes acuerdan consignar la cláusula "sin protesto" y por tanto no se requerirá de esta diligencia para el ejercicio de las acciones cambiarias. (4) Las partes se someten a la competencia de los jueces del Distrito Judicial de Lima.
+            <strong>CLÁUSULAS ESPECIALES:</strong> (1) En caso de mora, esta letra de cambio generará las tasas de interés compensatorio y moratorio más altas que la ley permita a su último Tenedor. (2) El plazo de su vencimiento podrá ser prorrogado por el tenedor, por el plazo que este señale, sin que sea necesario la intervención del obligado principal ni de los solidarios. (3) Las partes acuerdan consignar la cláusula "sin protesto" y por tanto no se requerirá de esta diligencia para el ejercicio de las acciones cambiarias. (4) Las partes se someten a la competencia de los jueces del Distrito Judicial de Lima.
           </div>
 
           <div class="right-content">
@@ -1067,7 +1094,7 @@ export function generateLetraPrintHTML(letra) {
                 </table>
 
                 <div class="banner-text">
-                  Por esta <strong>LETRA DE CAMBIO</strong>, se servirá(n) pagar a la orden de <strong style="color: #16a34a; font-style: italic;">INDUSTRIAS PLASTICOS BELSA S.A.C.</strong> la cantidad de:
+                  Por esta <strong>LETRA DE CAMBIO</strong>, se servirá(n) pagar a la orden de <strong style="color: #008c5a; font-style: italic;">INDUSTRIAS PLASTICOS BELSA S.A.C.</strong> la cantidad de:
                 </div>
 
                 <div class="amount-box">
@@ -1083,8 +1110,8 @@ export function generateLetraPrintHTML(letra) {
             <div class="lower-grid">
               <div class="lower-left">
                 <div class="girado-info">
-                  <div><strong>GIRADO A:</strong> ${escapeHtml(letra.nombre_cliente || '')}</div>
-                  <div style="margin-top: 8px;"><strong>RUC:</strong> ${escapeHtml(letra.nro_documento || '')}</div>
+                  <div><strong>GIRADO A:</strong> <strong>${escapeHtml(letra.nombre_cliente || '')}</strong></div>
+                  <div style="margin-top: 6px;"><strong>RUC:</strong> ${escapeHtml(letra.nro_documento || '')}</div>
                   <div style="margin-top: 4px;"><strong>DIRECCION:</strong> ${escapeHtml(letra.direccion_cliente || '')}</div>
                 </div>
                 
@@ -1092,11 +1119,11 @@ export function generateLetraPrintHTML(letra) {
                   <div class="por-aval-tag">Por Aval</div>
                   <div class="aval-info">
                     <div><strong>AVALISTA:</strong> .....................................................................................</div>
-                    <div style="margin-top: 8px;">
+                    <div style="margin-top: 6px;">
                       <span><strong>D.I/R.U.C:</strong> ................................</span>
-                      <span style="margin-left: 20px;"><strong>TELEFONO:</strong> ..........................</span>
+                      <span style="margin-left: 15px;"><strong>TELEFONO:</strong> ..........................</span>
                     </div>
-                    <div style="margin-top: 8px;"><strong>DIRECCION:</strong> ....................................................................................</div>
+                    <div style="margin-top: 6px;"><strong>DIRECCION:</strong> ....................................................................................</div>
                   </div>
                 </div>
               </div>
@@ -1113,13 +1140,14 @@ export function generateLetraPrintHTML(letra) {
                 <div class="signature-line"></div>
                 <div class="signature-label">FIRMA</div>
                 <div class="signature-sub">Nombre del representante(S)</div>
-                <div class="signature-sub">D.O.I</div>
+                <div class="doi-label">D.O.I</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="footer-note">|No escribir ni firmar debajo de esta línea</div>
+        <div class="footer-line"></div>
+        <div class="footer-note">No escribir ni firmar debajo de esta linea</div>
       </div>
     </body>
     </html>
