@@ -960,6 +960,26 @@ export function generateLetraPrintHTML(letra) {
     break-inside: avoid;
   }
 
+  /* Encabezado Superior con Logo y Dirección */
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 5px;
+  }
+  .logo-img {
+    height: 40px;
+    object-fit: contain;
+  }
+  .company-address {
+    text-align: right;
+    font-size: 8.2px;
+    line-height: 1.35;
+    border-top: 1.2px solid #333;
+    padding-top: 2px;
+    min-width: 320px;
+  }
+
   /* Estructura general de 3 columnas principales */
   .letra-layout {
     display: flex;
@@ -1054,12 +1074,13 @@ export function generateLetraPrintHTML(letra) {
     font-size: 7.2pt;
     font-weight: bold;
     line-height: 1.15;
-    background: #fff;
+    background: #E2EFDA !important;
   }
   .top-table .subhead {
     font-size: 6.5pt;
     font-weight: bold;
     padding: 1px;
+    background: #E2EFDA !important;
   }
   .top-table td.val {
     font-size: 10.5pt;
@@ -1082,7 +1103,7 @@ export function generateLetraPrintHTML(letra) {
     font-size: 7.8pt;
   }
   .pay-phrase .beneficiary {
-    color: #00B050;
+    color: #00AF50;
     font-weight: bold;
   }
 
@@ -1104,7 +1125,7 @@ export function generateLetraPrintHTML(letra) {
     font-size: 7.2pt;
   }
 
-  /* Sección Inferior */
+  /* Sección Inferior (UN SOLO BLOQUE SIN LÍNEA VERTICAL INTERMEDIA) */
   .lower-box {
     display: flex;
     border: 1px solid #141414;
@@ -1114,7 +1135,6 @@ export function generateLetraPrintHTML(letra) {
   /* Cuadro Izquierdo (Girado / Avalista) */
   .lower-left {
     width: 55%;
-    border-right: 1px solid #141414;
     padding: 4px 7px;
     display: flex;
     flex-direction: column;
@@ -1176,12 +1196,13 @@ export function generateLetraPrintHTML(letra) {
   }
   .bank-table th {
     font-weight: bold;
+    background: #E2EFDA !important;
   }
   .bank-table td {
     height: 12px;
   }
   .company-title {
-    color: #00B050;
+    color: #00AF50;
     font-weight: bold;
     font-size: 9pt;
     margin-top: 2px;
@@ -1228,6 +1249,15 @@ export function generateLetraPrintHTML(letra) {
 <body>
 
 <div class="sheet">
+  <div class="header-top">
+    <img src="img/inplabel-logo.png" alt="Inplabel" class="logo-img" onerror="this.style.display='none'">
+    <div class="company-address">
+      <b>Av. María Parado de Bellido Lte. 5</b><br>
+      Lotización Chacra Cerro - Comas - Lima - Lima<br>
+      Telf.: (01)557-1526 Claro: 975 564 460 / 983 518 504
+    </div>
+  </div>
+
   <div class="letra-layout">
     <!-- COLUMNA 1: CLÁUSULAS -->
     <div class="clauses-col">
