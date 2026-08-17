@@ -133,15 +133,17 @@ export const api = {
       return { success: false };
     }
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/clientes/sunat/${ruc}`, { timeout: 2500 });
+      const res = await fetchWithTimeout(`${BASE_URL}/clientes/sunat/${ruc}`, { timeout: 6000 });
       if (res.ok) {
         const data = await res.json();
         if (data && data.success) return data;
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn("Error consultando backend SUNAT RUC:", e);
+    }
 
     try {
-      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/ruc?numero=${ruc}`, { timeout: 2500 });
+      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/ruc?numero=${ruc}`, { timeout: 3000 });
       if (res.ok) {
         const data = await res.json();
         if (data && data.nombre) {
@@ -174,15 +176,17 @@ export const api = {
       return { success: false };
     }
     try {
-      const res = await fetchWithTimeout(`${BASE_URL}/clientes/dni/${dni}`, { timeout: 2000 });
+      const res = await fetchWithTimeout(`${BASE_URL}/clientes/dni/${dni}`, { timeout: 6000 });
       if (res.ok) {
         const data = await res.json();
         if (data && data.success) return data;
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn("Error consultando backend DNI:", e);
+    }
 
     try {
-      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/dni?numero=${dni}`, { timeout: 2000 });
+      const res = await fetchWithTimeout(`https://api.apis.net.pe/v1/dni?numero=${dni}`, { timeout: 3000 });
       if (res.ok) {
         const data = await res.json();
         if (data && data.nombre) {

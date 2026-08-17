@@ -799,9 +799,14 @@ export function openLoteDetailModal(idLote) {
     </div>
 
     <!-- Tabla con Todas las Letras Desglosadas de la Referencia -->
-    <h6 class="fw-bold text-white mb-2" style="color: #60a5fa !important;">
-      <i class="bi bi-file-earmark-ruled me-1"></i> Letras de Cambio Emitidas para esta Referencia (${lote.total_cuotas})
-    </h6>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="fw-bold text-white mb-0" style="color: #60a5fa !important;">
+        <i class="bi bi-file-earmark-ruled me-1"></i> Letras de Cambio Emitidas para esta Referencia (${lote.total_cuotas})
+      </h6>
+      <button class="btn btn-sm btn-outline-success fw-bold font-monospace" onclick="letrasModule.downloadLoteExcel('${escapeHtml(lote.id_lote)}')">
+        <i class="bi bi-file-earmark-excel-fill me-1"></i> Descargar Todo en Excel (.xlsx)
+      </button>
+    </div>
     <div class="table-responsive border rounded mb-2">
       <table class="table custom-table table-sm align-middle mb-0">
         <thead>
@@ -814,6 +819,7 @@ export function openLoteDetailModal(idLote) {
             <th>Monto en Letras</th>
             <th style="width: 90px;" class="text-center">Estado</th>
             <th class="text-center" style="width: 70px;">PDF</th>
+            <th class="text-center" style="width: 70px;">EXCEL</th>
             <th class="text-center" style="width: 70px;">PRINT</th>
             <th class="text-center" style="width: 70px;">ANULAR</th>
           </tr>
@@ -838,6 +844,11 @@ export function openLoteDetailModal(idLote) {
                 <td class="text-center">
                   <button class="btn-action-solid btn-pdf" title="Descargar PDF Oficial" onclick="letrasModule.downloadPdf(${l.id_letra})">
                     <i class="bi bi-file-earmark-pdf-fill"></i>
+                  </button>
+                </td>
+                <td class="text-center">
+                  <button class="btn-action-solid btn-excel" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);" title="Descargar Letra en Excel (.xlsx)" onclick="letrasModule.downloadExcel(${l.id_letra})">
+                    <i class="bi bi-file-earmark-excel-fill"></i>
                   </button>
                 </td>
                 <td class="text-center">
@@ -872,6 +883,18 @@ export function downloadPdf(idLetra) {
   const savedPath = localStorage.getItem('inplabel_letras_pdf_storage_path') || 'C:\\Inplabel\\Letras';
   const sub = localStorage.getItem('inplabel_pdf_subfolders') !== 'false';
   const url = `http://localhost:8080/api/letras/${idLetra}/pdf?storageDir=${encodeURIComponent(savedPath)}&useSubfolders=${sub}&_t=${Date.now()}`;
+  window.open(url, '_blank');
+}
+
+export function downloadExcel(idLetra) {
+  const savedPath = localStorage.getItem('inplabel_letras_pdf_storage_path') || 'C:\\Inplabel\\Letras_Excel';
+  const sub = localStorage.getItem('inplabel_pdf_subfolders') !== 'false';
+  const url = `http://localhost:8080/api/letras/${idLetra}/excel?storageDir=${encodeURIComponent(savedPath)}&useSubfolders=${sub}&_t=${Date.now()}`;
+  window.open(url, '_blank');
+}
+
+export function downloadLoteExcel(idLote) {
+  const url = `http://localhost:8080/api/letras/lote/${encodeURIComponent(idLote)}/excel?_t=${Date.now()}`;
   window.open(url, '_blank');
 }
 
