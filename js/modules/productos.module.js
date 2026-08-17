@@ -1,5 +1,6 @@
-import { escapeHtml, filterAndRankItems } from '../helpers.js';
+import { escapeHtml, filterAndRankItems, showConfirmModal } from '../helpers.js';
 import { api } from '../api.js';
+import { canDelete } from './auth.module.js';
 
 let currentProducts = [];
 
@@ -26,6 +27,8 @@ export function filterProductos(queryStr = '') {
     return;
   }
 
+  const allowDelete = canDelete();
+
   filtered.forEach(p => {
     const tipo = p.tipo_producto || p.categoria || 'General';
     const tr = document.createElement('tr');
@@ -42,9 +45,15 @@ export function filterProductos(queryStr = '') {
       </td>
       <!-- 2. Columna ELIMINAR -->
       <td class="text-center">
-        <button type="button" class="btn-action-solid btn-delete" title="Eliminar producto" onclick="productosModule.deleteProduct('${p.id_producto || p.id}')">
-          <i class="bi bi-trash-fill"></i>
-        </button>
+        ${allowDelete ? `
+          <button type="button" class="btn-action-solid btn-delete" title="Eliminar producto" onclick="productosModule.deleteProduct('${p.id_producto || p.id}')">
+            <i class="bi bi-trash-fill"></i>
+          </button>
+        ` : `
+          <button type="button" class="btn-action-solid btn-delete" style="opacity: 0.25; cursor: not-allowed;" title="Permiso restringido (Solo Administrador)" disabled>
+            <i class="bi bi-lock-fill"></i>
+          </button>
+        `}
       </td>
     `;
     tbody.appendChild(tr);
@@ -138,12 +147,34 @@ export async function saveProductFromModal() {
 }
 
 export async function deleteProduct(id) {
+  if (!canDelete()) {
+    await showConfirmModal({
+      title: 'Acceso Restringido',
+      message: 'El perfil de Operaciones no tiene permisos para eliminar productos.',
+      icon: 'bi-shield-lock-fill',
+      iconBg: 'rgba(234, 179, 8, 0.15)',
+      iconColor: '#eab308',
+      confirmText: 'Entendido',
+      confirmBtnClass: 'btn-warning text-dark',
+      cancelText: 'Cerrar'
+    });
+    return;
+  }
   const p = currentProducts.find(item => item.id_producto === id);
   if (!p) return;
 
-  if (!confirm(`¿Está seguro de eliminar el producto #${id} "${p.nombre_producto}"?`)) {
-    return;
-  }
+  const confirmed = await showConfirmModal({
+    title: '¿Eliminar Producto?',
+    message: `¿Está seguro de eliminar el producto #${id} "${p.nombre_producto}"?`,
+    icon: 'bi-trash3-fill',
+    iconBg: 'rgba(239, 68, 68, 0.15)',
+    iconColor: '#ef4444',
+    confirmText: 'Eliminar Producto',
+    confirmBtnClass: 'btn-danger',
+    cancelText: 'Cancelar'
+  });
+
+  if (!confirmed) return;
 
   await api.deleteProducto(id);
   currentProducts = currentProducts.filter(item => item.id_producto !== id);

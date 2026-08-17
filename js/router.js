@@ -1266,20 +1266,11 @@ const EMBEDDED_VIEWS = {
 
   <div class="p-3">
     <!-- Indicadores Rápidos / KPI Cards -->
-    <div class="metrics-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
-      <div class="metric-card card-blue">
-        <div class="metric-info">
-          <h4>Total Operaciones</h4>
-          <div id="statLetrasTotalCount" class="metric-value">0</div>
-        </div>
-        <div class="metric-icon-box">
-          <i class="bi bi-collection fs-3"></i>
-        </div>
-      </div>
-
+    <div class="metrics-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+      <!-- 1. Monto Total Emitido -->
       <div class="metric-card card-emerald">
         <div class="metric-info">
-          <h4>Monto Total</h4>
+          <h4>Monto Total Emitido</h4>
           <div id="statLetrasTotalAmount" class="metric-value fs-5">S/ 0.00</div>
         </div>
         <div class="metric-icon-box">
@@ -1287,6 +1278,7 @@ const EMBEDDED_VIEWS = {
         </div>
       </div>
 
+      <!-- 2. Total Letras del Mes -->
       <div class="metric-card card-amber">
         <div class="metric-info">
           <h4>Total Letras Emitidas</h4>
@@ -1297,9 +1289,22 @@ const EMBEDDED_VIEWS = {
         </div>
       </div>
 
+      <!-- 3. Cliente con Más Letras -->
+      <div class="metric-card card-blue">
+        <div class="metric-info" style="max-width: 80%;">
+          <h4>Cliente con Más Letras</h4>
+          <div id="statLetrasTopClientName" class="metric-value fs-6 text-truncate" title="-">-</div>
+          <small id="statLetrasTopClientSub" class="text-muted" style="font-size: 0.75rem;">0 letras</small>
+        </div>
+        <div class="metric-icon-box">
+          <i class="bi bi-trophy fs-3"></i>
+        </div>
+      </div>
+
+      <!-- 4. Clientes Atendidos -->
       <div class="metric-card card-cyan">
         <div class="metric-info">
-          <h4>Clientes con Letras</h4>
+          <h4>Clientes Atendidos</h4>
           <div id="statLetrasClientsCount" class="metric-value">0</div>
         </div>
         <div class="metric-icon-box">
@@ -1313,7 +1318,7 @@ const EMBEDDED_VIEWS = {
       <form id="formSearchLetras" onsubmit="event.preventDefault(); letrasModule.triggerSearch();">
         <div class="row g-2 align-items-end">
           <!-- Búsqueda General -->
-          <div class="col-md-4">
+          <div class="col-md-5">
             <label for="searchLetraInput" class="form-label small fw-bold mb-1">Buscar por Ref. Girador, Cliente o RUC</label>
             <div class="input-group input-group-sm">
               <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -1322,26 +1327,15 @@ const EMBEDDED_VIEWS = {
           </div>
 
           <!-- Fecha Desde -->
-          <div class="col-md-2">
-            <label for="filterLetraDateFrom" class="form-label small fw-bold mb-1">F. Giro Desde</label>
+          <div class="col-md-3">
+            <label for="filterLetraDateFrom" class="form-label small fw-bold mb-1">Desde</label>
             <input type="date" id="filterLetraDateFrom" class="form-control form-control-sm">
           </div>
 
           <!-- Fecha Hasta -->
-          <div class="col-md-2">
-            <label for="filterLetraDateTo" class="form-label small fw-bold mb-1">F. Giro Hasta</label>
-            <input type="date" id="filterLetraDateTo" class="form-control form-control-sm">
-          </div>
-
-          <!-- Estado -->
           <div class="col-md-3">
-            <label for="filterLetraStatus" class="form-label small fw-bold mb-1">Estado</label>
-            <select id="filterLetraStatus" class="form-select form-select-sm">
-              <option value="ALL" selected>Todos los estados</option>
-              <option value="PENDIENTE">PENDIENTE</option>
-              <option value="CANCELADA">CANCELADA / COBRADA</option>
-              <option value="ANULADA">ANULADA</option>
-            </select>
+            <label for="filterLetraDateTo" class="form-label small fw-bold mb-1">Hasta</label>
+            <input type="date" id="filterLetraDateTo" class="form-control form-control-sm">
           </div>
 
           <!-- Botón Buscar -->
@@ -1623,6 +1617,199 @@ const EMBEDDED_VIEWS = {
     </div>
   </div>
 </div>
+`,
+  login: `
+<div class="modern-login-page d-flex align-items-center justify-content-center min-vh-100 p-3 p-md-4" style="background-color: #f8fafc; background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px); background-size: 24px 24px; font-family: 'Manrope', 'Sora', -apple-system, sans-serif;">
+  
+  <style>
+    /* Estilos estrictos para inputs en modo claro, ignorando el tema oscuro global */
+    .modern-login-page .form-control,
+    .modern-login-page .modern-login-input {
+      background-color: #f8fafc !important;
+      color: #0f172a !important;
+      border: 1.5px solid #cbd5e1 !important;
+      font-weight: 600 !important;
+      font-size: 0.95rem !important;
+    }
+    .modern-login-page .form-control::placeholder,
+    .modern-login-page .modern-login-input::placeholder {
+      color: #94a3b8 !important;
+      font-weight: 400 !important;
+    }
+    .modern-login-page .form-control:focus,
+    .modern-login-page .modern-login-input:focus {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #00AF50 !important;
+      box-shadow: 0 0 0 4px rgba(0, 175, 80, 0.15) !important;
+      outline: none !important;
+    }
+    .modern-login-page .input-group-text {
+      background-color: #f8fafc !important;
+      color: #64748b !important;
+      border: 1.5px solid #cbd5e1 !important;
+      border-right: none !important;
+    }
+    .modern-login-page .btn-toggle-pass {
+      background-color: #f8fafc !important;
+      color: #64748b !important;
+      border: 1.5px solid #cbd5e1 !important;
+      border-left: none !important;
+    }
+    .modern-login-page .btn-toggle-pass:hover {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+
+    /* Neutralizar el fondo y texto del autocompletado del navegador */
+    .modern-login-page input:-webkit-autofill,
+    .modern-login-page input:-webkit-autofill:hover, 
+    .modern-login-page input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0px 1000px #f8fafc inset !important;
+      -webkit-text-fill-color: #0f172a !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+
+    .btn-login-cta {
+      background: linear-gradient(135deg, #00AF50 0%, #009444 100%);
+      color: #ffffff !important;
+      border: none;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      transition: all 0.25s ease;
+    }
+    .btn-login-cta:hover {
+      background: linear-gradient(135deg, #009e47 0%, #00803a 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px -5px rgba(0, 175, 80, 0.35) !important;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      backdrop-filter: blur(8px);
+    }
+  </style>
+
+  <!-- Card Principal con Diseño Split Moderno -->
+  <div class="card border-0 rounded-4 overflow-hidden shadow-lg" style="width: 100%; max-width: 900px; background: #ffffff; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12) !important;">
+    <div class="row g-0">
+      
+      <!-- Columna Izquierda: Banner Corporativo Inplabel -->
+      <div class="col-lg-5 d-none d-lg-flex flex-column justify-content-between p-4 p-xl-5 text-white" style="background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); position: relative; overflow: hidden;">
+        
+        <!-- Elemento de fondo decorativo -->
+        <div style="position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(0, 175, 80, 0.25) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+        <div style="position: absolute; bottom: -80px; left: -80px; width: 240px; height: 240px; background: radial-gradient(circle, rgba(0, 175, 80, 0.15) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+
+        <!-- Top: Título y Presentación del Sistema -->
+        <div style="position: relative; z-index: 2;">
+          <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background: rgba(0, 175, 80, 0.15); border: 1px solid rgba(0, 175, 80, 0.3); color: #4ade80; font-size: 0.8rem; font-weight: 700;">
+            <i class="bi bi-layers-fill"></i> Sistema Empresarial
+          </div>
+          <h4 class="fw-bold text-white mb-2" style="font-size: 1.45rem; letter-spacing: -0.3px; line-height: 1.25;">Plataforma de Gestión</h4>
+          <p class="text-white-50 small mb-0" style="font-size: 0.88rem; line-height: 1.4;">Sistema Operativo Central de Ventas y Planta Industrial</p>
+        </div>
+
+        <!-- Middle: Módulos Activos -->
+        <div class="my-4 d-flex flex-column gap-2" style="position: relative; z-index: 2;">
+          <div class="feature-item">
+            <i class="bi bi-cart-check-fill text-success fs-6"></i>
+            <span>Control Integral de Pedidos & Órdenes</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-truck text-info fs-6"></i>
+            <span>Guías de Remisión & Despachos</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-file-earmark-ruled-fill text-warning fs-6"></i>
+            <span>Letras de Cambio & Líneas de Crédito</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-gear-wide-connected text-primary fs-6"></i>
+            <span>Monitoreo de Producción en Planta</span>
+          </div>
+        </div>
+
+        <!-- Bottom: Seguridad -->
+        <div class="pt-3 border-top border-white border-opacity-10 d-flex align-items-center justify-content-between text-white-50 small" style="position: relative; z-index: 2; font-size: 0.76rem;">
+          <span><i class="bi bi-shield-lock-fill text-success me-1"></i> Conexión Segura</span>
+          <span>MySQL & Spring Boot</span>
+        </div>
+
+      </div>
+
+      <!-- Columna Derecha: Formulario de Inicio de Sesión -->
+      <div class="col-lg-7 p-4 p-md-5 d-flex flex-column justify-content-center" style="background: #ffffff;">
+        
+        <!-- Logo de Inplabel en la cabecera del formulario -->
+        <div class="text-center text-lg-start mb-4">
+          <img src="img/inplabel-logo.png" alt="Inplabel - Industrias plasticos belsa S.A.C" style="max-height: 82px; width: auto; object-fit: contain;" class="mb-3">
+          <h3 class="fw-bold mb-1" style="color: #0f172a; font-size: 1.6rem; letter-spacing: -0.4px;">Bienvenido</h3>
+          <p class="small mb-0" style="color: #64748b; font-size: 0.88rem;">Ingresa tus credenciales para acceder al sistema.</p>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="loginAlert" class="alert alert-danger py-2.5 px-3 small d-none mb-3 border-0 rounded-3 d-flex align-items-center gap-2"></div>
+
+        <!-- Formulario -->
+        <form id="formLogin" onsubmit="authModule.submitLogin(event)" autocomplete="off">
+          
+          <!-- Input oculto trampa para que los navegadores no autocompleten -->
+          <input type="text" style="display:none" autocomplete="off">
+          <input type="password" style="display:none" autocomplete="off">
+
+          <!-- Campo Usuario -->
+          <div class="mb-3">
+            <label for="loginUsername" class="form-label small fw-bold mb-1.5" style="color: #334155;">Usuario</label>
+            <div class="input-group">
+              <span class="input-group-text" style="border-radius: 10px 0 0 10px;">
+                <i class="bi bi-person-fill fs-6"></i>
+              </span>
+              <input type="text" id="loginUsername" name="inplabel_user_input" class="form-control modern-login-input py-2.5" placeholder="Escribe tu usuario..." autocomplete="new-password" required autofocus style="border-radius: 0 10px 10px 0;">
+            </div>
+          </div>
+
+          <!-- Campo Contraseña -->
+          <div class="mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-1.5">
+              <label for="loginPassword" class="form-label small fw-bold mb-0" style="color: #334155;">Contraseña</label>
+            </div>
+            <div class="input-group">
+              <span class="input-group-text" style="border-radius: 10px 0 0 10px;">
+                <i class="bi bi-lock-fill fs-6"></i>
+              </span>
+              <input type="password" id="loginPassword" name="inplabel_pass_input" class="form-control modern-login-input py-2.5" placeholder="Escribe tu contraseña..." autocomplete="new-password" required style="border-radius: 0;">
+              <button type="button" class="btn btn-toggle-pass" onclick="authModule.togglePasswordVisibility()" title="Mostrar/Ocultar contraseña" style="border-radius: 0 10px 10px 0;">
+                <i id="togglePassIcon" class="bi bi-eye-fill"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Botón de Ingreso -->
+          <button type="submit" id="btnLoginSubmit" class="btn btn-login-cta w-100 py-2.5 rounded-3 shadow-sm d-flex align-items-center justify-content-center fs-6">
+            <i class="bi bi-box-arrow-in-right me-2 fs-5"></i> Iniciar Sesión
+          </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="mt-4 pt-3 border-top text-center" style="border-color: #f1f5f9 !important;">
+          <small class="d-block" style="font-size: 0.76rem; color: #94a3b8;">
+            © 2026 Inplabel S.A.C. • Todos los derechos reservados
+          </small>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
 `
 };
 
@@ -1640,8 +1827,42 @@ export class Router {
     document.body.style.removeProperty('padding-right');
     document.body.style.removeProperty('pointer-events');
 
+    // Verificar si el usuario está autenticado
+    const isAuth = window.authModule && typeof window.authModule.isAuthenticated === 'function' 
+      ? window.authModule.isAuthenticated() 
+      : Boolean(localStorage.getItem('inplabel_user'));
+
+    if (!isAuth && route !== 'login') {
+      route = 'login';
+    }
+
     this.currentRoute = route;
     window.location.hash = `#${route}`;
+
+    const sidebarEl = document.getElementById('sidebar');
+    const headerEl = document.querySelector('.top-header');
+    const mainEl = document.querySelector('.main-content');
+
+    if (route === 'login') {
+      if (sidebarEl) sidebarEl.style.display = 'none';
+      if (headerEl) headerEl.style.display = 'none';
+      if (mainEl) {
+        mainEl.style.marginLeft = '0';
+        mainEl.style.padding = '0';
+        mainEl.style.maxWidth = '100%';
+      }
+    } else {
+      if (sidebarEl) sidebarEl.style.display = '';
+      if (headerEl) headerEl.style.display = '';
+      if (mainEl) {
+        mainEl.style.marginLeft = '';
+        mainEl.style.padding = '';
+        mainEl.style.maxWidth = '';
+      }
+      if (window.app && typeof window.app.updateUserUI === 'function') {
+        window.app.updateUserUI();
+      }
+    }
 
     // Update active nav-item highlight
     document.querySelectorAll('.nav-item').forEach(btn => {
@@ -1664,7 +1885,8 @@ export class Router {
       productos: '<i class="bi bi-box-seam text-primary"></i> Productos',
       produccion: '<i class="bi bi-gear-wide-connected text-primary"></i> Control de Producción',
       config: '<i class="bi bi-gear-fill text-primary"></i> Configuración del Sistema',
-      bd: '<i class="bi bi-database-check text-primary"></i> Estado Base de Datos'
+      bd: '<i class="bi bi-database-check text-primary"></i> Estado Base de Datos',
+      login: '<i class="bi bi-box-arrow-in-right text-primary"></i> Iniciar Sesión'
     };
 
     const titleElem = document.getElementById('pageTitle');

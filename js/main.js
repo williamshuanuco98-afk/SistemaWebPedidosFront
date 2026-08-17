@@ -69,13 +69,16 @@ import {
 import { renderConfigView, saveStorageConfig } from './modules/config.module.js';
 import { renderProduccionTable, openProductDetailModal, onSearchInput as onProduccionSearch } from './modules/produccion.module.js';
 import * as letrasModule from './modules/letras.module.js';
+import * as authModule from './modules/auth.module.js';
 
 // Early stub for instant global accessibility
 window.app = {
   navigateTo: (route) => { window.location.hash = '#' + route; },
-  toggleTheme: () => { themeManager.toggleTheme(); }
+  toggleTheme: () => { themeManager.toggleTheme(); },
+  updateUserUI: () => {}
 };
 
+window.authModule = authModule;
 window.letrasModule = letrasModule;
 
 
@@ -225,6 +228,13 @@ class ModularSpaApp {
       }
     } catch (e) {}
 
+    this.updateUserUI();
+
+    if (!authModule.isAuthenticated()) {
+      await this.router.navigateTo('login');
+      return;
+    }
+
     const hash = window.location.hash.replace('#', '');
     const validRoutes = ['dashboard', 'pedidos', 'nuevo-pedido', 'envios', 'nueva-guia', 'letras', 'clientes', 'productos', 'produccion', 'config', 'bd'];
     const initialRoute = (hash && validRoutes.includes(hash)) ? hash : 'dashboard';
@@ -235,6 +245,26 @@ class ModularSpaApp {
 
     // Refresh backend data asynchronously in background
     this.refreshData();
+  }
+
+  updateUserUI() {
+    const user = authModule.getCurrentUser();
+    const nameEl = document.getElementById('userNameDisplay');
+    const roleEl = document.getElementById('userRoleDisplay');
+    const avatarEl = document.getElementById('userAvatar');
+
+    if (user) {
+      if (nameEl) nameEl.textContent = user.nombreCompleto || user.username;
+      if (roleEl) {
+        roleEl.textContent = user.rol || 'OPERACIONES';
+        roleEl.className = user.rol === 'ADMIN' ? 'badge bg-primary fs-9 py-0 px-1' : 'badge bg-warning text-dark fs-9 py-0 px-1';
+      }
+      if (avatarEl) {
+        const initials = user.rol === 'ADMIN' ? 'AD' : 'OP';
+        avatarEl.textContent = initials;
+        avatarEl.style.background = user.rol === 'ADMIN' ? '#0d6efd' : '#f59e0b';
+      }
+    }
   }
 
   get currentRoute() {

@@ -1,12 +1,27 @@
 const BASE_URL = 'http://localhost:8080/api';
 
 async function fetchWithTimeout(resource, options = {}) {
-  const { timeout = 1500, ...fetchOptions } = options;
+  const { timeout = 3000, headers = {}, ...fetchOptions } = options;
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
+
+  // Inyectar cabeceras de rol de usuario automáticamente
+  let authHeaders = { ...headers };
+  try {
+    const rawUser = localStorage.getItem('inplabel_user');
+    if (rawUser) {
+      const u = JSON.parse(rawUser);
+      if (u && u.rol) {
+        authHeaders['X-User-Role'] = u.rol;
+        authHeaders['X-Username'] = u.username;
+      }
+    }
+  } catch (e) {}
+
   try {
     const response = await fetch(resource, {
       ...fetchOptions,
+      headers: authHeaders,
       signal: controller.signal
     });
     clearTimeout(id);
@@ -573,6 +588,35 @@ export const api = {
     });
     setLocalData('letras', list);
     return { success: true, message: 'Lote de letras anulado en almacenamiento local' };
+  },
+
+  async login(username, password) {
+    try {
+      const res = await fetchWithTimeout(`${BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        timeout: 4000
+      });
+      return await res.json();
+    } catch (e) {
+      // Fallback local si el backend estuviera desconectado
+      console.warn("Backend login error, attempting offline auth fallback:", e);
+      if (username === 'admin' && password === 'admin123') {
+        return {
+          success: true,
+          message: 'Inicio de sesión local (Admin)',
+          user: { idUsuario: 1, username: 'admin', nombreCompleto: 'Administrador Inplabel', rol: 'ADMIN' }
+        };
+      } else if (username === 'operaciones' && password === 'operaciones123') {
+        return {
+          success: true,
+          message: 'Inicio de sesión local (Operaciones)',
+          user: { idUsuario: 2, username: 'operaciones', nombreCompleto: 'Área de Operaciones', rol: 'OPERACIONES' }
+        };
+      }
+      return { success: false, message: 'Usuario o contraseña incorrectos.' };
+    }
   }
 };
 

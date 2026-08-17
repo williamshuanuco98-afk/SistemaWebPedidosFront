@@ -177,3 +177,80 @@ export function hideBootstrapModal(modalElemOrId) {
 }
 window.hideBootstrapModal = hideBootstrapModal;
 window.showBootstrapModal = showBootstrapModal;
+
+export function showConfirmModal({
+  title = '¿Confirmar Acción?',
+  message = '¿Está seguro de continuar?',
+  icon = 'bi-exclamation-triangle-fill',
+  iconBg = 'rgba(239, 68, 68, 0.12)',
+  iconColor = '#ef4444',
+  confirmText = 'Confirmar',
+  confirmBtnClass = 'btn-danger',
+  cancelText = 'Cancelar'
+} = {}) {
+  return new Promise((resolve) => {
+    const modalElem = document.getElementById('globalConfirmModal');
+    if (!modalElem || typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+      resolve(true);
+      return;
+    }
+
+    const titleEl = document.getElementById('globalConfirmTitle');
+    const msgEl = document.getElementById('globalConfirmMessage');
+    const iconEl = document.getElementById('globalConfirmIcon');
+    const iconBox = document.getElementById('globalConfirmIconBox');
+    const actionBtn = document.getElementById('globalConfirmActionBtn');
+    const cancelBtn = document.getElementById('globalConfirmCancelBtn');
+
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = message;
+    if (iconEl) iconEl.className = `bi ${icon} fs-2`;
+    if (iconBox) {
+      iconBox.style.backgroundColor = iconBg;
+      iconBox.style.color = iconColor;
+    }
+    if (actionBtn) {
+      actionBtn.textContent = confirmText;
+      actionBtn.className = `btn ${confirmBtnClass} flex-fill py-2 rounded-3 fw-bold shadow-sm`;
+    }
+    if (cancelBtn) cancelBtn.textContent = cancelText;
+
+    const bsModal = new bootstrap.Modal(modalElem, { backdrop: 'static' });
+    let isResolved = false;
+
+    const cleanup = () => {
+      document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+      document.body.classList.remove('modal-open');
+    };
+
+    const onConfirm = () => {
+      if (isResolved) return;
+      isResolved = true;
+      bsModal.hide();
+      setTimeout(cleanup, 200);
+      resolve(true);
+    };
+
+    const onCancel = () => {
+      if (isResolved) return;
+      isResolved = true;
+      bsModal.hide();
+      setTimeout(cleanup, 200);
+      resolve(false);
+    };
+
+    actionBtn.onclick = onConfirm;
+    cancelBtn.onclick = onCancel;
+
+    modalElem.addEventListener('hidden.bs.modal', () => {
+      if (!isResolved) {
+        isResolved = true;
+        resolve(false);
+      }
+      setTimeout(cleanup, 100);
+    }, { once: true });
+
+    bsModal.show();
+  });
+}
+window.showConfirmDialog = showConfirmModal;

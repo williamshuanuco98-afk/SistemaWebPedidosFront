@@ -138,8 +138,26 @@ export function numeroALetras(monto) {
 // =========================================================================
 export async function initLetrasView() {
   try {
+    // Establecer como fecha Desde el inicio del mes actual y Hasta el día de hoy
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const firstDay = `${year}-${month}-01`;
+    const today = `${year}-${month}-${day}`;
+
+    const dateFromEl = document.getElementById('filterLetraDateFrom');
+    if (dateFromEl && !dateFromEl.value) {
+      dateFromEl.value = firstDay;
+    }
+
+    const dateToEl = document.getElementById('filterLetraDateTo');
+    if (dateToEl && !dateToEl.value) {
+      dateToEl.value = today;
+    }
+
     const [letras, clients] = await Promise.all([
-      api.getLetras(),
+      api.getLetras({ dateFrom: firstDay, dateTo: today }),
       api.getClientes()
     ]);
     rawLetrasList = letras || [];
@@ -273,21 +291,50 @@ export function renderLetrasTable(groupedList = []) {
 }
 
 export function updateMetrics(rawList = [], groupedList = []) {
-  const totalCountEl = document.getElementById('statLetrasTotalCount');
   const totalAmountEl = document.getElementById('statLetrasTotalAmount');
   const totalLetrasEl = document.getElementById('statLetrasTotalLetrasCount');
+  const topClientNameEl = document.getElementById('statLetrasTopClientName');
+  const topClientSubEl = document.getElementById('statLetrasTopClientSub');
   const clientsEl = document.getElementById('statLetrasClientsCount');
 
-  const totalOperaciones = groupedList.length;
   const totalLetras = rawList.length;
   const sumAmount = rawList.reduce((acc, curr) => curr.estado !== 'ANULADA' ? acc + (parseFloat(curr.monto) || 0) : acc, 0);
 
+  // Clientes atendidos únicos
   const clientSet = new Set(rawList.map(l => l.nro_documento || l.nombre_cliente).filter(Boolean));
 
-  if (totalCountEl) totalCountEl.textContent = totalOperaciones;
+  // Cliente con más letras / mayor monto
+  const clientStats = {};
+  rawList.forEach(l => {
+    if (l.estado === 'ANULADA') return;
+    const name = l.nombre_cliente || 'SIN CLIENTE';
+    if (!clientStats[name]) {
+      clientStats[name] = { name, count: 0, amount: 0 };
+    }
+    clientStats[name].count += 1;
+    clientStats[name].amount += (parseFloat(l.monto) || 0);
+  });
+
+  const topClients = Object.values(clientStats).sort((a, b) => b.count - a.count || b.amount - a.amount);
+  const topClient = topClients[0];
+
   if (totalAmountEl) totalAmountEl.textContent = `S/ ${sumAmount.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   if (totalLetrasEl) totalLetrasEl.textContent = totalLetras;
   if (clientsEl) clientsEl.textContent = clientSet.size;
+
+  if (topClientNameEl) {
+    if (topClient) {
+      topClientNameEl.textContent = topClient.name;
+      topClientNameEl.title = topClient.name;
+      if (topClientSubEl) {
+        topClientSubEl.textContent = `${topClient.count} ${topClient.count === 1 ? 'letra' : 'letras'} (S/ ${topClient.amount.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
+      }
+    } else {
+      topClientNameEl.textContent = '-';
+      topClientNameEl.title = '-';
+      if (topClientSubEl) topClientSubEl.textContent = '0 letras';
+    }
+  }
 
   const pendientes = rawList.filter(l => l.estado === 'PENDIENTE').length;
   const sidebarBadge = document.getElementById('badgeLetras');
@@ -305,9 +352,8 @@ export async function triggerSearch() {
   const search = document.getElementById('searchLetraInput')?.value || '';
   const dateFrom = document.getElementById('filterLetraDateFrom')?.value || '';
   const dateTo = document.getElementById('filterLetraDateTo')?.value || '';
-  const estado = document.getElementById('filterLetraStatus')?.value || 'ALL';
 
-  const results = await api.getLetras({ search, dateFrom, dateTo, estado });
+  const results = await api.getLetras({ search, dateFrom, dateTo });
   rawLetrasList = results || [];
   groupedLetras = groupLetrasByBatch(rawLetrasList);
   renderLetrasTable(groupedLetras);
@@ -870,36 +916,45 @@ export function downloadPdf(idLetra) {
   window.open(url, '_blank');
 }
 
-export function printLetraDirect(idLetra) {
-  const letra = rawLetrasList.find(l => String(l.id_letra) === String(idLetra));
-  if (!letra) return;
+export async function printLetraDirect(idLetra) {
+  try {
+    const url = `http://localhost:8080/api/letras/${idLetra}/pdf?_t=${Date.now()}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
 
-  const htmlContent = generateLetraPrintHTML(letra);
+    let printFrame = document.getElementById('silentLetraPrintFrame');
+    if (printFrame) {
+      printFrame.remove();
+    }
 
-  let printFrame = document.getElementById('silentLetraPrintFrame');
-  if (printFrame) {
-    printFrame.remove();
+    printFrame = document.createElement('iframe');
+    printFrame.id = 'silentLetraPrintFrame';
+    printFrame.style.position = 'fixed';
+    printFrame.style.top = '-9999px';
+    printFrame.style.left = '-9999px';
+    printFrame.style.width = '100px';
+    printFrame.style.height = '100px';
+    printFrame.style.border = '0';
+    printFrame.src = blobUrl;
+    document.body.appendChild(printFrame);
+
+    printFrame.onload = function() {
+      setTimeout(() => {
+        try {
+          printFrame.contentWindow.focus();
+          printFrame.contentWindow.print();
+        } catch (e) {
+          console.warn("Print execution error:", e);
+        }
+      }, 500);
+    };
+  } catch (err) {
+    console.error("Error al preparar la impresión de la letra:", err);
   }
-
-  printFrame = document.createElement('iframe');
-  printFrame.id = 'silentLetraPrintFrame';
-  printFrame.style.position = 'fixed';
-  printFrame.style.right = '0';
-  printFrame.style.bottom = '0';
-  printFrame.style.width = '0';
-  printFrame.style.height = '0';
-  printFrame.style.border = '0';
-  document.body.appendChild(printFrame);
-
-  const frameDoc = printFrame.contentWindow.document;
-  frameDoc.open();
-  frameDoc.write(htmlContent);
-  frameDoc.close();
-
-  setTimeout(() => {
-    printFrame.contentWindow.focus();
-    printFrame.contentWindow.print();
-  }, 250);
 }
 
 export function generateLetraPrintHTML(letra) {

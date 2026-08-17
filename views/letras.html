@@ -16,20 +16,11 @@
 
   <div class="p-3">
     <!-- Indicadores Rápidos / KPI Cards -->
-    <div class="metrics-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
-      <div class="metric-card card-blue">
-        <div class="metric-info">
-          <h4>Total Operaciones</h4>
-          <div id="statLetrasTotalCount" class="metric-value">0</div>
-        </div>
-        <div class="metric-icon-box">
-          <i class="bi bi-collection fs-3"></i>
-        </div>
-      </div>
-
+    <div class="metrics-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+      <!-- 1. Monto Total Emitido -->
       <div class="metric-card card-emerald">
         <div class="metric-info">
-          <h4>Monto Total</h4>
+          <h4>Monto Total Emitido</h4>
           <div id="statLetrasTotalAmount" class="metric-value fs-5">S/ 0.00</div>
         </div>
         <div class="metric-icon-box">
@@ -37,6 +28,7 @@
         </div>
       </div>
 
+      <!-- 2. Total Letras del Mes -->
       <div class="metric-card card-amber">
         <div class="metric-info">
           <h4>Total Letras Emitidas</h4>
@@ -47,9 +39,22 @@
         </div>
       </div>
 
+      <!-- 3. Cliente con Más Letras -->
+      <div class="metric-card card-blue">
+        <div class="metric-info" style="max-width: 80%;">
+          <h4>Cliente con Más Letras</h4>
+          <div id="statLetrasTopClientName" class="metric-value fs-6 text-truncate" title="-">-</div>
+          <small id="statLetrasTopClientSub" class="text-muted" style="font-size: 0.75rem;">0 letras</small>
+        </div>
+        <div class="metric-icon-box">
+          <i class="bi bi-trophy fs-3"></i>
+        </div>
+      </div>
+
+      <!-- 4. Clientes Atendidos -->
       <div class="metric-card card-cyan">
         <div class="metric-info">
-          <h4>Clientes con Letras</h4>
+          <h4>Clientes Atendidos</h4>
           <div id="statLetrasClientsCount" class="metric-value">0</div>
         </div>
         <div class="metric-icon-box">
@@ -63,7 +68,7 @@
       <form id="formSearchLetras" onsubmit="event.preventDefault(); letrasModule.triggerSearch();">
         <div class="row g-2 align-items-end">
           <!-- Búsqueda General -->
-          <div class="col-md-4">
+          <div class="col-md-5">
             <label for="searchLetraInput" class="form-label small fw-bold mb-1">Buscar por Ref. Girador, Cliente o RUC</label>
             <div class="input-group input-group-sm">
               <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -72,26 +77,15 @@
           </div>
 
           <!-- Fecha Desde -->
-          <div class="col-md-2">
-            <label for="filterLetraDateFrom" class="form-label small fw-bold mb-1">F. Giro Desde</label>
+          <div class="col-md-3">
+            <label for="filterLetraDateFrom" class="form-label small fw-bold mb-1">Desde</label>
             <input type="date" id="filterLetraDateFrom" class="form-control form-control-sm">
           </div>
 
           <!-- Fecha Hasta -->
-          <div class="col-md-2">
-            <label for="filterLetraDateTo" class="form-label small fw-bold mb-1">F. Giro Hasta</label>
-            <input type="date" id="filterLetraDateTo" class="form-control form-control-sm">
-          </div>
-
-          <!-- Estado -->
           <div class="col-md-3">
-            <label for="filterLetraStatus" class="form-label small fw-bold mb-1">Estado</label>
-            <select id="filterLetraStatus" class="form-select form-select-sm">
-              <option value="ALL" selected>Todos los estados</option>
-              <option value="PENDIENTE">PENDIENTE</option>
-              <option value="CANCELADA">CANCELADA / COBRADA</option>
-              <option value="ANULADA">ANULADA</option>
-            </select>
+            <label for="filterLetraDateTo" class="form-label small fw-bold mb-1">Hasta</label>
+            <input type="date" id="filterLetraDateTo" class="form-control form-control-sm">
           </div>
 
           <!-- Botón Buscar -->

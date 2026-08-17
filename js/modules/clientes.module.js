@@ -1,5 +1,6 @@
-import { escapeHtml, filterAndRankItems } from '../helpers.js';
+import { escapeHtml, filterAndRankItems, showConfirmModal } from '../helpers.js';
 import { api } from '../api.js';
+import { canDelete } from './auth.module.js';
 
 let currentClients = [];
 let lastSunatQueryRuc = '';
@@ -22,6 +23,11 @@ export function filterClientes(queryStr = '') {
     queryStr, 
     c => `${c.nro_documento || ''} ${c.nombre_cliente || ''} ${c.direccion || ''}`
   );
+
+  const countBadge = document.getElementById('clientesCountBadge');
+  if (countBadge) countBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'cliente' : 'clientes'}`;
+
+  const allowDelete = canDelete();
 
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No se encontraron clientes coincidentes.</td></tr>`;
@@ -47,9 +53,15 @@ export function filterClientes(queryStr = '') {
       </td>
       <!-- 2. Columna ELIMINAR -->
       <td class="text-center">
-        <button type="button" class="btn-action-solid btn-delete" onclick="clientesModule.deleteClient(${clientId})" title="Eliminar Cliente">
-          <i class="bi bi-trash-fill"></i>
-        </button>
+        ${allowDelete ? `
+          <button type="button" class="btn-action-solid btn-delete" onclick="clientesModule.deleteClient(${clientId})" title="Eliminar Cliente">
+            <i class="bi bi-trash-fill"></i>
+          </button>
+        ` : `
+          <button type="button" class="btn-action-solid btn-delete" style="opacity: 0.25; cursor: not-allowed;" title="Permiso restringido (Solo Administrador)" disabled>
+            <i class="bi bi-lock-fill"></i>
+          </button>
+        `}
       </td>
     `;
     tbody.appendChild(tr);
@@ -128,13 +140,35 @@ export function openEditClientModal(filteredIndex) {
 }
 
 export async function deleteClient(clientId) {
+  if (!canDelete()) {
+    await showConfirmModal({
+      title: 'Acceso Restringido',
+      message: 'El perfil de Operaciones no tiene permisos para eliminar clientes.',
+      icon: 'bi-shield-lock-fill',
+      iconBg: 'rgba(234, 179, 8, 0.15)',
+      iconColor: '#eab308',
+      confirmText: 'Entendido',
+      confirmBtnClass: 'btn-warning text-dark',
+      cancelText: 'Cerrar'
+    });
+    return;
+  }
   if (!clientId) return;
   const client = currentClients.find(c => (c.id_cliente || c.id) === clientId);
   const clientName = client ? client.nombre_cliente : `ID #${clientId}`;
 
-  if (!confirm(`¿Está seguro de eliminar al cliente "${clientName}" de la base de datos MySQL?`)) {
-    return;
-  }
+  const confirmed = await showConfirmModal({
+    title: '¿Eliminar Cliente?',
+    message: `¿Está seguro de eliminar al cliente "${clientName}" de la base de datos MySQL?`,
+    icon: 'bi-trash3-fill',
+    iconBg: 'rgba(239, 68, 68, 0.15)',
+    iconColor: '#ef4444',
+    confirmText: 'Eliminar Cliente',
+    confirmBtnClass: 'btn-danger',
+    cancelText: 'Cancelar'
+  });
+
+  if (!confirmed) return;
 
   const res = await api.deleteCliente(clientId);
   if (res && res.success !== false) {
@@ -142,8 +176,6 @@ export async function deleteClient(clientId) {
     currentClients = await api.getClientes();
     if (window.app) window.app.clients = [...currentClients];
     filterClientes();
-  } else {
-    alert('No se pudo eliminar el cliente. Verifique si tiene pedidos o guías registradas.');
   }
 }
 
