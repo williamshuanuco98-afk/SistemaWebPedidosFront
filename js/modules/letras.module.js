@@ -159,7 +159,7 @@ export function groupLetrasByBatch(list = []) {
   list.forEach(letra => {
     // Agrupar por id_lote o combinación Ref. Girador + Cliente + Fecha Giro
     const key = letra.id_lote ? letra.id_lote : `${letra.ref_girador || 'S-R'}_${letra.nombre_cliente || ''}_${letra.fecha_giro || ''}`;
-    
+
     if (!groupsMap.has(key)) {
       groupsMap.set(key, {
         id_lote: letra.id_lote || key,
@@ -179,10 +179,10 @@ export function groupLetrasByBatch(list = []) {
   const grouped = Array.from(groupsMap.values()).map(group => {
     // Ordenar letras del lote por correlativo o fecha
     group.letras.sort((a, b) => (a.numero_correlativo || 0) - (b.numero_correlativo || 0) || (a.id_letra || 0) - (b.id_letra || 0));
-    
+
     const totalCuotas = group.letras.length;
     const montoTotal = group.letras.reduce((sum, l) => sum + (parseFloat(l.monto) || 0), 0);
-    
+
     // Estado general
     const allAnuladas = group.letras.every(l => l.estado === 'ANULADA');
     const allCanceladas = group.letras.every(l => l.estado === 'CANCELADA' || l.estado === 'COBRADA');
@@ -281,7 +281,7 @@ export function updateMetrics(rawList = [], groupedList = []) {
   const totalOperaciones = groupedList.length;
   const totalLetras = rawList.length;
   const sumAmount = rawList.reduce((acc, curr) => curr.estado !== 'ANULADA' ? acc + (parseFloat(curr.monto) || 0) : acc, 0);
-  
+
   const clientSet = new Set(rawList.map(l => l.nro_documento || l.nombre_cliente).filter(Boolean));
 
   if (totalCountEl) totalCountEl.textContent = totalOperaciones;
@@ -345,7 +345,7 @@ export async function openGenerarLetrasModal() {
   document.getElementById('letraClienteDireccion').value = '';
   document.getElementById('letraRefGirador').value = '';
   document.getElementById('letraLugarGiro').value = 'LIMA';
-  
+
   const todayStr = new Date().toISOString().split('T')[0];
   document.getElementById('letraFechaGiro').value = todayStr;
   document.getElementById('letraMontoTotal').value = '';
@@ -552,7 +552,7 @@ export function recalcInstallments() {
     const cuotaCorr = correlativoBase + i;
     const nroLetra = `${String(cuotaCorr).padStart(3, '0')}-${anio}`;
     const diasCredito = previousDays[i] !== undefined ? previousDays[i] : (i + 1) * 30;
-    
+
     const vencDate = new Date(fechaGiroDate);
     vencDate.setDate(vencDate.getDate() + diasCredito);
     const vencStr = vencDate.toISOString().split('T')[0];
@@ -638,7 +638,7 @@ export function onInstallmentDaysChange(idx, daysVal) {
   if (generatedInstallments[idx]) {
     generatedInstallments[idx].dias_credito = days;
     generatedInstallments[idx].fecha_vencimiento = date.toISOString().split('T')[0];
-    
+
     const tr = document.getElementById('installmentRowsTbody')?.children[idx];
     if (tr) {
       const dateInput = tr.querySelector('input[type="date"]');
@@ -651,7 +651,7 @@ export function onInstallmentDueDateChange(idx, dateVal) {
   const fechaGiroStr = document.getElementById('letraFechaGiro')?.value || new Date().toISOString().split('T')[0];
   const gDate = new Date(fechaGiroStr + 'T00:00:00');
   const vDate = new Date(dateVal + 'T00:00:00');
-  
+
   const diffTime = vDate - gDate;
   const diffDays = Math.max(0, Math.round(diffTime / (1000 * 60 * 60 * 24)));
 
@@ -674,7 +674,7 @@ export function onInstallmentAmountChange(idx, amountVal) {
     generatedInstallments[idx].monto_letras = numeroALetras(m);
     const label = document.getElementById(`inst_letras_${idx}`);
     if (label) label.textContent = generatedInstallments[idx].monto_letras;
-    
+
     let sum = generatedInstallments.reduce((acc, curr) => acc + (parseFloat(curr.monto) || 0), 0);
     const totalEsperado = parseFloat(document.getElementById('letraMontoTotal')?.value) || 0;
     const diff = Math.abs(sum - totalEsperado);
@@ -820,13 +820,13 @@ export function openLoteDetailModal(idLote) {
         </thead>
         <tbody>
           ${lote.letras.map((l, idx) => {
-            const isAnulada = l.estado === 'ANULADA';
-            const mForm = (parseFloat(l.monto) || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            let badgeCls = 'bg-warning text-dark';
-            if (isAnulada) badgeCls = 'bg-danger text-white';
-            else if (l.estado === 'CANCELADA') badgeCls = 'bg-success text-white';
+    const isAnulada = l.estado === 'ANULADA';
+    const mForm = (parseFloat(l.monto) || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    let badgeCls = 'bg-warning text-dark';
+    if (isAnulada) badgeCls = 'bg-danger text-white';
+    else if (l.estado === 'CANCELADA') badgeCls = 'bg-success text-white';
 
-            return `
+    return `
               <tr>
                 <td class="text-center fw-bold text-muted">${idx + 1}</td>
                 <td class="font-monospace fw-bold text-primary">${escapeHtml(l.nro_letra)}</td>
@@ -858,7 +858,7 @@ export function openLoteDetailModal(idLote) {
                 </td>
               </tr>
             `;
-          }).join('')}
+  }).join('')}
         </tbody>
       </table>
     </div>
@@ -871,7 +871,7 @@ export function openLoteDetailModal(idLote) {
 export function downloadPdf(idLetra) {
   const savedPath = localStorage.getItem('inplabel_letras_pdf_storage_path') || 'C:\\Inplabel\\Letras';
   const sub = localStorage.getItem('inplabel_pdf_subfolders') !== 'false';
-  const url = `http://localhost:8080/api/letras/${idLetra}/pdf?storageDir=${encodeURIComponent(savedPath)}&useSubfolders=${sub}`;
+  const url = `http://localhost:8080/api/letras/${idLetra}/pdf?storageDir=${encodeURIComponent(savedPath)}&useSubfolders=${sub}&_t=${Date.now()}`;
   window.open(url, '_blank');
 }
 
@@ -935,312 +935,375 @@ export function generateLetraPrintHTML(letra) {
 <meta charset="UTF-8">
 <title>Letra de Cambio - ${nroLetra}</title>
 <style>
-  :root{
-    --green:#008c5a;
-    --black:#141414;
-    --lightgreen:#deebde;
-    --border:#141414;
-  }
   @page {
     size: A4 portrait;
-    margin: 10mm 12mm;
+    margin: 4mm 6mm;
   }
-  *{ box-sizing:border-box; }
-  body{
-    margin:0;
-    padding:0;
-    background:#fff;
-    font-family:"DejaVu Sans","Segoe UI",Arial,sans-serif;
-    color:var(--black);
-    display:flex;
-    justify-content:center;
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  .sheet{
-    background:#fff;
-    width:100%;
-    max-width:820px;
-    padding:10px 15px;
-    position:relative;
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #141414;
+    font-size: 10px;
   }
-
-  /* ---------- Encabezado ---------- */
-  .header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-    margin-bottom:14px;
-  }
-  .logo-block{
-    display:flex;
-    align-items:center;
-  }
-  .logo-img{
-    height:50px;
-    object-fit:contain;
-  }
-  .company-address{
-    text-align:right;
-    font-size:11px;
-    line-height:1.45;
-    padding-top:4px;
-    border-top:2px solid #444;
-    min-width:340px;
+  .sheet {
+    width: 100%;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 4px 6px;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
-  /* ---------- Tabla superior ---------- */
-  .doc-body{
-    display:flex;
+  /* Estructura general de 2 columnas principales */
+  .letra-layout {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
-  .side-label-wrap{
-    position:relative;
-    width:24px;
-    flex-shrink:0;
-    border:2px solid var(--border);
-    border-right:none;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#fafafa;
+
+  /* COLUMNA 1: CLÁUSULAS ESPECIALES (ALTURA EXACTA AL TOPE DEL CAJÓN VERDE) */
+  .clauses-col {
+    width: 95px;
+    min-width: 95px;
+    max-width: 95px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 282px;
+    margin-bottom: 20px;
   }
-  .side-label-wrap .txt{
+  .clauses-content {
     writing-mode: vertical-rl;
     transform: rotate(180deg);
-    white-space:nowrap;
-    font-size:9.5px;
-    font-weight:700;
-    text-align:center;
+    font-size: 5.8px;
+    line-height: 1.25;
+    letter-spacing: 0.05px;
+    height: 100%;
+    max-height: 282px;
+    overflow: hidden;
+    color: #111;
   }
-  .clauses-outer{
-    position:relative;
-    width:38px;
-    flex-shrink:0;
-    border:2px solid var(--border);
-    border-right:none;
-    padding:6px 2px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+  .clauses-title {
+    font-weight: bold;
+    font-size: 6.2px;
+    margin-bottom: 2px;
   }
-  .clauses-inner{
+  .clause-p {
+    margin-bottom: 2px;
+    text-align: justify;
+  }
+
+  /* COLUMNA 2: CONTENIDO PRINCIPAL */
+  .main-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Encabezado */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 6px;
+  }
+  .logo-img {
+    height: 48px;
+    object-fit: contain;
+  }
+  .company-address {
+    text-align: right;
+    font-size: 8.8px;
+    line-height: 1.35;
+    border-top: 1.5px solid #333;
+    padding-top: 3px;
+    min-width: 330px;
+  }
+
+  /* Contenedor lateral de firma (Línea de tamaño idéntico y texto alineado) */
+  .side-signature-container {
+    width: 24px;
+    min-width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .side-line {
+    width: 1px;
+    height: 62px;
+    border-left: 1.2px dashed #141414;
+  }
+  .side-tag-text {
     writing-mode: vertical-rl;
     transform: rotate(180deg);
-    font-size:7.2px;
-    line-height:1.15;
-    color:#111;
-    text-align:left;
-  }
-  .clauses-inner b{ font-size:7.5px; }
-
-  .main-col{ flex:1; min-width:0; }
-
-  table.topinfo{
-    border-collapse:collapse;
-    width:100%;
-    table-layout:fixed;
-  }
-  table.topinfo th, table.topinfo td{
-    border:2px solid var(--border);
-    text-align:center;
-    padding:4px 2px;
-  }
-  table.topinfo th{
-    font-size:10px;
-    font-weight:700;
-    background:#f0f5ee;
-  }
-  table.topinfo td.value{
-    font-size:13.5px;
-    font-weight:700;
-    padding:8px 2px;
-  }
-  table.topinfo td.value.amount{
-    font-size:15px;
-  }
-  table.topinfo .subhead{
-    font-size:9px;
-    font-weight:700;
-    background:#f0f5ee;
-    padding:2px 1px;
+    font-size: 8.5px;
+    font-weight: bold;
+    white-space: nowrap;
+    text-align: center;
   }
 
-  /* ---------- Frase orden de pago ---------- */
-  .pay-phrase{
-    margin:10px 0 6px 0;
-    font-size:12px;
-    padding-left:4px;
-  }
-  .pay-phrase b{ font-weight:700; }
-  .pay-phrase .beneficiary{
-    color:var(--green);
-    font-weight:700;
-    font-style:italic;
+  /* Sección Superior */
+  .upper-section {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    margin-bottom: 4px;
   }
 
-  .amount-words{
-    border:2px solid var(--border);
-    padding:8px 10px;
-    font-size:12.5px;
-    font-weight:700;
-    margin-bottom:8px;
-    background:#fff;
+  /* Tabla Superior de Giro & Vencimiento */
+  .top-table {
+    flex: 1;
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+  }
+  .top-table th, .top-table td {
+    border: 1.5px solid #141414;
+    text-align: center;
+    padding: 1px 2px;
+  }
+  .top-table th {
+    font-size: 7.6px;
+    font-weight: bold;
+    background: #E2EFDA !important;
+    line-height: 1.15;
+    height: 16px;
+  }
+  .top-table .subhead {
+    font-size: 7.2px;
+    font-weight: bold;
+    background: #E2EFDA !important;
+    padding: 1px;
+    height: 14px;
+  }
+  .top-table td.val {
+    font-size: 12.5px;
+    font-weight: bold;
+    height: 30px;
+    padding: 2px;
+  }
+  .top-table td.val.amount {
+    font-size: 14.5px;
   }
 
-  .payplace-note{
-    font-size:11px;
-    margin-bottom:8px;
-    padding-left:4px;
+  /* Frase de pago */
+  .pay-phrase {
+    padding: 4px 0 3px 30px;
+    font-size: 10.5px;
+  }
+  .pay-phrase .beneficiary {
+    color: #00AF50;
+    font-weight: bold;
+    font-style: italic;
   }
 
-  /* ---------- Tabla inferior ---------- */
-  .bottom-table{
-    display:grid;
-    grid-template-columns: 1fr 310px;
-    border:2px solid var(--border);
+  /* Monto en letras */
+  .amount-row-container {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 3px;
   }
-  .bt-left{
-    border-right:2px solid var(--border);
-    padding:10px 12px;
-    position:relative;
+  .amount-spacer {
+    width: 24px;
+    min-width: 24px;
   }
-  .bt-row{
-    display:flex;
-    gap:10px;
-    margin-bottom:8px;
-    font-size:11px;
-  }
-  .bt-row .lbl{
-    font-weight:700;
-    min-width:75px;
-    flex-shrink:0;
-  }
-  .bt-divider{
-    border-top:1px solid #333;
-    margin:8px 0 10px 0;
-  }
-  .dots{
-    border-bottom:1px dotted #333;
-    flex:1;
-    display:inline-block;
-    min-width:40px;
-    margin-left:4px;
-    height:13px;
-  }
-  .bt-row.inline{ align-items:flex-end; }
-  .bt-row.avalista .dots{ margin-left:8px; }
-
-  .bt-right{
-    padding:8px 10px;
-    display:flex;
-    flex-direction:column;
-  }
-  .debit-note{
-    font-size:9.5px;
-    margin-bottom:6px;
-  }
-  table.banktable{
-    border-collapse:collapse;
-    width:100%;
-    margin-bottom:6px;
-  }
-  table.banktable th, table.banktable td{
-    border:1.5px solid var(--border);
-    font-size:9px;
-    text-align:center;
-    padding:3px 1px;
-    font-weight:700;
-  }
-  table.banktable th{ background:#f0f5ee; }
-  table.banktable td.blank{ height:20px; }
-
-  .beneficiary-name{
-    color:var(--green);
-    font-weight:700;
-    font-style:italic;
-    text-align:center;
-    font-size:12px;
-    margin-top:6px;
-  }
-  .beneficiary-ruc{
-    text-align:center;
-    font-weight:700;
-    font-size:11px;
-    margin-bottom:14px;
-  }
-  .firma{
-    text-align:center;
-    margin-top:auto;
-  }
-  .firma .line{
-    border-bottom:1px dotted #333;
-    width:80%;
-    margin:0 auto 3px auto;
-  }
-  .firma .caption{
-    font-weight:700;
-    font-size:10.5px;
-  }
-  .firma .rep{
-    font-size:9.5px;
-    margin-top:1px;
-  }
-  .doi{
-    font-weight:700;
-    font-size:10px;
-    margin-top:4px;
-    text-align:left;
+  .amount-box {
+    flex: 1;
+    border: 1.5px solid #141414;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-weight: bold;
+    background: #fff;
   }
 
-  .footer-line{
-    border-top:1.5px solid var(--border);
-    margin-top:12px;
-    padding-top:4px;
-    font-size:10.5px;
+  /* Nota lugar de pago */
+  .payplace-note {
+    padding: 1px 0 4px 30px;
+    font-size: 9.2px;
+  }
+
+  /* Sección Inferior: Linea Firma + Por Aval + Cuadro Principal Inferior */
+  .lower-section {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .lower-box {
+    flex: 1;
+    display: flex;
+    border: 1.5px solid #141414;
+  }
+
+  /* Cuadro Izquierdo (Girado / Avalista): SIN NEGRITA, 1PT MENOR */
+  .lower-left {
+    width: 55%;
+    border-right: 1.5px solid #141414;
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 8.5px;
+    font-weight: normal;
+  }
+  .girado-row {
+    margin-bottom: 4px;
+    line-height: 1.35;
+    font-weight: normal;
+  }
+  .girado-row span.lbl {
+    display: inline-block;
+    min-width: 70px;
+    font-weight: normal;
+  }
+  .girado-divider {
+    border-top: 1px solid #333;
+    margin: 6px 0;
+  }
+  .aval-row {
+    margin-bottom: 4px;
+    display: flex;
+    align-items: flex-end;
+    font-weight: normal;
+  }
+  .aval-row span.lbl {
+    min-width: 70px;
+    flex-shrink: 0;
+    font-weight: normal;
+  }
+  .aval-dots {
+    border-bottom: 1px dotted #333;
+    flex: 1;
+    height: 11px;
+    margin-left: 2px;
+  }
+
+  .lower-right {
+    width: 45%;
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+  }
+  .debit-line {
+    font-size: 8px;
+    text-align: left;
+    margin-bottom: 4px;
+  }
+  .bank-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 4px;
+  }
+  .bank-table th, .bank-table td {
+    border: 1.5px solid #141414;
+    padding: 2px;
+    font-size: 7.5px;
+  }
+  .bank-table th {
+    background: #E2EFDA !important;
+    font-weight: bold;
+  }
+  .bank-table td {
+    height: 18px;
+  }
+  .company-title {
+    color: #00AF50;
+    font-weight: bold;
+    font-style: italic;
+    font-size: 11px;
+    margin-top: 4px;
+  }
+  .company-ruc {
+    font-weight: bold;
+    font-size: 9.5px;
+    margin-bottom: 6px;
+  }
+  .firma-block {
+    margin-top: auto;
+    text-align: center;
+  }
+  .sign-line {
+    border-bottom: 1px dotted #333;
+    width: 75%;
+    margin: 8px auto 2px auto;
+  }
+  .sign-text {
+    font-size: 9px;
+    font-weight: bold;
+  }
+  .rep-text {
+    font-size: 8px;
+    color: #333;
+  }
+  .doi-text {
+    font-size: 8.5px;
+    font-weight: bold;
+    text-align: left;
+    margin-top: 2px;
+  }
+
+  /* Pie de página */
+  .footer-line {
+    border-top: 1.5px solid #141414;
+    margin-top: 6px;
+    padding-top: 3px;
+    font-size: 8.5px;
+    text-align: left;
   }
 </style>
 </head>
 <body>
 
 <div class="sheet">
-
-  <!-- ENCABEZADO -->
-  <div class="header">
-    <div class="logo-block">
-      <img src="img/inplabel-logo.png" alt="Inplabel" class="logo-img" onerror="this.style.display='none'">
-    </div>
-    <div class="company-address">
-      <b>Av. María Parado de Bellido Lte. 5</b><br>
-      Lotización Chacra Cerro - Comas - Lima - Lima<br>
-      Telf.: (01)557-1526 Claro: 975 564 460 / 983 518 504
-    </div>
-  </div>
-
-  <div class="doc-body">
-    <!-- CLAUSULAS ESPECIALES (vertical, extremo izquierdo) -->
-    <div class="clauses-outer">
-      <div class="clauses-inner">
-        <b>CLÁUSULAS ESPECIALES:</b>
-        (1) En caso de mora, esta letra de cambio generará las tasas de interés compensatorio y moratorio más altas que la ley permita a su último Tenedor.
-        (2) El plazo de su vencimiento podrá ser prorrogado por el tenedor, por el plazo que este señale, sin que sea necesario la intervención del obligado principal ni de los solidarios.
-        (3) Las partes acuerdan consignar la cláusula "sin protesto" y por tanto no se requerirá de esta diligencia para el ejercicio de las acciones cambiarias.
-        (4) Las partes se someten a la competencia de los jueces del Distrito Judicial de Lima.
+  <div class="letra-layout">
+    <!-- COLUMNA CLÁUSULAS (SEPARADAS PUNTO POR PUNTO) -->
+    <div class="clauses-col">
+      <div class="clauses-content">
+        <div class="clauses-title">CLÁUSULAS ESPECIALES:</div>
+        <div class="clause-p">(1) En caso de mora , esta letra de cambio generará las tasas de interés compensatorio y moratorio más altas que la ley permita a su último Tenedor.</div>
+        <div class="clause-p">(2) El plazo de su vencimiento podrá ser prorrogado por el tenedor, por el plazo que este señale, sin que sea necesario la intervención del obligado principal ni de los solidarios.</div>
+        <div class="clause-p">(3) Las partes acuerdan consignar la cláusula "sin protesto" y por tanto no se requerirá de esta diligencia para el ejercicio de las acciones cambiarias.</div>
+        <div class="clause-p">(4) Las partes se someten a la competencia de los jueces del Distrito Judicial de Lima.</div>
       </div>
     </div>
 
+    <!-- COLUMNA PRINCIPAL -->
     <div class="main-col">
+      <!-- ENCABEZADO (LOGO DIRECTAMENTE SOBRE LAS TABLAS) -->
+      <div class="header">
+        <img src="img/inplabel-logo.png" alt="Inplabel" class="logo-img" onerror="this.style.display='none'">
+        <div class="company-address">
+          <b>Av. María Parado de Bellido Lte. 5</b><br>
+          Lotización Chacra Cerro - Comas - Lima - Lima<br>
+          Telf.: (01)557-1526 Claro: 975 564 460 / 983 518 504
+        </div>
+      </div>
 
-      <div style="display:flex;">
-        <!-- Aceptante(s) vertical -->
-        <div class="side-label-wrap"><span class="txt">Aceptante(s)</span></div>
-
-        <!-- TABLA SUPERIOR -->
-        <table class="topinfo">
+      <!-- 1. SECCION SUPERIOR CON LÍNEA DE FIRMA DELGADA Y ACEPTANTE -->
+      <div class="upper-section">
+        <div class="side-signature-container">
+          <div class="side-line" title="Línea de firma Aceptante"></div>
+          <span class="side-tag-text">Aceptante(s)</span>
+        </div>
+        <table class="top-table">
           <colgroup>
-            <col style="width:17%">
-            <col style="width:16%">
-            <col style="width:13%">
-            <col style="width:7.5%"><col style="width:7.5%"><col style="width:7.5%">
-            <col style="width:7.5%"><col style="width:7.5%"><col style="width:7.5%">
-            <col style="width:16.5%">
+            <col style="width: 17%;">
+            <col style="width: 16%;">
+            <col style="width: 13%;">
+            <col style="width: 6%;"><col style="width: 6%;"><col style="width: 6%;">
+            <col style="width: 6%;"><col style="width: 6%;"><col style="width: 6%;">
+            <col style="width: 18%;">
           </colgroup>
           <tr>
             <th rowspan="2">NUMERO DE LETRA</th>
@@ -1255,73 +1318,86 @@ export function generateLetraPrintHTML(letra) {
             <th class="subhead">DIA</th><th class="subhead">MES</th><th class="subhead">AÑO</th>
           </tr>
           <tr>
-            <td class="value">${nroLetra}</td>
-            <td class="value">${refGirador}</td>
-            <td class="value">${lugarGiro}</td>
-            <td class="value">${fgDia}</td><td class="value">${fgMes}</td><td class="value">${fgAnio}</td>
-            <td class="value">${fvDia}</td><td class="value">${fvMes}</td><td class="value">${fvAnio}</td>
-            <td class="value amount">S/ ${montoFormatted}</td>
+            <td class="val">${nroLetra}</td>
+            <td class="val">${refGirador}</td>
+            <td class="val">${lugarGiro}</td>
+            <td class="val">${fgDia}</td><td class="val">${fgMes}</td><td class="val">${fgAnio}</td>
+            <td class="val">${fvDia}</td><td class="val">${fvMes}</td><td class="val">${fvAnio}</td>
+            <td class="val amount">S/ ${montoFormatted}</td>
           </tr>
         </table>
       </div>
 
-      <!-- FRASE DE PAGO -->
+      <!-- 2. FRASE DE PAGO -->
       <div class="pay-phrase">
-        Por esta <b>LETRA DE CAMBIO</b>, se servirá(n) pagar a la orden de
-        <span class="beneficiary">INDUSTRIAS PLASTICOS BELSA S.A.C.</span> la cantidad de:
+        Por esta <b>LETRA DE CAMBIO</b>, se servirá(n) pagar a la orden de <span class="beneficiary">INDUSTRIAS PLASTICOS BELSA S.A.C.</span> la cantidad de:
       </div>
 
-      <div class="amount-words">${montoLetras}</div>
+      <!-- 3. MONTO EN LETRAS (ALINEADO CON EL CUADRO INFERIOR) -->
+      <div class="amount-row-container">
+        <div class="amount-spacer"></div>
+        <div class="amount-box">
+          ${montoLetras}
+        </div>
+      </div>
 
+      <!-- 4. LUGAR DE PAGO -->
       <div class="payplace-note">
         Valor que sentará(n) en cuenta según aviso de sus Ss. Ss. en el siguiente lugar de pago:
       </div>
 
-      <div style="display:flex;">
-        <!-- Por Aval vertical -->
-        <div class="side-label-wrap"><span class="txt">Por Aval</span></div>
-
-        <!-- TABLA INFERIOR -->
-        <div class="bottom-table" style="flex:1;">
-          <div class="bt-left">
-            <div class="bt-row"><span class="lbl">GIRADO A:</span><span><b>${cliente}</b></span></div>
-            <div class="bt-row"><span class="lbl">RUC:</span><span>${ruc}</span></div>
-            <div class="bt-row"><span class="lbl">DIRECCION:</span><span>${direccion}</span></div>
-
-            <div class="bt-divider"></div>
-
-            <div class="bt-row inline avalista"><span class="lbl">AVALISTA:</span><span class="dots"></span></div>
-            <div class="bt-row inline avalista">
-              <span class="lbl" style="min-width:60px;">D.I/R.U.C:</span><span class="dots" style="max-width:110px;"></span>
-              <span class="lbl" style="min-width:65px; margin-left:10px;">TELEFONO:</span><span class="dots"></span>
+      <!-- 5. SECCION INFERIOR CON LÍNEA DE FIRMA DELGADA Y POR AVAL -->
+      <div class="lower-section">
+        <div class="side-signature-container">
+          <div class="side-line" title="Línea de firma Por Aval"></div>
+          <span class="side-tag-text">Por Aval</span>
+        </div>
+        <div class="lower-box">
+          <!-- Lado Izquierdo: Girado y Aval (SIN NEGRITA, 1PT MENOR) -->
+          <div class="lower-left">
+            <div>
+              <div class="girado-row"><span class="lbl">GIRADO A:</span> ${cliente}</div>
+              <div class="girado-row"><span class="lbl">RUC:</span> ${ruc}</div>
+              <div class="girado-row"><span class="lbl">DIRECCION:</span> ${direccion}</div>
             </div>
-            <div class="bt-row inline avalista"><span class="lbl">DIRECCION:</span><span class="dots"></span></div>
+
+            <div class="girado-divider"></div>
+
+            <div>
+              <div class="aval-row"><span class="lbl">AVALISTA:</span> <span class="aval-dots"></span></div>
+              <div class="aval-row">
+                <span class="lbl" style="min-width:55px;">D.I/R.U.C:</span> <span class="aval-dots" style="max-width:110px;"></span>
+                <span class="lbl" style="min-width:65px; margin-left:10px;">TELEFONO:</span> <span class="aval-dots"></span>
+              </div>
+              <div class="aval-row"><span class="lbl">DIRECCION:</span> <span class="aval-dots"></span></div>
+            </div>
           </div>
 
-          <div class="bt-right">
-            <div class="debit-note">Importe a debitar en cuenta del Aceptante del Banco: ..............................</div>
-            <table class="banktable">
+          <!-- Lado Derecho: Banco y Firma -->
+          <div class="lower-right">
+            <div class="debit-line">Importe a debitar en cuenta del Aceptante del Banco: ..............................</div>
+            <table class="bank-table">
               <tr><th>BANCO</th><th>OFICINA</th><th>NUMERO DE CUENTA</th><th>D.C.</th></tr>
-              <tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+              <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
             </table>
-            <div class="beneficiary-name">INDUSTRIAS PLASTICOS BELSA S.A.C.</div>
-            <div class="beneficiary-ruc">RUC: 20544368827</div>
 
-            <div class="firma">
-              <div class="line"></div>
-              <div class="caption">FIRMA</div>
-              <div class="rep">Nombre del representante(S)</div>
+            <div class="company-title">INDUSTRIAS PLASTICOS BELSA S.A.C.</div>
+            <div class="company-ruc">RUC: 20544368827</div>
+
+            <div class="firma-block">
+              <div class="sign-line"></div>
+              <div class="sign-text">FIRMA</div>
+              <div class="rep-text">Nombre del representante(S)</div>
             </div>
-            <div class="doi">D.O.I</div>
+            <div class="doi-text">D.O.I</div>
           </div>
         </div>
       </div>
 
+      <!-- FOOTER -->
       <div class="footer-line">No escribir ni firmar debajo de esta linea</div>
-
     </div>
   </div>
-
 </div>
 
 </body>
