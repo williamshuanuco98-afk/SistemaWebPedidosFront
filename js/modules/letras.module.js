@@ -799,14 +799,9 @@ export function openLoteDetailModal(idLote) {
     </div>
 
     <!-- Tabla con Todas las Letras Desglosadas de la Referencia -->
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <h6 class="fw-bold text-white mb-0" style="color: #60a5fa !important;">
-        <i class="bi bi-file-earmark-ruled me-1"></i> Letras de Cambio Emitidas para esta Referencia (${lote.total_cuotas})
-      </h6>
-      <button class="btn btn-sm btn-outline-success fw-bold font-monospace" onclick="letrasModule.downloadLoteExcel('${escapeHtml(lote.id_lote)}')">
-        <i class="bi bi-file-earmark-excel-fill me-1"></i> Descargar Todo en Excel (.xlsx)
-      </button>
-    </div>
+    <h6 class="fw-bold text-white mb-2" style="color: #60a5fa !important;">
+      <i class="bi bi-file-earmark-ruled me-1"></i> Letras de Cambio Emitidas para esta Referencia (${lote.total_cuotas})
+    </h6>
     <div class="table-responsive border rounded mb-2">
       <table class="table custom-table table-sm align-middle mb-0">
         <thead>
@@ -817,9 +812,7 @@ export function openLoteDetailModal(idLote) {
             <th style="width: 120px;">F. Vencimiento</th>
             <th class="text-end" style="width: 130px;">Monto (S/)</th>
             <th>Monto en Letras</th>
-            <th style="width: 90px;" class="text-center">Estado</th>
             <th class="text-center" style="width: 70px;">PDF</th>
-            <th class="text-center" style="width: 70px;">EXCEL</th>
             <th class="text-center" style="width: 70px;">PRINT</th>
             <th class="text-center" style="width: 70px;">ANULAR</th>
           </tr>
@@ -828,9 +821,6 @@ export function openLoteDetailModal(idLote) {
           ${lote.letras.map((l, idx) => {
     const isAnulada = l.estado === 'ANULADA';
     const mForm = (parseFloat(l.monto) || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    let badgeCls = 'bg-warning text-dark';
-    if (isAnulada) badgeCls = 'bg-danger text-white';
-    else if (l.estado === 'CANCELADA') badgeCls = 'bg-success text-white';
 
     return `
               <tr>
@@ -840,15 +830,9 @@ export function openLoteDetailModal(idLote) {
                 <td class="small fw-semibold text-danger">${escapeHtml(l.fecha_vencimiento || '-')}</td>
                 <td class="text-end fw-bold font-monospace">S/ ${mForm}</td>
                 <td><small class="font-monospace text-muted d-block text-truncate" style="max-width: 260px;" title="${escapeHtml(l.monto_letras || '')}">${escapeHtml(l.monto_letras || '-')}</small></td>
-                <td class="text-center"><span class="badge ${badgeCls} fs-8">${escapeHtml(l.estado || 'PENDIENTE')}</span></td>
                 <td class="text-center">
                   <button class="btn-action-solid btn-pdf" title="Descargar PDF Oficial" onclick="letrasModule.downloadPdf(${l.id_letra})">
                     <i class="bi bi-file-earmark-pdf-fill"></i>
-                  </button>
-                </td>
-                <td class="text-center">
-                  <button class="btn-action-solid btn-excel" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);" title="Descargar Letra en Excel (.xlsx)" onclick="letrasModule.downloadExcel(${l.id_letra})">
-                    <i class="bi bi-file-earmark-excel-fill"></i>
                   </button>
                 </td>
                 <td class="text-center">
