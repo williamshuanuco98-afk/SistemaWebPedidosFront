@@ -229,8 +229,9 @@ class ModularSpaApp {
     } catch (e) {}
 
     this.updateUserUI();
+    authModule.initInactivityTracker();
 
-    if (!authModule.isAuthenticated()) {
+    if (!authModule.isAuthenticated() || authModule.checkSessionTimeout()) {
       await this.router.navigateTo('login');
       return;
     }

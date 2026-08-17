@@ -334,18 +334,20 @@
         </div>
       </div>
     </div>
+  </div>
+
   <!-- Modal de Confirmación Global Personalizado (Ventana Emergente Inplabel) -->
-  <div class="modal fade" id="globalConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal fade" id="globalConfirmModal" tabindex="-1" aria-hidden="true" style="z-index: 99999;">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
-      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--bg-card, #1e293b); border: 1px solid rgba(255,255,255,0.1) !important;">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--bg-card, #1e293b); border: 1px solid rgba(255,255,255,0.12) !important;">
         <div class="modal-body p-4 text-center">
-          <div id="globalConfirmIconBox" class="mb-3 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 68px; height: 68px; background: rgba(239, 68, 68, 0.12); color: #ef4444;">
+          <div id="globalConfirmIconBox" class="mb-3 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 68px; height: 68px; background: rgba(239, 68, 68, 0.15); color: #ef4444;">
             <i id="globalConfirmIcon" class="bi bi-box-arrow-right fs-2"></i>
           </div>
-          <h5 id="globalConfirmTitle" class="fw-bold mb-2">¿Cerrar Sesión?</h5>
-          <p id="globalConfirmMessage" class="text-muted small mb-4">¿Está seguro de que desea salir del sistema?</p>
+          <h5 id="globalConfirmTitle" class="fw-bold mb-2 text-white">¿Cerrar Sesión?</h5>
+          <p id="globalConfirmMessage" class="text-white-50 small mb-4">¿Está seguro de que desea salir del sistema?</p>
           <div class="d-flex gap-2 justify-content-center">
-            <button type="button" id="globalConfirmCancelBtn" class="btn btn-secondary flex-fill py-2 rounded-3 fw-semibold" data-bs-dismiss="modal">
+            <button type="button" id="globalConfirmCancelBtn" class="btn btn-outline-secondary flex-fill py-2 rounded-3 fw-semibold" data-bs-dismiss="modal">
               Cancelar
             </button>
             <button type="button" id="globalConfirmActionBtn" class="btn btn-danger flex-fill py-2 rounded-3 fw-bold shadow-sm">
@@ -358,7 +360,7 @@
   </div>
 
   <!-- Application Modular Script -->
-  <script type="module" src="js/main.js?v=1106.0"></script>
+  <script type="module" src="js/main.js?v=1107.0"></script>
 </body>
 
 </html>

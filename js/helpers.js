@@ -215,7 +215,15 @@ export function showConfirmModal({
     }
     if (cancelBtn) cancelBtn.textContent = cancelText;
 
-    const bsModal = new bootstrap.Modal(modalElem, { backdrop: 'static' });
+    const bsModal = (typeof bootstrap !== 'undefined' && bootstrap.Modal) 
+      ? (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalElem) : new bootstrap.Modal(modalElem))
+      : null;
+    
+    if (!bsModal) {
+      resolve(true);
+      return;
+    }
+
     let isResolved = false;
 
     const cleanup = () => {
@@ -227,7 +235,7 @@ export function showConfirmModal({
       if (isResolved) return;
       isResolved = true;
       bsModal.hide();
-      setTimeout(cleanup, 200);
+      setTimeout(cleanup, 250);
       resolve(true);
     };
 
@@ -235,7 +243,7 @@ export function showConfirmModal({
       if (isResolved) return;
       isResolved = true;
       bsModal.hide();
-      setTimeout(cleanup, 200);
+      setTimeout(cleanup, 250);
       resolve(false);
     };
 
