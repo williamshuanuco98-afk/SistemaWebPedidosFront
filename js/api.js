@@ -1,4 +1,6 @@
-const BASE_URL = 'http://localhost:8080/api';
+const BASE_URL = (typeof window !== 'undefined' && (window.location.port === '8080' || !window.location.port))
+  ? '/api'
+  : `http://${(typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname : 'localhost'}:8080/api`;
 
 async function fetchWithTimeout(resource, options = {}) {
   const { timeout = 3000, headers = {}, ...fetchOptions } = options;
