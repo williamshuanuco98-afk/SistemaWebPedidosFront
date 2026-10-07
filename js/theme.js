@@ -27,13 +27,22 @@ export const themeManager = {
 
     const logoImg = document.getElementById('brandLogoImg');
     const themeLabel = document.getElementById('themeToggleLabel');
+    const sidebarThemeLabel = document.getElementById('sidebarThemeLabel');
+    const sidebarThemeIcon = document.getElementById('sidebarThemeIcon');
+    const themeSwitchCheckbox = document.getElementById('themeSwitchCheckbox');
 
     if (theme === 'dark') {
       if (logoImg) logoImg.src = 'img/operix-logo-dark.png';
       if (themeLabel) themeLabel.textContent = 'Modo Oscuro';
+      if (sidebarThemeLabel) sidebarThemeLabel.textContent = 'Modo Oscuro';
+      if (sidebarThemeIcon) sidebarThemeIcon.className = 'bi bi-moon-stars-fill icon text-warning';
+      if (themeSwitchCheckbox) themeSwitchCheckbox.checked = true;
     } else {
       if (logoImg) logoImg.src = 'img/operix-logo.png';
       if (themeLabel) themeLabel.textContent = 'Modo Claro';
+      if (sidebarThemeLabel) sidebarThemeLabel.textContent = 'Modo Claro';
+      if (sidebarThemeIcon) sidebarThemeIcon.className = 'bi bi-sun-fill icon text-warning';
+      if (themeSwitchCheckbox) themeSwitchCheckbox.checked = false;
     }
 
     // Force synchronous layout paint before re-enabling transitions

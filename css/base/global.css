@@ -1,6 +1,6 @@
-/* Instant theme switch without transition lag/delay */
-.no-transitions,
-.no-transitions *,
+/* Instant theme switch without transition lag/delay (except smooth switch knob) */
+.no-transitions:not(.theme-switch-input),
+.no-transitions *:not(.theme-switch-input):not(.sidebar-theme-switch-wrapper),
 .no-transitions *::before,
 .no-transitions *::after {
   transition: none !important;
