@@ -2389,7 +2389,7 @@ export class Router {
     // Strict Route Guard: if not authenticated, redirect to login
     const isAuth = window.authModule && typeof window.authModule.isAuthenticated === 'function'
       ? window.authModule.isAuthenticated()
-      : Boolean(localStorage.getItem('inplabel_user'));
+      : false;
 
     if (!isAuth) {
       route = 'login';
